@@ -1,6 +1,6 @@
 # whimsy-ui
 
-Five small, tactile SwiftUI components, each with a pure-Swift, unit-tested core:
+Six small, tactile SwiftUI components, each with a pure-Swift, unit-tested core:
 
 | | Component | What it does |
 |---|---|---|
@@ -9,10 +9,11 @@ Five small, tactile SwiftUI components, each with a pure-Swift, unit-tested core
 | 🩹 | **EraserDelete** | Delete a card by rubbing it out with a zig-zagging pink eraser, with crumbs. Automatic or manual scrub. |
 | 📷 | **ShutterReveal** | A camera-iris reveal: metallic blades swirl open with overshoot and snap shut. |
 | 👀 | **AliveEyes** | Two cartoon eyes with a spring gaze, saccades, asymmetric blinks and a shake-triggered squint. |
+| 🧩 | **ScatterRegroup** | Tap a tile grid: tiles fling out tilted, then spring home in a ripple from the centre, ticking as they land. |
 
 iOS 17+ / macOS 14+, Swift tools 6.0 (Swift 6 language mode).
 
-> **Honest status:** every core target builds, and all 143 tests pass on Linux (Swift 6.4).
+> **Honest status:** every core target builds, and all 162 tests pass on Linux (Swift 6.4).
 > The SwiftUI targets have **not yet been compiled or run on an Apple platform**. On Linux
 > they compile to empty modules (`#if canImport(SwiftUI)`). They were checked with
 > sourcekit-lsp (0 diagnostics), `swiftc -parse` and careful API review, but expect
@@ -39,8 +40,8 @@ targets: [
 ```
 
 Each component is its own product: `PopTherapy`, `MagneticBeadSlider`, `EraserDelete`,
-`ShutterReveal` and `AliveEyes`. There's also a SwiftUI-free `…Core` product for each
-(e.g. `ShutterRevealCore`), plus `WhimsyGallery`, a demo list of all five.
+`ShutterReveal`, `AliveEyes` and `ScatterRegroup`. There's also a SwiftUI-free `…Core` product for each
+(e.g. `ShutterRevealCore`), plus `WhimsyGallery`, a demo list of all six.
 
 ```swift
 import WhimsyGallery
@@ -137,6 +138,31 @@ Timings follow Matt Busel's ["Making two cartoon eyes feel alive"](https://dev.t
 - Blinks every 2.2–6.5 s, 70 ms close / 100 ms open, 18% double blinks.
 - Shake (Core Motion, iOS) to squint; double-tap or `squintTrigger` elsewhere.
 
+### 🧩 ScatterRegroup
+
+![ScatterRegroup](docs/scatter.gif)
+
+```swift
+import ScatterRegroup
+
+ScatterRegroupGrid()                                  // 4 × 6, tap to toggle
+ScatterRegroupGrid(columns: 3, rows: 4, seed: 7, isScattered: $isScattered)
+```
+
+- **Scatter:** each tile flies to a random spot, tilted up to ±25° and scaled 0.86–1.14.
+  Targets are inset by the tile's half-diagonal, so a tilted tile never leaves the bounds.
+- **Springs:** every tile has its own stiffness (150 × 0.7–1.3, fixed per seed) at damping
+  0.62, so they arrive at slightly different times with a little bounce.
+- **Regroup:** delays grow with distance from the centre (0 → 0.38 s), giving a ripple
+  outward. Each tile reports its landing once, and a light haptic ticks at most every
+  50 ms, so a burst of landings doesn't blur together.
+
+> **Stagger alternative:** if you'd rather express the ripple with SwiftUI's own
+> animations instead of a simulated spring per tile, jazzychad's
+> [AnimationSequencing](https://github.com/jazzychad/AnimationSequencing) choreographs
+> SwiftUI animations into ordered sequences of steps. It isn't a dependency here: the core does its own staggering so
+> it stays deterministic and testable on Linux.
+
 ---
 
 ## Accessibility
@@ -150,9 +176,10 @@ Every component handles **Reduce Motion**, each in its own way:
 | EraserDelete | Quick fade. |
 | ShutterReveal | Crossfade. |
 | AliveEyes | No saccades, gentler blinks. |
+| ScatterRegroup | Crossfade between the grid and the scattered layout. |
 
-All five have VoiceOver labels and actions (e.g. pop next bubble, adjustable slider,
-erase, open/close shutter, squint).
+All six have VoiceOver labels and actions (e.g. pop next bubble, adjustable slider,
+erase, open/close shutter, squint, scatter/regroup).
 
 ## Layout
 
@@ -164,7 +191,8 @@ Sources/
   EraserDeleteCore/      EraserDelete/
   ShutterRevealCore/     ShutterReveal/
   AliveEyesCore/         AliveEyes/
-  WhimsyGallery/         Demo gallery of all five
+  ScatterRegroupCore/    ScatterRegroup/
+  WhimsyGallery/         Demo gallery of all six
 Tests/                   Swift Testing suites for WhimsyCore and every core
 docs/                    README GIFs
 ```

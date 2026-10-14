@@ -25,12 +25,14 @@ let package = Package(
         .library(name: "EraserDelete", targets: ["EraserDelete"]),
         .library(name: "ShutterReveal", targets: ["ShutterReveal"]),
         .library(name: "AliveEyes", targets: ["AliveEyes"]),
+        .library(name: "ScatterRegroup", targets: ["ScatterRegroup"]),
         // The pure-Swift cores on their own (no SwiftUI; build anywhere).
         .library(name: "PopTherapyCore", targets: ["PopTherapyCore"]),
         .library(name: "MagneticBeadCore", targets: ["MagneticBeadCore"]),
         .library(name: "EraserDeleteCore", targets: ["EraserDeleteCore"]),
         .library(name: "ShutterRevealCore", targets: ["ShutterRevealCore"]),
         .library(name: "AliveEyesCore", targets: ["AliveEyesCore"]),
+        .library(name: "ScatterRegroupCore", targets: ["ScatterRegroupCore"]),
         // A demo gallery listing all five.
         .library(name: "WhimsyGallery", targets: ["WhimsyGallery"]),
     ],
@@ -54,8 +56,11 @@ let package = Package(
         .target(name: "AliveEyesCore", dependencies: ["WhimsyCore"]),
         .target(name: "AliveEyes", dependencies: ["AliveEyesCore"]),
 
+        .target(name: "ScatterRegroupCore", dependencies: ["WhimsyCore"]),
+        .target(name: "ScatterRegroup", dependencies: ["ScatterRegroupCore"]),
+
         .target(name: "WhimsyGallery", dependencies: [
-            "PopTherapy", "MagneticBeadSlider", "EraserDelete", "ShutterReveal", "AliveEyes",
+            "PopTherapy", "MagneticBeadSlider", "EraserDelete", "ShutterReveal", "AliveEyes", "ScatterRegroup",
         ]),
 
         .testTarget(name: "WhimsyCoreTests", dependencies: ["WhimsyCore"]),
@@ -64,5 +69,6 @@ let package = Package(
         .testTarget(name: "EraserDeleteCoreTests", dependencies: ["EraserDeleteCore"]),
         .testTarget(name: "ShutterRevealCoreTests", dependencies: ["ShutterRevealCore"]),
         .testTarget(name: "AliveEyesCoreTests", dependencies: ["AliveEyesCore"]),
+        .testTarget(name: "ScatterRegroupCoreTests", dependencies: ["ScatterRegroupCore"]),
     ]
 )

@@ -8,8 +8,9 @@ import MagneticBeadSlider
 import EraserDelete
 import ShutterReveal
 import AliveEyes
+import ScatterRegroup
 
-/// A navigation list of all five components with a small live demo of each.
+/// A navigation list of all six components with a small live demo of each.
 /// Drop `WhimsyGallery()` into a scene to browse them.
 public struct WhimsyGallery: View {
     public init() {}
@@ -41,7 +42,7 @@ public struct WhimsyGallery: View {
 }
 
 enum GalleryItem: String, CaseIterable, Identifiable, Hashable {
-    case popTherapy, magneticBeads, eraserDelete, shutterReveal, aliveEyes
+    case popTherapy, magneticBeads, eraserDelete, shutterReveal, aliveEyes, scatterRegroup
     var id: String { rawValue }
 
     var title: String {
@@ -51,6 +52,7 @@ enum GalleryItem: String, CaseIterable, Identifiable, Hashable {
         case .eraserDelete: "Eraser Delete"
         case .shutterReveal: "Shutter Reveal"
         case .aliveEyes: "Alive Eyes"
+        case .scatterRegroup: "Scatter & Regroup"
         }
     }
 
@@ -61,6 +63,7 @@ enum GalleryItem: String, CaseIterable, Identifiable, Hashable {
         case .eraserDelete: "Delete by rubbing it out"
         case .shutterReveal: "Camera-iris reveal with springy blades"
         case .aliveEyes: "Eyes with saccades, blinks and squints"
+        case .scatterRegroup: "Tiles fling out and ripple back home"
         }
     }
 
@@ -71,6 +74,7 @@ enum GalleryItem: String, CaseIterable, Identifiable, Hashable {
         case .eraserDelete: "eraser.fill"
         case .shutterReveal: "camera.aperture"
         case .aliveEyes: "eyes"
+        case .scatterRegroup: "square.grid.3x3.square"
         }
     }
 
@@ -81,6 +85,7 @@ enum GalleryItem: String, CaseIterable, Identifiable, Hashable {
         case .eraserDelete: EraserDemo()
         case .shutterReveal: ShutterDemo()
         case .aliveEyes: EyesDemo()
+        case .scatterRegroup: ScatterDemo()
         }
     }
 }
@@ -156,6 +161,20 @@ private struct EyesDemo: View {
                 .background(face, in: .rect(cornerRadius: 36))
                 .padding(.horizontal)
             Button("Squint") { squints += 1 }.buttonStyle(.borderedProminent)
+        }
+    }
+}
+
+private struct ScatterDemo: View {
+    @State private var isScattered = false
+    var body: some View {
+        VStack(spacing: 16) {
+            ScatterRegroupGrid(isScattered: $isScattered)
+                .aspectRatio(0.68, contentMode: .fit)
+                .padding(.horizontal)
+            Text(isScattered ? "Tap to regroup" : "Tap to scatter")
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
         }
     }
 }
