@@ -1,0 +1,166 @@
+//  WhimsyGallery.swift
+//  A demo gallery listing every whimsy-ui component, built only from their public APIs.
+
+#if canImport(SwiftUI)
+import SwiftUI
+import PopTherapy
+import MagneticBeadSlider
+import EraserDelete
+import ShutterReveal
+import AliveEyes
+
+/// A navigation list of all five components with a small live demo of each.
+/// Drop `WhimsyGallery()` into a scene to browse them.
+public struct WhimsyGallery: View {
+    public init() {}
+
+    public var body: some View {
+        NavigationStack {
+            List(GalleryItem.allCases) { item in
+                NavigationLink(value: item) {
+                    Label {
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text(item.title).font(.headline)
+                            Text(item.subtitle).font(.subheadline).foregroundStyle(.secondary)
+                        }
+                    } icon: {
+                        Image(systemName: item.symbol).foregroundStyle(.tint)
+                    }
+                }
+            }
+            .navigationTitle("Whimsy")
+            .navigationDestination(for: GalleryItem.self) { item in
+                item.demo
+                    .navigationTitle(item.title)
+                    #if os(iOS)
+                    .navigationBarTitleDisplayMode(.inline)
+                    #endif
+            }
+        }
+    }
+}
+
+enum GalleryItem: String, CaseIterable, Identifiable, Hashable {
+    case popTherapy, magneticBeads, eraserDelete, shutterReveal, aliveEyes
+    var id: String { rawValue }
+
+    var title: String {
+        switch self {
+        case .popTherapy: "Pop Therapy"
+        case .magneticBeads: "Magnetic Bead Slider"
+        case .eraserDelete: "Eraser Delete"
+        case .shutterReveal: "Shutter Reveal"
+        case .aliveEyes: "Alive Eyes"
+        }
+    }
+
+    var subtitle: String {
+        switch self {
+        case .popTherapy: "Bubble wrap with squish, haptics and a gift"
+        case .magneticBeads: "Beads that trail the thumb like a chain"
+        case .eraserDelete: "Delete by rubbing it out"
+        case .shutterReveal: "Camera-iris reveal with springy blades"
+        case .aliveEyes: "Eyes with saccades, blinks and squints"
+        }
+    }
+
+    var symbol: String {
+        switch self {
+        case .popTherapy: "circle.grid.3x3.fill"
+        case .magneticBeads: "slider.horizontal.3"
+        case .eraserDelete: "eraser.fill"
+        case .shutterReveal: "camera.aperture"
+        case .aliveEyes: "eyes"
+        }
+    }
+
+    @MainActor @ViewBuilder var demo: some View {
+        switch self {
+        case .popTherapy: PopTherapyView().padding()
+        case .magneticBeads: BeadsDemo()
+        case .eraserDelete: EraserDemo()
+        case .shutterReveal: ShutterDemo()
+        case .aliveEyes: EyesDemo()
+        }
+    }
+}
+
+private struct BeadsDemo: View {
+    @State private var stepped = 0.4
+    @State private var smooth = 0.25
+    var body: some View {
+        VStack(alignment: .leading, spacing: 32) {
+            Text("Stepped · \(Int((stepped * 100).rounded()))%").font(.subheadline).foregroundStyle(.secondary)
+            MagneticBeadSlider(value: $stepped, steps: 10)
+            Text("Continuous · \(Int((smooth * 100).rounded()))%").font(.subheadline).foregroundStyle(.secondary)
+            MagneticBeadSlider(value: $smooth, steps: 0)
+        }
+        .padding(24)
+    }
+}
+
+private struct EraserDemo: View {
+    private struct Note: Identifiable { let id = UUID(); let text: String }
+    @State private var notes = ["Buy oat milk", "Call the dentist", "Water the ferns", "Book train tickets"]
+        .map { Note(text: $0) }
+    @State private var erasing: Set<UUID> = []
+
+    var body: some View {
+        List {
+            ForEach(notes) { note in
+                ErasableCard(
+                    isErasing: Binding(
+                        get: { erasing.contains(note.id) },
+                        set: { if $0 { erasing.insert(note.id) } else { erasing.remove(note.id) } }
+                    ),
+                    onErased: { notes.removeAll { $0.id == note.id } }
+                ) {
+                    Text(note.text)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .padding()
+                        .background(.yellow.opacity(0.35), in: .rect(cornerRadius: 12))
+                }
+                .listRowSeparator(.hidden)
+                .swipeActions {
+                    Button("Erase", systemImage: "eraser") { erasing.insert(note.id) }.tint(.pink)
+                }
+            }
+        }
+        .listStyle(.plain)
+    }
+}
+
+private struct ShutterDemo: View {
+    @State private var isOpen = false
+    var body: some View {
+        VStack(spacing: 24) {
+            LinearGradient(colors: [.indigo, .pink, .orange], startPoint: .top, endPoint: .bottom)
+                .overlay(alignment: .bottomLeading) {
+                    Text("Golden hour").font(.title2.bold()).foregroundStyle(.white).padding(20)
+                }
+                .frame(width: 300, height: 380)
+                .shutterRevealOnTap(isOpen: $isOpen)
+                .clipShape(.rect(cornerRadius: 28))
+            Button(isOpen ? "Close" : "Open") { isOpen.toggle() }.buttonStyle(.borderedProminent)
+        }
+    }
+}
+
+private struct EyesDemo: View {
+    @State private var squints = 0
+    private let face = Color(red: 0.98, green: 0.80, blue: 0.56)
+    var body: some View {
+        VStack(spacing: 20) {
+            AliveEyesView(lidColor: face, squintTrigger: squints)
+                .frame(height: 260)
+                .background(face, in: .rect(cornerRadius: 36))
+                .padding(.horizontal)
+            Button("Squint") { squints += 1 }.buttonStyle(.borderedProminent)
+        }
+    }
+}
+
+#Preview("Whimsy Gallery") {
+    WhimsyGallery()
+}
+#endif
