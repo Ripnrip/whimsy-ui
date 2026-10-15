@@ -1,6 +1,6 @@
 # whimsy-ui
 
-Six small, tactile SwiftUI components, each with a pure-Swift, unit-tested core:
+Seven small, tactile SwiftUI components, each with a pure-Swift, unit-tested core:
 
 | | Component | What it does |
 |---|---|---|
@@ -10,10 +10,11 @@ Six small, tactile SwiftUI components, each with a pure-Swift, unit-tested core:
 | 📷 | **ShutterReveal** | A camera-iris reveal: metallic blades swirl open with overshoot and snap shut. |
 | 👀 | **AliveEyes** | Two cartoon eyes with a spring gaze, saccades, asymmetric blinks and a shake-triggered squint. |
 | 🧩 | **ScatterRegroup** | Tap a tile grid: tiles fling out tilted, then spring home in a ripple from the centre, ticking as they land. |
+| ☀️ | **SolarFlareLike** | A like button: the heart pulses while curved, tapering flare ribbons erupt in a swirl. |
 
 iOS 17+ / macOS 14+, Swift tools 6.0 (Swift 6 language mode).
 
-> **Honest status:** every core target builds, and all 162 tests pass on Linux (Swift 6.4).
+> **Honest status:** every core target builds, and all 178 tests pass on Linux (Swift 6.4).
 > The SwiftUI targets have **not yet been compiled or run on an Apple platform**. On Linux
 > they compile to empty modules (`#if canImport(SwiftUI)`). They were checked with
 > sourcekit-lsp (0 diagnostics), `swiftc -parse` and careful API review, but expect
@@ -40,8 +41,8 @@ targets: [
 ```
 
 Each component is its own product: `PopTherapy`, `MagneticBeadSlider`, `EraserDelete`,
-`ShutterReveal`, `AliveEyes` and `ScatterRegroup`. There's also a SwiftUI-free `…Core` product for each
-(e.g. `ShutterRevealCore`), plus `WhimsyGallery`, a demo list of all six.
+`ShutterReveal`, `AliveEyes`, `ScatterRegroup` and `SolarFlareLike`. There's also a SwiftUI-free `…Core` product for each
+(e.g. `ShutterRevealCore`), plus `WhimsyGallery`, a demo list of all seven.
 
 ```swift
 import WhimsyGallery
@@ -163,6 +164,29 @@ ScatterRegroupGrid(columns: 3, rows: 4, seed: 7, isScattered: $isScattered)
 > SwiftUI animations into ordered sequences of steps. It isn't a dependency here: the core does its own staggering so
 > it stays deterministic and testable on Linux.
 
+### ☀️ SolarFlareLike
+
+![SolarFlareLike](docs/flare.gif)
+
+```swift
+import SolarFlareLike
+
+@State private var isLiked = false
+SolarFlareLikeButton(isLiked: $isLiked)               // 44 pt heart
+SolarFlareLikeButton(isLiked: $isLiked, size: 72, label: Text("Like post"))
+```
+
+- **Like:** the heart pulses 1 → 1.25 → 1 on a spring, and 7–9 flare ribbons launch in
+  random order over 120 ms. The ribbons share one swirl direction, and each tapers to a
+  point.
+- **Ribbon motion:** each ribbon's tip follows a closed-form spring (ω 22, ζ 0.55), with the
+  tail 160 ms behind. So a ribbon shoots out, detaches and shrinks away as it fades over
+  0.62 s, colored gold → orange → magenta.
+- **Unlike:** a quick shrink to 0.8, with no flare.
+- **Haptics:** a light haptic fires on like only.
+- **Room to draw:** the flare draws outside the button (a centred square 2.6× its size) and
+  never intercepts touches.
+
 ---
 
 ## Accessibility
@@ -177,9 +201,10 @@ Every component handles **Reduce Motion**, each in its own way:
 | ShutterReveal | Crossfade. |
 | AliveEyes | No saccades, gentler blinks. |
 | ScatterRegroup | Crossfade between the grid and the scattered layout. |
+| SolarFlareLike | No ribbons or pulse; the heart's fill/colour change crossfades. |
 
-All six have VoiceOver labels and actions (e.g. pop next bubble, adjustable slider,
-erase, open/close shutter, squint, scatter/regroup).
+All seven have VoiceOver labels and actions (e.g. pop next bubble, adjustable slider,
+erase, open/close shutter, squint, scatter/regroup, and a like toggle with the toggle trait and a Liked / Not liked value).
 
 ## Layout
 
@@ -192,7 +217,8 @@ Sources/
   ShutterRevealCore/     ShutterReveal/
   AliveEyesCore/         AliveEyes/
   ScatterRegroupCore/    ScatterRegroup/
-  WhimsyGallery/         Demo gallery of all six
+  SolarFlareCore/        SolarFlareLike/
+  WhimsyGallery/         Demo gallery of all seven
 Tests/                   Swift Testing suites for WhimsyCore and every core
 docs/                    README GIFs
 ```

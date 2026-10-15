@@ -26,6 +26,7 @@ let package = Package(
         .library(name: "ShutterReveal", targets: ["ShutterReveal"]),
         .library(name: "AliveEyes", targets: ["AliveEyes"]),
         .library(name: "ScatterRegroup", targets: ["ScatterRegroup"]),
+        .library(name: "SolarFlareLike", targets: ["SolarFlareLike"]),
         // The pure-Swift cores on their own (no SwiftUI; build anywhere).
         .library(name: "PopTherapyCore", targets: ["PopTherapyCore"]),
         .library(name: "MagneticBeadCore", targets: ["MagneticBeadCore"]),
@@ -33,6 +34,7 @@ let package = Package(
         .library(name: "ShutterRevealCore", targets: ["ShutterRevealCore"]),
         .library(name: "AliveEyesCore", targets: ["AliveEyesCore"]),
         .library(name: "ScatterRegroupCore", targets: ["ScatterRegroupCore"]),
+        .library(name: "SolarFlareCore", targets: ["SolarFlareCore"]),
         // A demo gallery listing all five.
         .library(name: "WhimsyGallery", targets: ["WhimsyGallery"]),
     ],
@@ -59,8 +61,11 @@ let package = Package(
         .target(name: "ScatterRegroupCore", dependencies: ["WhimsyCore"]),
         .target(name: "ScatterRegroup", dependencies: ["ScatterRegroupCore"]),
 
+        .target(name: "SolarFlareCore", dependencies: ["WhimsyCore"]),
+        .target(name: "SolarFlareLike", dependencies: ["SolarFlareCore"]),
+
         .target(name: "WhimsyGallery", dependencies: [
-            "PopTherapy", "MagneticBeadSlider", "EraserDelete", "ShutterReveal", "AliveEyes", "ScatterRegroup",
+            "PopTherapy", "MagneticBeadSlider", "EraserDelete", "ShutterReveal", "AliveEyes", "ScatterRegroup", "SolarFlareLike",
         ]),
 
         .testTarget(name: "WhimsyCoreTests", dependencies: ["WhimsyCore"]),
@@ -70,5 +75,6 @@ let package = Package(
         .testTarget(name: "ShutterRevealCoreTests", dependencies: ["ShutterRevealCore"]),
         .testTarget(name: "AliveEyesCoreTests", dependencies: ["AliveEyesCore"]),
         .testTarget(name: "ScatterRegroupCoreTests", dependencies: ["ScatterRegroupCore"]),
+        .testTarget(name: "SolarFlareCoreTests", dependencies: ["SolarFlareCore"]),
     ]
 )

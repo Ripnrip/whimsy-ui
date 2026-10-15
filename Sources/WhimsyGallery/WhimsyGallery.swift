@@ -9,8 +9,9 @@ import EraserDelete
 import ShutterReveal
 import AliveEyes
 import ScatterRegroup
+import SolarFlareLike
 
-/// A navigation list of all six components with a small live demo of each.
+/// A navigation list of all seven components with a small live demo of each.
 /// Drop `WhimsyGallery()` into a scene to browse them.
 public struct WhimsyGallery: View {
     public init() {}
@@ -42,7 +43,7 @@ public struct WhimsyGallery: View {
 }
 
 enum GalleryItem: String, CaseIterable, Identifiable, Hashable {
-    case popTherapy, magneticBeads, eraserDelete, shutterReveal, aliveEyes, scatterRegroup
+    case popTherapy, magneticBeads, eraserDelete, shutterReveal, aliveEyes, scatterRegroup, solarFlare
     var id: String { rawValue }
 
     var title: String {
@@ -53,6 +54,7 @@ enum GalleryItem: String, CaseIterable, Identifiable, Hashable {
         case .shutterReveal: "Shutter Reveal"
         case .aliveEyes: "Alive Eyes"
         case .scatterRegroup: "Scatter & Regroup"
+        case .solarFlare: "Solar Flare Like"
         }
     }
 
@@ -64,6 +66,7 @@ enum GalleryItem: String, CaseIterable, Identifiable, Hashable {
         case .shutterReveal: "Camera-iris reveal with springy blades"
         case .aliveEyes: "Eyes with saccades, blinks and squints"
         case .scatterRegroup: "Tiles fling out and ripple back home"
+        case .solarFlare: "A like button that erupts"
         }
     }
 
@@ -75,6 +78,7 @@ enum GalleryItem: String, CaseIterable, Identifiable, Hashable {
         case .shutterReveal: "camera.aperture"
         case .aliveEyes: "eyes"
         case .scatterRegroup: "square.grid.3x3.square"
+        case .solarFlare: "heart.fill"
         }
     }
 
@@ -86,6 +90,7 @@ enum GalleryItem: String, CaseIterable, Identifiable, Hashable {
         case .shutterReveal: ShutterDemo()
         case .aliveEyes: EyesDemo()
         case .scatterRegroup: ScatterDemo()
+        case .solarFlare: FlareDemo()
         }
     }
 }
@@ -175,6 +180,17 @@ private struct ScatterDemo: View {
             Text(isScattered ? "Tap to regroup" : "Tap to scatter")
                 .font(.subheadline)
                 .foregroundStyle(.secondary)
+        }
+    }
+}
+
+private struct FlareDemo: View {
+    @State private var isLiked = false
+    var body: some View {
+        VStack(spacing: 56) {
+            // The flare reaches ~1.25× the heart size from its centre; leave it room.
+            SolarFlareLikeButton(isLiked: $isLiked, size: 72)
+            Text(isLiked ? "Liked" : "Tap the heart").font(.subheadline).foregroundStyle(.secondary)
         }
     }
 }
