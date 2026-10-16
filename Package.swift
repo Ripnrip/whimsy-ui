@@ -27,6 +27,7 @@ let package = Package(
         .library(name: "AliveEyes", targets: ["AliveEyes"]),
         .library(name: "ScatterRegroup", targets: ["ScatterRegroup"]),
         .library(name: "SolarFlareLike", targets: ["SolarFlareLike"]),
+        .library(name: "FlyingButton", targets: ["FlyingButton"]),
         // The pure-Swift cores on their own (no SwiftUI; build anywhere).
         .library(name: "PopTherapyCore", targets: ["PopTherapyCore"]),
         .library(name: "MagneticBeadCore", targets: ["MagneticBeadCore"]),
@@ -35,7 +36,8 @@ let package = Package(
         .library(name: "AliveEyesCore", targets: ["AliveEyesCore"]),
         .library(name: "ScatterRegroupCore", targets: ["ScatterRegroupCore"]),
         .library(name: "SolarFlareCore", targets: ["SolarFlareCore"]),
-        // A demo gallery listing all five.
+        .library(name: "FlyingButtonCore", targets: ["FlyingButtonCore"]),
+        // A demo gallery listing every component.
         .library(name: "WhimsyGallery", targets: ["WhimsyGallery"]),
     ],
     targets: [
@@ -64,8 +66,11 @@ let package = Package(
         .target(name: "SolarFlareCore", dependencies: ["WhimsyCore"]),
         .target(name: "SolarFlareLike", dependencies: ["SolarFlareCore"]),
 
+        .target(name: "FlyingButtonCore", dependencies: ["WhimsyCore"]),
+        .target(name: "FlyingButton", dependencies: ["FlyingButtonCore"]),
+
         .target(name: "WhimsyGallery", dependencies: [
-            "PopTherapy", "MagneticBeadSlider", "EraserDelete", "ShutterReveal", "AliveEyes", "ScatterRegroup", "SolarFlareLike",
+            "PopTherapy", "MagneticBeadSlider", "EraserDelete", "ShutterReveal", "AliveEyes", "ScatterRegroup", "SolarFlareLike", "FlyingButton",
         ]),
 
         .testTarget(name: "WhimsyCoreTests", dependencies: ["WhimsyCore"]),
@@ -76,5 +81,6 @@ let package = Package(
         .testTarget(name: "AliveEyesCoreTests", dependencies: ["AliveEyesCore"]),
         .testTarget(name: "ScatterRegroupCoreTests", dependencies: ["ScatterRegroupCore"]),
         .testTarget(name: "SolarFlareCoreTests", dependencies: ["SolarFlareCore"]),
+        .testTarget(name: "FlyingButtonCoreTests", dependencies: ["FlyingButtonCore"]),
     ]
 )

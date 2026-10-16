@@ -1,6 +1,6 @@
 # whimsy-ui
 
-Seven small, tactile SwiftUI components, each with a pure-Swift, unit-tested core:
+Eight small, tactile SwiftUI components, each with a pure-Swift, unit-tested core:
 
 | | Component | What it does |
 |---|---|---|
@@ -11,10 +11,11 @@ Seven small, tactile SwiftUI components, each with a pure-Swift, unit-tested cor
 | 👀 | **AliveEyes** | Two cartoon eyes with a spring gaze, saccades, asymmetric blinks and a shake-triggered squint. |
 | 🧩 | **ScatterRegroup** | Tap a tile grid: tiles fling out tilted, then spring home in a ripple from the centre, ticking as they land. |
 | ☀️ | **SolarFlareLike** | A like button: the heart pulses while curved, tapering flare ribbons erupt in a swirl. |
+| 🚀 | **FlyingButton** | A capsule button that takes off when held: thrust plume, hover bob, shrinking shadow, soft landing. |
 
 iOS 17+ / macOS 14+, Swift tools 6.0 (Swift 6 language mode).
 
-> **Honest status:** every core target builds, and all 178 tests pass on Linux (Swift 6.4).
+> **Honest status:** every core target builds, and all 200 tests pass on Linux (Swift 6.4).
 > The SwiftUI targets have **not yet been compiled or run on an Apple platform**. On Linux
 > they compile to empty modules (`#if canImport(SwiftUI)`). They were checked with
 > sourcekit-lsp (0 diagnostics), `swiftc -parse` and careful API review, but expect
@@ -41,8 +42,8 @@ targets: [
 ```
 
 Each component is its own product: `PopTherapy`, `MagneticBeadSlider`, `EraserDelete`,
-`ShutterReveal`, `AliveEyes`, `ScatterRegroup` and `SolarFlareLike`. There's also a SwiftUI-free `…Core` product for each
-(e.g. `ShutterRevealCore`), plus `WhimsyGallery`, a demo list of all seven.
+`ShutterReveal`, `AliveEyes`, `ScatterRegroup`, `SolarFlareLike` and `FlyingButton`. There's also a SwiftUI-free `…Core` product for each
+(e.g. `ShutterRevealCore`), plus `WhimsyGallery`, a demo list of all eight.
 
 ```swift
 import WhimsyGallery
@@ -187,6 +188,28 @@ SolarFlareLikeButton(isLiked: $isLiked, size: 72, label: Text("Like post"))
 - **Room to draw:** the flare draws outside the button (a centred square 2.6× its size) and
   never intercepts touches.
 
+### 🚀 FlyingButton
+
+![FlyingButton](docs/flying.gif)
+
+```swift
+import FlyingButton
+
+FlyingButton("Launch") { launch() }        // a tap calls the action as usual
+```
+
+- **Press and hold:** the capsule crouches for ~0.15 s while the engine spools up (thrust),
+  then springs up to ~24 pt and hovers with a gentle 1.1 Hz bob (airborne). Its contact
+  shadow shrinks and fades as it rises.
+- **Release:** it floats down on a soft spring, touches down with a tiny (~1 pt) bounce and
+  goes idle. Releasing during the spool-up just settles without taking off.
+- **Plume:** a seeded particle emitter under the capsule (140 puffs/s during thrust, 70/s
+  while hovering, a short puff on landing). Puffs shoot down and outward, skid along the
+  ground, rise as they cool and fade from ember yellow → orange → warm smoke.
+- **Haptics:** a medium impact at liftoff and a light one at touchdown.
+- **Room to draw:** the plume and shadow draw behind and below the capsule (a 200 × 96 pt
+  area) and never intercept touches.
+
 ---
 
 ## Accessibility
@@ -202,9 +225,10 @@ Every component handles **Reduce Motion**, each in its own way:
 | AliveEyes | No saccades, gentler blinks. |
 | ScatterRegroup | Crossfade between the grid and the scattered layout. |
 | SolarFlareLike | No ribbons or pulse; the heart's fill/colour change crossfades. |
+| FlyingButton | No lift or plume; holding fades the capsule to 55% opacity instead. |
 
-All seven have VoiceOver labels and actions (e.g. pop next bubble, adjustable slider,
-erase, open/close shutter, squint, scatter/regroup, and a like toggle with the toggle trait and a Liked / Not liked value).
+All eight have VoiceOver labels and actions (e.g. pop next bubble, adjustable slider,
+erase, open/close shutter, squint, scatter/regroup, and a like toggle with the toggle trait and a Liked / Not liked value; FlyingButton is a plain button with its title as the label).
 
 ## Layout
 
@@ -218,7 +242,8 @@ Sources/
   AliveEyesCore/         AliveEyes/
   ScatterRegroupCore/    ScatterRegroup/
   SolarFlareCore/        SolarFlareLike/
-  WhimsyGallery/         Demo gallery of all seven
+  FlyingButtonCore/      FlyingButton/
+  WhimsyGallery/         Demo gallery of all eight
 Tests/                   Swift Testing suites for WhimsyCore and every core
 docs/                    README GIFs
 ```

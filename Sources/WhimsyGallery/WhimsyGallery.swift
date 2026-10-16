@@ -10,6 +10,7 @@ import ShutterReveal
 import AliveEyes
 import ScatterRegroup
 import SolarFlareLike
+import FlyingButton
 
 /// A navigation list of all seven components with a small live demo of each.
 /// Drop `WhimsyGallery()` into a scene to browse them.
@@ -43,7 +44,7 @@ public struct WhimsyGallery: View {
 }
 
 enum GalleryItem: String, CaseIterable, Identifiable, Hashable {
-    case popTherapy, magneticBeads, eraserDelete, shutterReveal, aliveEyes, scatterRegroup, solarFlare
+    case popTherapy, magneticBeads, eraserDelete, shutterReveal, aliveEyes, scatterRegroup, solarFlare, flyingButton
     var id: String { rawValue }
 
     var title: String {
@@ -55,6 +56,7 @@ enum GalleryItem: String, CaseIterable, Identifiable, Hashable {
         case .aliveEyes: "Alive Eyes"
         case .scatterRegroup: "Scatter & Regroup"
         case .solarFlare: "Solar Flare Like"
+        case .flyingButton: "Flying Button"
         }
     }
 
@@ -67,6 +69,7 @@ enum GalleryItem: String, CaseIterable, Identifiable, Hashable {
         case .aliveEyes: "Eyes with saccades, blinks and squints"
         case .scatterRegroup: "Tiles fling out and ripple back home"
         case .solarFlare: "A like button that erupts"
+        case .flyingButton: "Press and hold for liftoff"
         }
     }
 
@@ -79,6 +82,7 @@ enum GalleryItem: String, CaseIterable, Identifiable, Hashable {
         case .aliveEyes: "eyes"
         case .scatterRegroup: "square.grid.3x3.square"
         case .solarFlare: "heart.fill"
+        case .flyingButton: "airplane.departure"
         }
     }
 
@@ -91,6 +95,7 @@ enum GalleryItem: String, CaseIterable, Identifiable, Hashable {
         case .aliveEyes: EyesDemo()
         case .scatterRegroup: ScatterDemo()
         case .solarFlare: FlareDemo()
+        case .flyingButton: FlyingDemo()
         }
     }
 }
@@ -191,6 +196,19 @@ private struct FlareDemo: View {
             // The flare reaches ~1.25× the heart size from its centre; leave it room.
             SolarFlareLikeButton(isLiked: $isLiked, size: 72)
             Text(isLiked ? "Liked" : "Tap the heart").font(.subheadline).foregroundStyle(.secondary)
+        }
+    }
+}
+
+private struct FlyingDemo: View {
+    @State private var taps = 0
+    var body: some View {
+        VStack(spacing: 64) {
+            // The plume and shadow draw ~40 pt below the capsule; leave them room.
+            FlyingButton("Launch") { taps += 1 }
+            Text(taps == 0 ? "Tap, or press and hold" : "Tapped \(taps)×")
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
         }
     }
 }
