@@ -1,15 +1,15 @@
 // swift-tools-version: 6.0
 import PackageDescription
 
-// The PopTherapy Metal shader is compiled by Xcode into the module's default.metallib.
-// SwiftPM on Linux/Windows has no Metal compiler, so the resource is skipped there (the
-// SwiftUI targets compile to empty modules on those platforms anyway).
+// The Metal shaders (PopTherapy, GrainyRingGallery) are compiled by Xcode into each module's
+// default.metallib. SwiftPM on Linux/Windows has no Metal compiler, so the resources are
+// skipped there (the SwiftUI targets compile to empty modules on those platforms anyway).
 #if os(Linux) || os(Windows)
-let popTherapyResources: [Resource] = []
-let popTherapyExclude = ["Resources"]
+let metalResources: [Resource] = []
+let metalExclude = ["Resources"]
 #else
-let popTherapyResources: [Resource] = [.process("Resources")]
-let popTherapyExclude: [String] = []
+let metalResources: [Resource] = [.process("Resources")]
+let metalExclude: [String] = []
 #endif
 
 let package = Package(
@@ -28,6 +28,7 @@ let package = Package(
         .library(name: "ScatterRegroup", targets: ["ScatterRegroup"]),
         .library(name: "SolarFlareLike", targets: ["SolarFlareLike"]),
         .library(name: "FlyingButton", targets: ["FlyingButton"]),
+        .library(name: "GrainyRingGallery", targets: ["GrainyRingGallery"]),
         // The pure-Swift cores on their own (no SwiftUI; build anywhere).
         .library(name: "PopTherapyCore", targets: ["PopTherapyCore"]),
         .library(name: "MagneticBeadCore", targets: ["MagneticBeadCore"]),
@@ -37,6 +38,7 @@ let package = Package(
         .library(name: "ScatterRegroupCore", targets: ["ScatterRegroupCore"]),
         .library(name: "SolarFlareCore", targets: ["SolarFlareCore"]),
         .library(name: "FlyingButtonCore", targets: ["FlyingButtonCore"]),
+        .library(name: "RingGalleryCore", targets: ["RingGalleryCore"]),
         // A demo gallery listing every component.
         .library(name: "WhimsyGallery", targets: ["WhimsyGallery"]),
     ],
@@ -46,7 +48,7 @@ let package = Package(
 
         .target(name: "PopTherapyCore"),
         .target(name: "PopTherapy", dependencies: ["PopTherapyCore"],
-                exclude: popTherapyExclude, resources: popTherapyResources),
+                exclude: metalExclude, resources: metalResources),
 
         .target(name: "MagneticBeadCore"),
         .target(name: "MagneticBeadSlider", dependencies: ["MagneticBeadCore"]),
@@ -69,8 +71,13 @@ let package = Package(
         .target(name: "FlyingButtonCore", dependencies: ["WhimsyCore"]),
         .target(name: "FlyingButton", dependencies: ["FlyingButtonCore"]),
 
+        .target(name: "RingGalleryCore", dependencies: ["WhimsyCore"]),
+        .target(name: "GrainyRingGallery", dependencies: ["RingGalleryCore"],
+                exclude: metalExclude, resources: metalResources),
+
         .target(name: "WhimsyGallery", dependencies: [
             "PopTherapy", "MagneticBeadSlider", "EraserDelete", "ShutterReveal", "AliveEyes", "ScatterRegroup", "SolarFlareLike", "FlyingButton",
+            "GrainyRingGallery",
         ]),
 
         .testTarget(name: "WhimsyCoreTests", dependencies: ["WhimsyCore"]),
@@ -82,5 +89,6 @@ let package = Package(
         .testTarget(name: "ScatterRegroupCoreTests", dependencies: ["ScatterRegroupCore"]),
         .testTarget(name: "SolarFlareCoreTests", dependencies: ["SolarFlareCore"]),
         .testTarget(name: "FlyingButtonCoreTests", dependencies: ["FlyingButtonCore"]),
+        .testTarget(name: "RingGalleryCoreTests", dependencies: ["RingGalleryCore"]),
     ]
 )

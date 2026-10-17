@@ -11,8 +11,9 @@ import AliveEyes
 import ScatterRegroup
 import SolarFlareLike
 import FlyingButton
+import GrainyRingGallery
 
-/// A navigation list of all seven components with a small live demo of each.
+/// A navigation list of all nine components with a small live demo of each.
 /// Drop `WhimsyGallery()` into a scene to browse them.
 public struct WhimsyGallery: View {
     public init() {}
@@ -44,7 +45,7 @@ public struct WhimsyGallery: View {
 }
 
 enum GalleryItem: String, CaseIterable, Identifiable, Hashable {
-    case popTherapy, magneticBeads, eraserDelete, shutterReveal, aliveEyes, scatterRegroup, solarFlare, flyingButton
+    case popTherapy, magneticBeads, eraserDelete, shutterReveal, aliveEyes, scatterRegroup, solarFlare, flyingButton, ringGallery
     var id: String { rawValue }
 
     var title: String {
@@ -57,6 +58,7 @@ enum GalleryItem: String, CaseIterable, Identifiable, Hashable {
         case .scatterRegroup: "Scatter & Regroup"
         case .solarFlare: "Solar Flare Like"
         case .flyingButton: "Flying Button"
+        case .ringGallery: "Grainy Ring Gallery"
         }
     }
 
@@ -70,6 +72,7 @@ enum GalleryItem: String, CaseIterable, Identifiable, Hashable {
         case .scatterRegroup: "Tiles fling out and ripple back home"
         case .solarFlare: "A like button that erupts"
         case .flyingButton: "Press and hold for liftoff"
+        case .ringGallery: "Spin a 3D ring of photos under film grain"
         }
     }
 
@@ -83,6 +86,7 @@ enum GalleryItem: String, CaseIterable, Identifiable, Hashable {
         case .scatterRegroup: "square.grid.3x3.square"
         case .solarFlare: "heart.fill"
         case .flyingButton: "airplane.departure"
+        case .ringGallery: "rotate.3d"
         }
     }
 
@@ -96,6 +100,7 @@ enum GalleryItem: String, CaseIterable, Identifiable, Hashable {
         case .scatterRegroup: ScatterDemo()
         case .solarFlare: FlareDemo()
         case .flyingButton: FlyingDemo()
+        case .ringGallery: GrainyRingGallery(cards: RingPhotoCard.samples)
         }
     }
 }

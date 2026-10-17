@@ -1,6 +1,6 @@
 # whimsy-ui
 
-Eight small, tactile SwiftUI components, each with a pure-Swift, unit-tested core:
+Nine small, tactile SwiftUI components, each with a pure-Swift, unit-tested core:
 
 | | Component | What it does |
 |---|---|---|
@@ -12,10 +12,11 @@ Eight small, tactile SwiftUI components, each with a pure-Swift, unit-tested cor
 | 🧩 | **ScatterRegroup** | Tap a tile grid: tiles fling out tilted, then spring home in a ripple from the centre, ticking as they land. |
 | ☀️ | **SolarFlareLike** | A like button: the heart pulses while curved, tapering flare ribbons erupt in a swirl. |
 | 🚀 | **FlyingButton** | A capsule button that takes off when held: thrust plume, hover bob, shrinking shadow, soft landing. |
+| 🎞️ | **GrainyRingGallery** | Photo cards on a 3D ring: drag with momentum and snap, depth blur, a hero detail view, and 12 fps Metal film grain. |
 
 iOS 17+ / macOS 14+, Swift tools 6.0 (Swift 6 language mode).
 
-> **Honest status:** every core target builds, and all 200 tests pass on Linux (Swift 6.4).
+> **Honest status:** every core target builds, and all 230 tests pass on Linux (Swift 6.4).
 > The SwiftUI targets have **not yet been compiled or run on an Apple platform**. On Linux
 > they compile to empty modules (`#if canImport(SwiftUI)`). They were checked with
 > sourcekit-lsp (0 diagnostics), `swiftc -parse` and careful API review, but expect
@@ -42,8 +43,8 @@ targets: [
 ```
 
 Each component is its own product: `PopTherapy`, `MagneticBeadSlider`, `EraserDelete`,
-`ShutterReveal`, `AliveEyes`, `ScatterRegroup`, `SolarFlareLike` and `FlyingButton`. There's also a SwiftUI-free `…Core` product for each
-(e.g. `ShutterRevealCore`), plus `WhimsyGallery`, a demo list of all eight.
+`ShutterReveal`, `AliveEyes`, `ScatterRegroup`, `SolarFlareLike`, `FlyingButton` and `GrainyRingGallery`. There's also a SwiftUI-free `…Core` product for each
+(e.g. `ShutterRevealCore`), plus `WhimsyGallery`, a demo list of all nine.
 
 ```swift
 import WhimsyGallery
@@ -210,6 +211,44 @@ FlyingButton("Launch") { launch() }        // a tap calls the action as usual
 - **Room to draw:** the plume and shadow draw behind and below the capsule (a 200 × 96 pt
   area) and never intercept touches.
 
+### 🎞️ GrainyRingGallery
+
+![GrainyRingGallery](docs/ring.gif)
+
+```swift
+import GrainyRingGallery
+
+GrainyRingGallery(cards: RingPhotoCard.samples)        // 8 gradient "photo" cards + captions
+
+GrainyRingGallery(cards: albums, grain: 0.15,           // your own cards
+                  accessibilityTitle: { $0.title }) { album in
+    AlbumCover(album)
+} detail: { album in                                    // shown under the enlarged card
+    TrackList(album)
+}
+```
+
+- **Ring:** card *i* sits at *i* · 360°/N. Its angle sets the x offset (radius 140 pt), a
+  rise towards the back (46 pt), and a yaw of up to 52° so side cards face outwards (via
+  `rotation3DEffect`). Depth (`(cos θ + 1) / 2`) drives the rest: scale 1 → 0.52, opacity
+  1 → 0.32, blur 0 → 5 pt and `zIndex`. The yaw eases back to 0 behind, so no card shows
+  its back.
+- **Drag:** 120 pt of drag turns the ring by one card, and it follows your finger. On release
+  it coasts on the fling velocity with exponential friction (4/s, capped at 14 cards/s).
+  Below 1.6 cards/s a spring (k 150, ζ 0.86) settles it onto the card nearest the projected
+  stop. Touching a spinning ring catches it dead.
+- **Detail:** tap the front card and it grows into a detail view via
+  `matchedGeometryEffect`, with your `detail` content below it; tap ✕ or the backdrop to
+  close. Tapping a side card turns it to the front the short way round. A selection haptic
+  ticks as each card passes the front.
+- **Grain:** a Metal `[[stitchable]]` `colorEffect` (`Resources/FilmGrain.metal`) adds
+  monochrome grain that's strongest in the midtones. It's driven by
+  `TimelineView(.periodic(by: 1/12))`. The core quantises time to 12 fps and hashes each
+  frame into a seed, so the grain jumps like projected film rather than crawling like static.
+  The gallery paints its own dark backdrop so the grain covers the whole view.
+- **Core:** `RingGalleryModel` (placement, drag/momentum/snap, `step(by:)`, `select(_:)`,
+  `frontIndex`, `grainFrame(at:)` / `grainSeed(at:)`) is plain Swift and fully tested.
+
 ---
 
 ## Accessibility
@@ -226,9 +265,10 @@ Every component handles **Reduce Motion**, each in its own way:
 | ScatterRegroup | Crossfade between the grid and the scattered layout. |
 | SolarFlareLike | No ribbons or pulse; the heart's fill/colour change crossfades. |
 | FlyingButton | No lift or plume; holding fades the capsule to 55% opacity instead. |
+| GrainyRingGallery | No momentum (releases snap straight to the nearest card), the detail view crossfades instead of zooming, and the grain is frozen. |
 
-All eight have VoiceOver labels and actions (e.g. pop next bubble, adjustable slider,
-erase, open/close shutter, squint, scatter/regroup, and a like toggle with the toggle trait and a Liked / Not liked value; FlyingButton is a plain button with its title as the label).
+All nine have VoiceOver labels and actions (e.g. pop next bubble, adjustable slider,
+erase, open/close shutter, squint, scatter/regroup, and a like toggle with the toggle trait and a Liked / Not liked value; FlyingButton is a plain button with its title as the label; GrainyRingGallery is adjustable (swipe up/down steps cards, value "Dunes, 1 of 8") with an Open action, and its detail view is modal with a Close button and the escape gesture).
 
 ## Layout
 
@@ -243,7 +283,8 @@ Sources/
   ScatterRegroupCore/    ScatterRegroup/
   SolarFlareCore/        SolarFlareLike/
   FlyingButtonCore/      FlyingButton/
-  WhimsyGallery/         Demo gallery of all eight
+  RingGalleryCore/       GrainyRingGallery/   (+ Resources/FilmGrain.metal)
+  WhimsyGallery/         Demo gallery of all nine
 Tests/                   Swift Testing suites for WhimsyCore and every core
 docs/                    README GIFs
 ```
