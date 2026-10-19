@@ -12,8 +12,9 @@ import ScatterRegroup
 import SolarFlareLike
 import FlyingButton
 import GrainyRingGallery
+import LiquidMetalCompass
 
-/// A navigation list of all nine components with a small live demo of each.
+/// A navigation list of all ten components with a small live demo of each.
 /// Drop `WhimsyGallery()` into a scene to browse them.
 public struct WhimsyGallery: View {
     public init() {}
@@ -45,7 +46,7 @@ public struct WhimsyGallery: View {
 }
 
 enum GalleryItem: String, CaseIterable, Identifiable, Hashable {
-    case popTherapy, magneticBeads, eraserDelete, shutterReveal, aliveEyes, scatterRegroup, solarFlare, flyingButton, ringGallery
+    case popTherapy, magneticBeads, eraserDelete, shutterReveal, aliveEyes, scatterRegroup, solarFlare, flyingButton, ringGallery, liquidCompass
     var id: String { rawValue }
 
     var title: String {
@@ -59,6 +60,7 @@ enum GalleryItem: String, CaseIterable, Identifiable, Hashable {
         case .solarFlare: "Solar Flare Like"
         case .flyingButton: "Flying Button"
         case .ringGallery: "Grainy Ring Gallery"
+        case .liquidCompass: "Liquid Metal Compass"
         }
     }
 
@@ -73,6 +75,7 @@ enum GalleryItem: String, CaseIterable, Identifiable, Hashable {
         case .solarFlare: "A like button that erupts"
         case .flyingButton: "Press and hold for liftoff"
         case .ringGallery: "Spin a 3D ring of photos under film grain"
+        case .liquidCompass: "A chrome blob that leans toward a friend"
         }
     }
 
@@ -87,6 +90,7 @@ enum GalleryItem: String, CaseIterable, Identifiable, Hashable {
         case .solarFlare: "heart.fill"
         case .flyingButton: "airplane.departure"
         case .ringGallery: "rotate.3d"
+        case .liquidCompass: "location.north.circle.fill"
         }
     }
 
@@ -101,6 +105,7 @@ enum GalleryItem: String, CaseIterable, Identifiable, Hashable {
         case .solarFlare: FlareDemo()
         case .flyingButton: FlyingDemo()
         case .ringGallery: GrainyRingGallery(cards: RingPhotoCard.samples)
+        case .liquidCompass: CompassDemo()
         }
     }
 }
@@ -215,6 +220,20 @@ private struct FlyingDemo: View {
                 .font(.subheadline)
                 .foregroundStyle(.secondary)
         }
+    }
+}
+
+private struct CompassDemo: View {
+    @State private var distance = 1_480.0
+    var body: some View {
+        // On an iPhone this follows the real compass; elsewhere, drag sideways to turn.
+        LiquidMetalCompass(friendName: "Maya", friendBearing: 62, distance: distance)
+            .overlay(alignment: .bottom) {
+                Button("Walk closer") { distance = max(distance * 0.82 - 20, 0) }
+                    .buttonStyle(.bordered)
+                    .tint(.white)
+                    .padding(.bottom, 24)
+            }
     }
 }
 

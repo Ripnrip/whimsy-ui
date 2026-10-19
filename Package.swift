@@ -1,7 +1,7 @@
 // swift-tools-version: 6.0
 import PackageDescription
 
-// The Metal shaders (PopTherapy, GrainyRingGallery) are compiled by Xcode into each module's
+// The Metal shaders (PopTherapy, GrainyRingGallery, LiquidMetalCompass) are compiled by Xcode into each module's
 // default.metallib. SwiftPM on Linux/Windows has no Metal compiler, so the resources are
 // skipped there (the SwiftUI targets compile to empty modules on those platforms anyway).
 #if os(Linux) || os(Windows)
@@ -29,6 +29,7 @@ let package = Package(
         .library(name: "SolarFlareLike", targets: ["SolarFlareLike"]),
         .library(name: "FlyingButton", targets: ["FlyingButton"]),
         .library(name: "GrainyRingGallery", targets: ["GrainyRingGallery"]),
+        .library(name: "LiquidMetalCompass", targets: ["LiquidMetalCompass"]),
         // The pure-Swift cores on their own (no SwiftUI; build anywhere).
         .library(name: "PopTherapyCore", targets: ["PopTherapyCore"]),
         .library(name: "MagneticBeadCore", targets: ["MagneticBeadCore"]),
@@ -39,6 +40,7 @@ let package = Package(
         .library(name: "SolarFlareCore", targets: ["SolarFlareCore"]),
         .library(name: "FlyingButtonCore", targets: ["FlyingButtonCore"]),
         .library(name: "RingGalleryCore", targets: ["RingGalleryCore"]),
+        .library(name: "LiquidCompassCore", targets: ["LiquidCompassCore"]),
         // A demo gallery listing every component.
         .library(name: "WhimsyGallery", targets: ["WhimsyGallery"]),
     ],
@@ -75,9 +77,13 @@ let package = Package(
         .target(name: "GrainyRingGallery", dependencies: ["RingGalleryCore"],
                 exclude: metalExclude, resources: metalResources),
 
+        .target(name: "LiquidCompassCore", dependencies: ["WhimsyCore"]),
+        .target(name: "LiquidMetalCompass", dependencies: ["LiquidCompassCore"],
+                exclude: metalExclude, resources: metalResources),
+
         .target(name: "WhimsyGallery", dependencies: [
             "PopTherapy", "MagneticBeadSlider", "EraserDelete", "ShutterReveal", "AliveEyes", "ScatterRegroup", "SolarFlareLike", "FlyingButton",
-            "GrainyRingGallery",
+            "GrainyRingGallery", "LiquidMetalCompass",
         ]),
 
         .testTarget(name: "WhimsyCoreTests", dependencies: ["WhimsyCore"]),
@@ -90,5 +96,6 @@ let package = Package(
         .testTarget(name: "SolarFlareCoreTests", dependencies: ["SolarFlareCore"]),
         .testTarget(name: "FlyingButtonCoreTests", dependencies: ["FlyingButtonCore"]),
         .testTarget(name: "RingGalleryCoreTests", dependencies: ["RingGalleryCore"]),
+        .testTarget(name: "LiquidCompassCoreTests", dependencies: ["LiquidCompassCore"]),
     ]
 )

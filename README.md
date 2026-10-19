@@ -1,6 +1,6 @@
 # whimsy-ui
 
-Nine small, tactile SwiftUI components, each with a pure-Swift, unit-tested core:
+Ten small, tactile SwiftUI components, each with a pure-Swift, unit-tested core:
 
 | | Component | What it does |
 |---|---|---|
@@ -13,10 +13,11 @@ Nine small, tactile SwiftUI components, each with a pure-Swift, unit-tested core
 | ☀️ | **SolarFlareLike** | A like button: the heart pulses while curved, tapering flare ribbons erupt in a swirl. |
 | 🚀 | **FlyingButton** | A capsule button that takes off when held: thrust plume, hover bob, shrinking shadow, soft landing. |
 | 🎞️ | **GrainyRingGallery** | Photo cards on a 3D ring: drag with momentum and snap, depth blur, a hero detail view, and 12 fps Metal film grain. |
+| 🧭 | **LiquidMetalCompass** | A liquid-chrome blob that leans and stretches toward a friend, wobbling on springs as you turn, with a dead-on haptic tick. |
 
 iOS 17+ / macOS 14+, Swift tools 6.0 (Swift 6 language mode).
 
-> **Honest status:** every core target builds, and all 230 tests pass on Linux (Swift 6.4).
+> **Honest status:** every core target builds, and all 268 tests pass on Linux (Swift 6.4).
 > The SwiftUI targets have **not yet been compiled or run on an Apple platform**. On Linux
 > they compile to empty modules (`#if canImport(SwiftUI)`). They were checked with
 > sourcekit-lsp (0 diagnostics), `swiftc -parse` and careful API review, but expect
@@ -43,8 +44,8 @@ targets: [
 ```
 
 Each component is its own product: `PopTherapy`, `MagneticBeadSlider`, `EraserDelete`,
-`ShutterReveal`, `AliveEyes`, `ScatterRegroup`, `SolarFlareLike`, `FlyingButton` and `GrainyRingGallery`. There's also a SwiftUI-free `…Core` product for each
-(e.g. `ShutterRevealCore`), plus `WhimsyGallery`, a demo list of all nine.
+`ShutterReveal`, `AliveEyes`, `ScatterRegroup`, `SolarFlareLike`, `FlyingButton`, `GrainyRingGallery` and `LiquidMetalCompass`. There's also a SwiftUI-free `…Core` product for each
+(e.g. `ShutterRevealCore`), plus `WhimsyGallery`, a demo list of all ten.
 
 ```swift
 import WhimsyGallery
@@ -249,6 +250,43 @@ GrainyRingGallery(cards: albums, grain: 0.15,           // your own cards
 - **Core:** `RingGalleryModel` (placement, drag/momentum/snap, `step(by:)`, `select(_:)`,
   `frontIndex`, `grainFrame(at:)` / `grainSeed(at:)`) is plain Swift and fully tested.
 
+### 🧭 LiquidMetalCompass
+
+![LiquidMetalCompass](docs/liquidcompass.gif)
+
+```swift
+import LiquidMetalCompass
+
+LiquidMetalCompass(friendName: "Maya", friendBearing: 62, distance: 1_240)
+LiquidMetalCompass(friendName: "Maya", friend: maya, from: me, units: .imperial) // great-circle
+LiquidMetalCompass(friendBearing: 62, headingSource: ManualHeadingSource())        // your own sensor
+```
+
+- **Pointing:** the friend's bearing is fixed in the world. The blob leans toward
+  *bearing − heading*, always the short way round (350° → 10° is +20°), on an underdamped
+  spring (k 70, ζ 0.38, ~27% overshoot), so every turn swings past and wobbles back.
+- **Stretch:** a second, bouncier spring (k 140, ζ 0.28) sets the stretch: 0.42 at rest,
+  up to +0.32 more while swinging fast (full at 240°/s), so the liquid flings out and
+  jiggles as it settles. The outline is a circle with a rounded cos-power lobe toward the
+  friend; the far side pulls in, the centre leans, and the area is renormalised so the
+  liquid's volume never changes.
+- **Chrome:** the blob is drawn as a dome-shaped height field and blurred. A Metal
+  `[[stitchable]]` `layerEffect` (`Resources/LiquidChrome.metal`, loaded with
+  `ShaderLibrary.bundle(.module)`) cuts a crisp metaball edge, derives normals and reflects
+  a studio (sky, dark floor, horizon line, two softboxes). The studio turns with the
+  heading, like a real metal object reflecting a fixed room. A tick dial turns with the
+  heading too, so north stays north.
+- **Dead on:** within 4° you're aligned (and stay aligned until 8°: hysteresis). Each new
+  alignment plays a soft haptic (`.impact(flexibility: .soft)`), at most every 0.35 s; the
+  blob glows warm and the caption reads "Dead ahead".
+- **Distance:** shown with `.contentTransition(.numericText(value:))`, rounded per band
+  (1 m < 100 m, 10 m < 1 km, 0.1 km < 10 km; imperial uses ft, then 0.1 mi).
+- **Heading:** behind a `HeadingSource` protocol. `HeadingSources.automatic()` picks
+  `MotionHeadingSource` (CMMotionManager, north-referenced attitude, 60 Hz), falling back
+  to `LocationHeadingSource` (CLLocationManager; true north when location access is
+  granted, magnetic otherwise). In previews, the simulator or on a Mac, **drag sideways to
+  fake the heading** (0.5°/pt, dragging right turns right).
+
 ---
 
 ## Accessibility
@@ -266,9 +304,10 @@ Every component handles **Reduce Motion**, each in its own way:
 | SolarFlareLike | No ribbons or pulse; the heart's fill/colour change crossfades. |
 | FlyingButton | No lift or plume; holding fades the capsule to 55% opacity instead. |
 | GrainyRingGallery | No momentum (releases snap straight to the nearest card), the detail view crossfades instead of zooming, and the grain is frozen. |
+| LiquidMetalCompass | Critically damped turn (no overshoot or wobble), no swing stretch, static reflections, and the distance changes without rolling. |
 
-All nine have VoiceOver labels and actions (e.g. pop next bubble, adjustable slider,
-erase, open/close shutter, squint, scatter/regroup, and a like toggle with the toggle trait and a Liked / Not liked value; FlyingButton is a plain button with its title as the label; GrainyRingGallery is adjustable (swipe up/down steps cards, value "Dunes, 1 of 8") with an Open action, and its detail view is modal with a Close button and the escape gesture).
+All ten have VoiceOver labels and actions (e.g. pop next bubble, adjustable slider,
+erase, open/close shutter, squint, scatter/regroup, and a like toggle with the toggle trait and a Liked / Not liked value; FlyingButton is a plain button with its title as the label; GrainyRingGallery is adjustable (swipe up/down steps cards, value "Dunes, 1 of 8") with an Open action, and its detail view is modal with a Close button and the escape gesture; LiquidMetalCompass reads e.g. "Compass to Maya: 30° to your right, 1.2 kilometres", and is adjustable by 15° when faking the heading).
 
 ## Layout
 
@@ -284,7 +323,8 @@ Sources/
   SolarFlareCore/        SolarFlareLike/
   FlyingButtonCore/      FlyingButton/
   RingGalleryCore/       GrainyRingGallery/   (+ Resources/FilmGrain.metal)
-  WhimsyGallery/         Demo gallery of all nine
+  LiquidCompassCore/     LiquidMetalCompass/  (+ Resources/LiquidChrome.metal)
+  WhimsyGallery/         Demo gallery of all ten
 Tests/                   Swift Testing suites for WhimsyCore and every core
 docs/                    README GIFs
 ```
