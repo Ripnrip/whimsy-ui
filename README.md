@@ -1,6 +1,6 @@
 # whimsy-ui
 
-Ten small, tactile SwiftUI components, each with a pure-Swift, unit-tested core:
+Eleven small, tactile SwiftUI components, each with a pure-Swift, unit-tested core:
 
 | | Component | What it does |
 |---|---|---|
@@ -14,10 +14,11 @@ Ten small, tactile SwiftUI components, each with a pure-Swift, unit-tested core:
 | 🚀 | **FlyingButton** | A capsule button that takes off when held: thrust plume, hover bob, shrinking shadow, soft landing. |
 | 🎞️ | **GrainyRingGallery** | Photo cards on a 3D ring: drag with momentum and snap, depth blur, a hero detail view, and 12 fps Metal film grain. |
 | 🧭 | **LiquidMetalCompass** | A liquid-chrome blob that leans and stretches toward a friend, wobbling on springs as you turn, with a dead-on haptic tick. |
+| 🧶 | **SweaterRail** | A clothes rail that magnifies like the macOS Dock: garments spread, swell and swing on pendulums; tap one for a matched-geometry hero page, with a marquee ticker. |
 
 iOS 17+ / macOS 14+, Swift tools 6.0 (Swift 6 language mode).
 
-> **Honest status:** every core target builds, and all 268 tests pass on Linux (Swift 6.4).
+> **Honest status:** every core target builds, and all 290 tests pass on Linux (Swift 6.4).
 > The SwiftUI targets have **not yet been compiled or run on an Apple platform**. On Linux
 > they compile to empty modules (`#if canImport(SwiftUI)`). They were checked with
 > sourcekit-lsp (0 diagnostics), `swiftc -parse` and careful API review, but expect
@@ -44,8 +45,8 @@ targets: [
 ```
 
 Each component is its own product: `PopTherapy`, `MagneticBeadSlider`, `EraserDelete`,
-`ShutterReveal`, `AliveEyes`, `ScatterRegroup`, `SolarFlareLike`, `FlyingButton`, `GrainyRingGallery` and `LiquidMetalCompass`. There's also a SwiftUI-free `…Core` product for each
-(e.g. `ShutterRevealCore`), plus `WhimsyGallery`, a demo list of all ten.
+`ShutterReveal`, `AliveEyes`, `ScatterRegroup`, `SolarFlareLike`, `FlyingButton`, `GrainyRingGallery`, `LiquidMetalCompass` and `SweaterRail`. There's also a SwiftUI-free `…Core` product for each
+(e.g. `ShutterRevealCore`), plus `WhimsyGallery`, a demo list of all eleven.
 
 ```swift
 import WhimsyGallery
@@ -287,6 +288,35 @@ LiquidMetalCompass(friendBearing: 62, headingSource: ManualHeadingSource())     
   granted, magnetic otherwise). In previews, the simulator or on a Mac, **drag sideways to
   fake the heading** (0.5°/pt, dragging right turns right).
 
+### 🧶 SweaterRail
+
+![SweaterRail](docs/sweater.gif)
+
+```swift
+import SweaterRail
+
+SweaterRail()                                     // five sample knits drawn from shapes
+SweaterRail(garments: myKnits, brand: "Loop", ticker: "FREE RETURNS  ✦  ")
+```
+
+- **Dock falloff:** each garment's magnification is a raised cosine of its distance from the
+  finger (1.5× directly under it, fading to 1× at 150 pt). Widths grow with the scale and the
+  row is re-anchored so the point under your finger stays under it, so neighbours are pushed
+  apart on both sides, exactly like the Dock. The hovered garment also drops 6 pt forward,
+  its wall shadow grows and softens, and a selection haptic ticks as you move between items.
+- **Springs and swing:** every hook rides a lively spring (k 260, ζ 0.72). Each garment hangs
+  from its hook on a damped pendulum driven by the hook's own acceleration
+  (θ'' = −(g/L)·sin θ − (a/L)·cos θ − cθ', L 110 pt, period ≈ 0.93 s), so a spread
+  sets the whole rail swinging and it rocks to rest.
+- **Hero:** tap a garment and it flies to a detail page with `matchedGeometryEffect`, while
+  the rest slide off left and right on staggered springs (neighbours first, 40 ms apart). ✕
+  sends it back.
+- **Marquee:** a ticker scrolls along the bottom at 40 pt/s, wrapping seamlessly with just
+  enough copies to cover the width.
+- **Core:** `DockFalloff`, `RailLayout`, `Pendulum`, `SweaterRailModel`, `RailExit` and
+  `Marquee` are plain Swift and fully tested. The springs come from the shared
+  `WhimsySpring` in WhimsyCore.
+
 ---
 
 ## Accessibility
@@ -305,15 +335,16 @@ Every component handles **Reduce Motion**, each in its own way:
 | FlyingButton | No lift or plume; holding fades the capsule to 55% opacity instead. |
 | GrainyRingGallery | No momentum (releases snap straight to the nearest card), the detail view crossfades instead of zooming, and the grain is frozen. |
 | LiquidMetalCompass | Critically damped turn (no overshoot or wobble), no swing stretch, static reflections, and the distance changes without rolling. |
+| SweaterRail | No pendulum swing, critically damped spreading (no overshoot), the marquee stands still, and the hero page opens with a short ease instead of a bouncy spring. |
 
-All ten have VoiceOver labels and actions (e.g. pop next bubble, adjustable slider,
-erase, open/close shutter, squint, scatter/regroup, and a like toggle with the toggle trait and a Liked / Not liked value; FlyingButton is a plain button with its title as the label; GrainyRingGallery is adjustable (swipe up/down steps cards, value "Dunes, 1 of 8") with an Open action, and its detail view is modal with a Close button and the escape gesture; LiquidMetalCompass reads e.g. "Compass to Maya: 30° to your right, 1.2 kilometres", and is adjustable by 15° when faking the heading).
+All eleven have VoiceOver labels and actions (e.g. pop next bubble, adjustable slider,
+erase, open/close shutter, squint, scatter/regroup, and a like toggle with the toggle trait and a Liked / Not liked value; FlyingButton is a plain button with its title as the label; GrainyRingGallery is adjustable (swipe up/down steps cards, value "Dunes, 1 of 8") with an Open action, and its detail view is modal with a Close button and the escape gesture; LiquidMetalCompass reads e.g. "Compass to Maya: 30° to your right, 1.2 kilometres", and is adjustable by 15° when faking the heading; SweaterRail exposes each garment as a button ("Cobalt Cardigan, $146") that opens its page, which is modal with a Close button and the escape gesture).
 
 ## Layout
 
 ```
 Sources/
-  WhimsyCore/            Shared Vec2 + SeededRandom (SplitMix64), re-exported by the cores that use them
+  WhimsyCore/            Shared Vec2, SeededRandom (SplitMix64), WhimsySpring and WhimsyMath, re-exported by the cores
   PopTherapyCore/        PopTherapy/          (+ Resources/Shaders.metal)
   MagneticBeadCore/      MagneticBeadSlider/
   EraserDeleteCore/      EraserDelete/
@@ -324,7 +355,8 @@ Sources/
   FlyingButtonCore/      FlyingButton/
   RingGalleryCore/       GrainyRingGallery/   (+ Resources/FilmGrain.metal)
   LiquidCompassCore/     LiquidMetalCompass/  (+ Resources/LiquidChrome.metal)
-  WhimsyGallery/         Demo gallery of all ten
+  SweaterRailCore/       SweaterRail/
+  WhimsyGallery/         Demo gallery of all eleven
 Tests/                   Swift Testing suites for WhimsyCore and every core
 docs/                    README GIFs
 ```

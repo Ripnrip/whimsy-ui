@@ -13,8 +13,9 @@ import SolarFlareLike
 import FlyingButton
 import GrainyRingGallery
 import LiquidMetalCompass
+import SweaterRail
 
-/// A navigation list of all ten components with a small live demo of each.
+/// A navigation list of all eleven components with a small live demo of each.
 /// Drop `WhimsyGallery()` into a scene to browse them.
 public struct WhimsyGallery: View {
     public init() {}
@@ -46,7 +47,7 @@ public struct WhimsyGallery: View {
 }
 
 enum GalleryItem: String, CaseIterable, Identifiable, Hashable {
-    case popTherapy, magneticBeads, eraserDelete, shutterReveal, aliveEyes, scatterRegroup, solarFlare, flyingButton, ringGallery, liquidCompass
+    case popTherapy, magneticBeads, eraserDelete, shutterReveal, aliveEyes, scatterRegroup, solarFlare, flyingButton, ringGallery, liquidCompass, sweaterRail
     var id: String { rawValue }
 
     var title: String {
@@ -61,6 +62,7 @@ enum GalleryItem: String, CaseIterable, Identifiable, Hashable {
         case .flyingButton: "Flying Button"
         case .ringGallery: "Grainy Ring Gallery"
         case .liquidCompass: "Liquid Metal Compass"
+        case .sweaterRail: "Sweater Rail"
         }
     }
 
@@ -76,6 +78,7 @@ enum GalleryItem: String, CaseIterable, Identifiable, Hashable {
         case .flyingButton: "Press and hold for liftoff"
         case .ringGallery: "Spin a 3D ring of photos under film grain"
         case .liquidCompass: "A chrome blob that leans toward a friend"
+        case .sweaterRail: "A Dock-style clothes rail with a hero page"
         }
     }
 
@@ -91,6 +94,7 @@ enum GalleryItem: String, CaseIterable, Identifiable, Hashable {
         case .flyingButton: "airplane.departure"
         case .ringGallery: "rotate.3d"
         case .liquidCompass: "location.north.circle.fill"
+        case .sweaterRail: "tshirt.fill"
         }
     }
 
@@ -106,6 +110,7 @@ enum GalleryItem: String, CaseIterable, Identifiable, Hashable {
         case .flyingButton: FlyingDemo()
         case .ringGallery: GrainyRingGallery(cards: RingPhotoCard.samples)
         case .liquidCompass: CompassDemo()
+        case .sweaterRail: SweaterRail()
         }
     }
 }

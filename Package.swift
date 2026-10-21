@@ -30,6 +30,7 @@ let package = Package(
         .library(name: "FlyingButton", targets: ["FlyingButton"]),
         .library(name: "GrainyRingGallery", targets: ["GrainyRingGallery"]),
         .library(name: "LiquidMetalCompass", targets: ["LiquidMetalCompass"]),
+        .library(name: "SweaterRail", targets: ["SweaterRail"]),
         // The pure-Swift cores on their own (no SwiftUI; build anywhere).
         .library(name: "PopTherapyCore", targets: ["PopTherapyCore"]),
         .library(name: "MagneticBeadCore", targets: ["MagneticBeadCore"]),
@@ -41,6 +42,7 @@ let package = Package(
         .library(name: "FlyingButtonCore", targets: ["FlyingButtonCore"]),
         .library(name: "RingGalleryCore", targets: ["RingGalleryCore"]),
         .library(name: "LiquidCompassCore", targets: ["LiquidCompassCore"]),
+        .library(name: "SweaterRailCore", targets: ["SweaterRailCore"]),
         // A demo gallery listing every component.
         .library(name: "WhimsyGallery", targets: ["WhimsyGallery"]),
     ],
@@ -81,9 +83,12 @@ let package = Package(
         .target(name: "LiquidMetalCompass", dependencies: ["LiquidCompassCore"],
                 exclude: metalExclude, resources: metalResources),
 
+        .target(name: "SweaterRailCore", dependencies: ["WhimsyCore"]),
+        .target(name: "SweaterRail", dependencies: ["SweaterRailCore"]),
+
         .target(name: "WhimsyGallery", dependencies: [
             "PopTherapy", "MagneticBeadSlider", "EraserDelete", "ShutterReveal", "AliveEyes", "ScatterRegroup", "SolarFlareLike", "FlyingButton",
-            "GrainyRingGallery", "LiquidMetalCompass",
+            "GrainyRingGallery", "LiquidMetalCompass", "SweaterRail",
         ]),
 
         .testTarget(name: "WhimsyCoreTests", dependencies: ["WhimsyCore"]),
@@ -97,5 +102,6 @@ let package = Package(
         .testTarget(name: "FlyingButtonCoreTests", dependencies: ["FlyingButtonCore"]),
         .testTarget(name: "RingGalleryCoreTests", dependencies: ["RingGalleryCore"]),
         .testTarget(name: "LiquidCompassCoreTests", dependencies: ["LiquidCompassCore"]),
+        .testTarget(name: "SweaterRailCoreTests", dependencies: ["SweaterRailCore"]),
     ]
 )
