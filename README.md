@@ -1,6 +1,6 @@
 # whimsy-ui
 
-Eleven small, tactile SwiftUI components, each with a pure-Swift, unit-tested core:
+Twelve small, tactile SwiftUI components, each with a pure-Swift, unit-tested core:
 
 | | Component | What it does |
 |---|---|---|
@@ -15,17 +15,19 @@ Eleven small, tactile SwiftUI components, each with a pure-Swift, unit-tested co
 | 🎞️ | **GrainyRingGallery** | Photo cards on a 3D ring: drag with momentum and snap, depth blur, a hero detail view, and 12 fps Metal film grain. |
 | 🧭 | **LiquidMetalCompass** | A liquid-chrome blob that leans and stretches toward a friend, wobbling on springs as you turn, with a dead-on haptic tick. |
 | 🧶 | **SweaterRail** | A clothes rail that magnifies like the macOS Dock: garments spread, swell and swing on pendulums; tap one for a matched-geometry hero page, with a marquee ticker. |
+| 🔤 | **FontCollection** | A font specimen gallery: a split-flap headline flips through 16 built-in faces and settles, category chips make the cards hop and regroup, and each card opens into a detail view. |
 
 iOS 17+ / macOS 14+, Swift tools 6.0 (Swift 6 language mode).
 
-> **Honest status:** every core target builds, and all 290 tests pass on Linux (Swift 6.4).
+> **Honest status:** every core target builds, and all 332 tests pass on Linux (Swift 6.4).
 > The SwiftUI targets have **not yet been compiled or run on an Apple platform**. On Linux
 > they compile to empty modules (`#if canImport(SwiftUI)`). They were checked with
 > sourcekit-lsp (0 diagnostics), `swiftc -parse` and careful API review, but expect
 > possible small fixes on the first Xcode build.
 > The GIFs below are **HTML5 Canvas ports** of each view's drawing, running a JS port of
 > the same core logic. They approximate the SwiftUI rendering; they are not device
-> recordings.
+> recordings. The FontCollection GIF also substitutes look-alike web fonts (e.g. Playfair
+> Display for Didot, Libre Baskerville for Baskerville) for Apple's built-in families.
 
 ## Install (Swift Package Manager)
 
@@ -45,8 +47,8 @@ targets: [
 ```
 
 Each component is its own product: `PopTherapy`, `MagneticBeadSlider`, `EraserDelete`,
-`ShutterReveal`, `AliveEyes`, `ScatterRegroup`, `SolarFlareLike`, `FlyingButton`, `GrainyRingGallery`, `LiquidMetalCompass` and `SweaterRail`. There's also a SwiftUI-free `…Core` product for each
-(e.g. `ShutterRevealCore`), plus `WhimsyGallery`, a demo list of all eleven.
+`ShutterReveal`, `AliveEyes`, `ScatterRegroup`, `SolarFlareLike`, `FlyingButton`, `GrainyRingGallery`, `LiquidMetalCompass`, `SweaterRail` and `FontCollection`. There's also a SwiftUI-free `…Core` product for each
+(e.g. `ShutterRevealCore`), plus `WhimsyGallery`, a demo list of all twelve.
 
 ```swift
 import WhimsyGallery
@@ -317,6 +319,50 @@ SweaterRail(garments: myKnits, brand: "Loop", ticker: "FREE RETURNS  ✦  ")
   `Marquee` are plain Swift and fully tested. The springs come from the shared
   `WhimsySpring` in WhimsyCore.
 
+### 🔤 FontCollection
+
+![FontCollection](docs/fontcollection.gif)
+
+```swift
+import FontCollection
+
+FontCollection()                                    // 16 built-in faces, "Fontastic" on the flip board
+FontCollection(headline: "Hello", seed: 68)         // your own word; a fixed seed fixes the flip sequence
+FontCollection(fonts: FontCatalog.standard.specimens.filter { $0.category != .script })
+```
+
+- **Fonts:** only faces that ship with iOS 17 and macOS 14; no font files are bundled. The
+  four system designs (SF Pro, New York, SF Rounded, SF Mono) plus Avenir Next, Futura,
+  Georgia, Baskerville, Rockwell, Chalkboard SE, Marker Felt, Menlo, American Typewriter,
+  Didot, Copperplate and Snell Roundhand, via `Font.custom(_:fixedSize:)` by family name.
+  Each specimen has a category (serif, sans, rounded, mono, display, script), a sample
+  phrase, a note and the weights the family really has. If a family is missing on a device
+  (checked once with Core Text), the category's system design stands in.
+- **Flip board:** the headline is a row of split-flap cells. It flaps through 14 seeded
+  random fonts (no repeats, the target only at the end), with gaps easing from 50 ms to
+  260 ms (ease-in, exponent 2.6). Each flap's top half folds down and the bottom half lands
+  (`rotation3DEffect`), and the cells follow column 0 28 ms apart, so each flap runs across
+  the word like a wave. The final flap falls 1.8× slower, then "set in Didot" pops in.
+  Tap the board to shuffle to another font.
+- **Haptics (iOS):** a light tick per flap that grows stronger as the board slows
+  (intensity 0.3 → 0.8), a firmer impact when it lands, a soft tick as each card lands after
+  a filter change, selection ticks on chips and weight detents. The core rate-limits them
+  to one per 40 ms (the settle always plays).
+- **Chips & regroup:** All · Serif · Sans · Rounded · Mono · Display · Script, with counts.
+  The selected pill slides (`matchedGeometryEffect`) and the row scrolls it into view.
+  Cards that stay visible fly to their new slot on a closed-form spring (response 0.52 s,
+  ζ 0.72), hopping on an arc (0.12 pt per pt travelled, ≤ 36 pt) with a seeded tilt of up to
+  ±9°, staggered 45 ms per slot so they land in reading order. Newcomers grow in from below;
+  leavers shrink and fade in 0.24 s.
+- **Detail:** tap a card and it grows into a detail view (`matchedGeometryEffect`) with
+  editable sample text (≤ 80 characters; empty shows the pangram), a size slider (18–120 pt),
+  a weight slider with one detent per real weight, and an 80-glyph strip (A–Z, a–z, 0–9,
+  punctuation). Tap ✕ or the backdrop to close.
+- **Core:** `FontCatalog` (filter/sort/search), `FlipBoardSchedule`, `SpecimenGridLayout`
+  + `RegroupPlan` (flights, poses, landing times), `SpecimenDetailState`, `HapticGate`, and
+  `FontCollectionModel`, which ties them together and returns due haptics from `step(_:)`.
+  All plain Swift and fully tested (42 tests).
+
 ---
 
 ## Accessibility
@@ -336,9 +382,10 @@ Every component handles **Reduce Motion**, each in its own way:
 | GrainyRingGallery | No momentum (releases snap straight to the nearest card), the detail view crossfades instead of zooming, and the grain is frozen. |
 | LiquidMetalCompass | Critically damped turn (no overshoot or wobble), no swing stretch, static reflections, and the distance changes without rolling. |
 | SweaterRail | No pendulum swing, critically damped spreading (no overshoot), the marquee stands still, and the hero page opens with a short ease instead of a bouncy spring. |
+| FontCollection | The flip board shows its font straight away (no flapping), filter changes crossfade cards in place, and the detail view crossfades instead of zooming. |
 
-All eleven have VoiceOver labels and actions (e.g. pop next bubble, adjustable slider,
-erase, open/close shutter, squint, scatter/regroup, and a like toggle with the toggle trait and a Liked / Not liked value; FlyingButton is a plain button with its title as the label; GrainyRingGallery is adjustable (swipe up/down steps cards, value "Dunes, 1 of 8") with an Open action, and its detail view is modal with a Close button and the escape gesture; LiquidMetalCompass reads e.g. "Compass to Maya: 30° to your right, 1.2 kilometres", and is adjustable by 15° when faking the heading; SweaterRail exposes each garment as a button ("Cobalt Cardigan, $146") that opens its page, which is modal with a Close button and the escape gesture).
+All twelve have VoiceOver labels and actions (e.g. pop next bubble, adjustable slider,
+erase, open/close shutter, squint, scatter/regroup, and a like toggle with the toggle trait and a Liked / Not liked value; FlyingButton is a plain button with its title as the label; GrainyRingGallery is adjustable (swipe up/down steps cards, value "Dunes, 1 of 8") with an Open action, and its detail view is modal with a Close button and the escape gesture; LiquidMetalCompass reads e.g. "Compass to Maya: 30° to your right, 1.2 kilometres", and is adjustable by 15° when faking the heading; SweaterRail exposes each garment as a button ("Cobalt Cardigan, $146") that opens its page, which is modal with a Close button and the escape gesture; FontCollection's flip board reads "Fontastic, set in Didot" with a shuffle action, chips carry the selected trait and a font count, each card is a button ("Didot, Display") and the detail view is modal with a Close button and the escape gesture).
 
 ## Layout
 
@@ -356,7 +403,8 @@ Sources/
   RingGalleryCore/       GrainyRingGallery/   (+ Resources/FilmGrain.metal)
   LiquidCompassCore/     LiquidMetalCompass/  (+ Resources/LiquidChrome.metal)
   SweaterRailCore/       SweaterRail/
-  WhimsyGallery/         Demo gallery of all eleven
+  FontCollectionCore/    FontCollection/
+  WhimsyGallery/         Demo gallery of all twelve
 Tests/                   Swift Testing suites for WhimsyCore and every core
 docs/                    README GIFs
 ```

@@ -31,6 +31,7 @@ let package = Package(
         .library(name: "GrainyRingGallery", targets: ["GrainyRingGallery"]),
         .library(name: "LiquidMetalCompass", targets: ["LiquidMetalCompass"]),
         .library(name: "SweaterRail", targets: ["SweaterRail"]),
+        .library(name: "FontCollection", targets: ["FontCollection"]),
         // The pure-Swift cores on their own (no SwiftUI; build anywhere).
         .library(name: "PopTherapyCore", targets: ["PopTherapyCore"]),
         .library(name: "MagneticBeadCore", targets: ["MagneticBeadCore"]),
@@ -43,6 +44,7 @@ let package = Package(
         .library(name: "RingGalleryCore", targets: ["RingGalleryCore"]),
         .library(name: "LiquidCompassCore", targets: ["LiquidCompassCore"]),
         .library(name: "SweaterRailCore", targets: ["SweaterRailCore"]),
+        .library(name: "FontCollectionCore", targets: ["FontCollectionCore"]),
         // A demo gallery listing every component.
         .library(name: "WhimsyGallery", targets: ["WhimsyGallery"]),
     ],
@@ -86,9 +88,12 @@ let package = Package(
         .target(name: "SweaterRailCore", dependencies: ["WhimsyCore"]),
         .target(name: "SweaterRail", dependencies: ["SweaterRailCore"]),
 
+        .target(name: "FontCollectionCore", dependencies: ["WhimsyCore"]),
+        .target(name: "FontCollection", dependencies: ["FontCollectionCore"]),
+
         .target(name: "WhimsyGallery", dependencies: [
             "PopTherapy", "MagneticBeadSlider", "EraserDelete", "ShutterReveal", "AliveEyes", "ScatterRegroup", "SolarFlareLike", "FlyingButton",
-            "GrainyRingGallery", "LiquidMetalCompass", "SweaterRail",
+            "GrainyRingGallery", "LiquidMetalCompass", "SweaterRail", "FontCollection",
         ]),
 
         .testTarget(name: "WhimsyCoreTests", dependencies: ["WhimsyCore"]),
@@ -103,5 +108,6 @@ let package = Package(
         .testTarget(name: "RingGalleryCoreTests", dependencies: ["RingGalleryCore"]),
         .testTarget(name: "LiquidCompassCoreTests", dependencies: ["LiquidCompassCore"]),
         .testTarget(name: "SweaterRailCoreTests", dependencies: ["SweaterRailCore"]),
+        .testTarget(name: "FontCollectionCoreTests", dependencies: ["FontCollectionCore"]),
     ]
 )
