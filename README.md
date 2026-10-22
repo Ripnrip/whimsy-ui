@@ -1,6 +1,6 @@
 # whimsy-ui
 
-Seventeen small, tactile SwiftUI components, each with a pure-Swift, unit-tested core:
+Eighteen small, tactile SwiftUI components, each with a pure-Swift, unit-tested core:
 
 | | Component | What it does |
 |---|---|---|
@@ -21,10 +21,11 @@ Seventeen small, tactile SwiftUI components, each with a pure-Swift, unit-tested
 | 🧵 | **ClothPoster** | A poster card that ripples like hanging cloth: a Metal distortionEffect sends waves out from your finger, a colorEffect adds sheen on the crests, release rings down on a damped spring, and a light haptic ticks per crest. |
 | 🖼️ | **TiltPhotoGrid** | A kinetic-typography intro of heavy black italic words cutting through three phrases, then a masonry grid of generated portraits that tilts and pans as one 3D plane away from your finger (or device motion), with per-card parallax. |
 | ⌚ | **ScrollSpinWatch** | A dark technical page where a smartwatch built from layered shapes turns front → side → back → front as you scroll, with copy that fades and slides in sync and a numericText stats row at the end. |
+| 🛍️ | **BoutiqueBurst** | A large serif "Boutique" with a few paper-doll cutouts; a tap fills the screen with dozens of figures in a staggered spring ripple, and tapping one keeps it while the rest slide away before it becomes the hero of a detail view. |
 
 iOS 17+ / macOS 14+, Swift tools 6.0 (Swift 6 language mode).
 
-> **Honest status:** every core target builds, and all 402 tests pass on Linux (Swift 6.4).
+> **Honest status:** every core target builds, and all 413 tests pass on Linux (Swift 6.4).
 > The SwiftUI targets have **not yet been compiled or run on an Apple platform**. On Linux
 > they compile to empty modules (`#if canImport(SwiftUI)`). They were checked with
 > sourcekit-lsp (0 diagnostics), `swiftc -parse` and careful API review, but expect
@@ -52,8 +53,8 @@ targets: [
 ```
 
 Each component is its own product: `PopTherapy`, `MagneticBeadSlider`, `EraserDelete`,
-`ShutterReveal`, `AliveEyes`, `ScatterRegroup`, `SolarFlareLike`, `FlyingButton`, `GrainyRingGallery`, `LiquidMetalCompass`, `SweaterRail`, `FontCollection`, `FollowBlobHero`, `MoonPhaseScrubber`, `ClothPoster`, `TiltPhotoGrid` and `ScrollSpinWatch`. There's also a SwiftUI-free `…Core` product for each
-(e.g. `ShutterRevealCore`), plus `WhimsyGallery`, a demo list of all seventeen.
+`ShutterReveal`, `AliveEyes`, `ScatterRegroup`, `SolarFlareLike`, `FlyingButton`, `GrainyRingGallery`, `LiquidMetalCompass`, `SweaterRail`, `FontCollection`, `FollowBlobHero`, `MoonPhaseScrubber`, `ClothPoster`, `TiltPhotoGrid`, `ScrollSpinWatch` and `BoutiqueBurst`. There's also a SwiftUI-free `…Core` product for each
+(e.g. `ShutterRevealCore`), plus `WhimsyGallery`, a demo list of all eighteen.
 
 ```swift
 import WhimsyGallery
@@ -505,6 +506,31 @@ ScrollSpinWatch()          // full-screen; scroll to turn the watch over
   track, section opacity/offset, stat count-up) and `WatchProjection` (layer placement, paint
   order, Lambert-ish shading) are plain Swift and fully tested.
 
+### 🛍️ BoutiqueBurst
+
+![BoutiqueBurst](docs/boutique.gif)
+
+```swift
+import BoutiqueBurst
+
+BoutiqueBurst()                                   // "Boutique" and 42 looks
+BoutiqueBurst(word: "Atelier", figureCount: 36)
+```
+
+- **Rest:** a large Didot "Boutique" on white with six paper-doll cutouts scattered around it,
+  placed by seeded rejection sampling so they clear the word and each other.
+- **Burst:** tap anywhere (or swipe up) and 42 figures fill the screen on a jittered six-column
+  grid, each on `.spring(duration: 0.6, bounce: 0.25)` delayed by its distance from your finger,
+  so the crowd ripples out from the touch.
+- **Focus:** tap one figure and it stays put while the others fade and slide straight away from
+  it, nearest first. It then flies into a detail view (name, price, colourway, Add to bag) via
+  `matchedGeometryEffect`; Close sends it back and the crowd ripples home.
+- **Figures:** drawn from rounded shapes in a `Canvas` (five garments, twelve outfit colours,
+  hair, skin, bag or scarf), generated from a seed. No photos or artwork.
+- **Core:** `FigureSpec`, `BoutiqueLayout` (scatter, burst grid, stagger delays, exit offsets,
+  spring progress) and `BoutiqueModel` (the rest → burst → focusing → detail machine) are plain
+  Swift, fully tested and seeded with `SeededRandom`.
+
 ---
 
 ## Accessibility
@@ -530,9 +556,10 @@ Every component handles **Reduce Motion**, each in its own way:
 | ClothPoster | Ripples are 30 % as tall and the release settles critically damped, without flapping. |
 | TiltPhotoGrid | Words appear without the slam, and the grid tilts and pans at 35 % strength on critically damped springs. |
 | ScrollSpinWatch | Text blocks cross-fade without sliding and the stats change without the numeric roll; the watch still follows your scroll. |
+| BoutiqueBurst | Figures cross-fade into place without the spring or the stagger, and leaving figures fade without sliding. |
 
-All seventeen have VoiceOver labels and actions (e.g. pop next bubble, adjustable slider,
-erase, open/close shutter, squint, scatter/regroup, and a like toggle with the toggle trait and a Liked / Not liked value; FlyingButton is a plain button with its title as the label; GrainyRingGallery is adjustable (swipe up/down steps cards, value "Dunes, 1 of 8") with an Open action, and its detail view is modal with a Close button and the escape gesture; LiquidMetalCompass reads e.g. "Compass to Maya: 30° to your right, 1.2 kilometres", and is adjustable by 15° when faking the heading; SweaterRail exposes each garment as a button ("Cobalt Cardigan, $146") that opens its page, which is modal with a Close button and the escape gesture; FontCollection's flip board reads "Fontastic, set in Didot" with a shuffle action, chips carry the selected trait and a font count, each card is a button ("Didot, Display") and the detail view is modal with a Close button and the escape gesture; FollowBlobHero hides the decorative blob and exposes its headline, buttons and palette chips ("Lagoon colours", selected); MoonPhaseScrubber is an adjustable element ("Moon phase, Waxing Crescent, 15 percent illuminated") that steps one named phase per swipe; ClothPoster is a labelled image ("Poster: Soft Goods, Autumn Linen Fair, 24 to 27 October") with a "Ripple" action; TiltPhotoGrid reads its phrases, then "Photo album, 18 portraits", with "Skip intro" and "Replay intro" actions; ScrollSpinWatch is adjustable (swipe up/down steps front, side, back and the spec sheet) and reads the visible text block, with stats as "47 mm, Titanium case" and the watch hidden).
+All eighteen have VoiceOver labels and actions (e.g. pop next bubble, adjustable slider,
+erase, open/close shutter, squint, scatter/regroup, and a like toggle with the toggle trait and a Liked / Not liked value; FlyingButton is a plain button with its title as the label; GrainyRingGallery is adjustable (swipe up/down steps cards, value "Dunes, 1 of 8") with an Open action, and its detail view is modal with a Close button and the escape gesture; LiquidMetalCompass reads e.g. "Compass to Maya: 30° to your right, 1.2 kilometres", and is adjustable by 15° when faking the heading; SweaterRail exposes each garment as a button ("Cobalt Cardigan, $146") that opens its page, which is modal with a Close button and the escape gesture; FontCollection's flip board reads "Fontastic, set in Didot" with a shuffle action, chips carry the selected trait and a font count, each card is a button ("Didot, Display") and the detail view is modal with a Close button and the escape gesture; FollowBlobHero hides the decorative blob and exposes its headline, buttons and palette chips ("Lagoon colours", selected); MoonPhaseScrubber is an adjustable element ("Moon phase, Waxing Crescent, 15 percent illuminated") that steps one named phase per swipe; ClothPoster is a labelled image ("Poster: Soft Goods, Autumn Linen Fair, 24 to 27 October") with a "Ripple" action; TiltPhotoGrid reads its phrases, then "Photo album, 18 portraits", with "Skip intro" and "Replay intro" actions; ScrollSpinWatch is adjustable (swipe up/down steps front, side, back and the spec sheet) and reads the visible text block, with stats as "47 mm, Titanium case" and the watch hidden; BoutiqueBurst reads "Boutique" as a header with an "Open the collection" action, then each figure as a button ("Plum Slip Dress, 315 dollars"), and its detail view is modal with a Close button and the escape gesture).
 
 ## Layout
 
@@ -556,7 +583,8 @@ Sources/
   ClothPosterCore/       ClothPoster/         (+ Resources/ClothPoster.metal)
   TiltGridCore/          TiltPhotoGrid/
   SpinWatchCore/         ScrollSpinWatch/
-  WhimsyGallery/         Demo gallery of all seventeen
+  BoutiqueCore/          BoutiqueBurst/
+  WhimsyGallery/         Demo gallery of all eighteen
 Tests/                   Swift Testing suites for WhimsyCore and every core
 docs/                    README GIFs
 ```
