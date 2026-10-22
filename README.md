@@ -1,6 +1,6 @@
 # whimsy-ui
 
-Thirteen small, tactile SwiftUI components, each with a pure-Swift, unit-tested core:
+Fourteen small, tactile SwiftUI components, each with a pure-Swift, unit-tested core:
 
 | | Component | What it does |
 |---|---|---|
@@ -17,10 +17,11 @@ Thirteen small, tactile SwiftUI components, each with a pure-Swift, unit-tested 
 | 🧶 | **SweaterRail** | A clothes rail that magnifies like the macOS Dock: garments spread, swell and swing on pendulums; tap one for a matched-geometry hero page, with a marquee ticker. |
 | 🔤 | **FontCollection** | A font specimen gallery: a split-flap headline flips through 16 built-in faces and settles, category chips make the cards hop and regroup, and each card opens into a detail view. |
 | 🫠 | **FollowBlobHero** | A landing-page hero whose blurred mesh-gradient blob chases your finger on a delayed two-stage spring, squashing and stretching along its velocity, with palette chips. |
+| 🌗 | **MoonPhaseScrubber** | An Animatable moon whose terminator is a half-ellipse of x-radius r·cos(2πp): drag sideways to scrub, release to spring-snap to the nearest of eight named phases with a soft haptic, plus earthshine near new moon. |
 
 iOS 17+ / macOS 14+, Swift tools 6.0 (Swift 6 language mode).
 
-> **Honest status:** every core target builds, and all 344 tests pass on Linux (Swift 6.4).
+> **Honest status:** every core target builds, and all 360 tests pass on Linux (Swift 6.4).
 > The SwiftUI targets have **not yet been compiled or run on an Apple platform**. On Linux
 > they compile to empty modules (`#if canImport(SwiftUI)`). They were checked with
 > sourcekit-lsp (0 diagnostics), `swiftc -parse` and careful API review, but expect
@@ -48,8 +49,8 @@ targets: [
 ```
 
 Each component is its own product: `PopTherapy`, `MagneticBeadSlider`, `EraserDelete`,
-`ShutterReveal`, `AliveEyes`, `ScatterRegroup`, `SolarFlareLike`, `FlyingButton`, `GrainyRingGallery`, `LiquidMetalCompass`, `SweaterRail`, `FontCollection` and `FollowBlobHero`. There's also a SwiftUI-free `…Core` product for each
-(e.g. `ShutterRevealCore`), plus `WhimsyGallery`, a demo list of all thirteen.
+`ShutterReveal`, `AliveEyes`, `ScatterRegroup`, `SolarFlareLike`, `FlyingButton`, `GrainyRingGallery`, `LiquidMetalCompass`, `SweaterRail`, `FontCollection`, `FollowBlobHero` and `MoonPhaseScrubber`. There's also a SwiftUI-free `…Core` product for each
+(e.g. `ShutterRevealCore`), plus `WhimsyGallery`, a demo list of all fourteen.
 
 ```swift
 import WhimsyGallery
@@ -388,6 +389,36 @@ FollowBlobHero(headline: "Ship delightful apps.", subhead: "…", primary: "Star
 - **Core:** `ChaseSpring`, `BlobMorph`, `MeshField`, `BlobPalette` and `FollowBlobModel` are
   plain Swift and fully tested, built on the shared `WhimsySpring2D`.
 
+### 🌗 MoonPhaseScrubber
+
+![MoonPhaseScrubber](docs/moonphase.gif)
+
+```swift
+import MoonPhaseScrubber
+
+MoonPhaseScrubber()                                   // starts just after new moon
+MoonPhaseScrubber(initialPhase: 0.5) { phase in print(phase.title) }
+
+// The shape on its own: Animatable, so withAnimation { phase = 0.5 } waxes it.
+MoonView(phase: phase).fill(.white).frame(width: 120, height: 120)
+```
+
+- **Shape:** `MoonView` is an `Animatable` `Shape` whose `animatableData` is the phase (0 new,
+  0.25 first quarter, 0.5 full, 0.75 last quarter). The lit region is the limb semicircle on
+  the lit side closed by a terminator half-ellipse with x-radius `r·cos(2π·phase)`: r at new
+  moon (nothing lit), 0 at the quarters (a straight line), −r at full. Its area is exactly
+  (1 − cos 2πp)/2 of the disc, which the tests check.
+- **Scrubbing:** a horizontal drag moves the phase 1:1 (360 pt per lunation, 45 pt per named
+  phase). On release the flick is projected 0.12 s ahead (at most two phases past where you let
+  go) and a spring (k 160, ζ 0.62) snaps to the nearest of the eight named phases, overshooting a
+  little, with a soft haptic. Snaps across new moon take the short way round. You can also tap
+  one of the eight small moons in the track.
+- **Bonus:** a faint blue earthshine glow lights the dark disc near new moon
+  (0.32·max(cos 2πp, 0)³, gone by the quarters). The phase name and the illuminated percentage
+  roll with `.contentTransition(.numericText())`, counting down when you scrub backwards.
+- **Core:** `MoonMath`, `MoonPhaseName`, `MoonFormatting` and `MoonScrubModel` are plain Swift
+  and fully tested, built on the shared `WhimsySpring`.
+
 ---
 
 ## Accessibility
@@ -409,9 +440,10 @@ Every component handles **Reduce Motion**, each in its own way:
 | SweaterRail | No pendulum swing, critically damped spreading (no overshoot), the marquee stands still, and the hero page opens with a short ease instead of a bouncy spring. |
 | FontCollection | The flip board shows its font straight away (no flapping), filter changes crossfade cards in place, and the detail view crossfades instead of zooming. |
 | FollowBlobHero | One critically damped spring (no lag or overshoot), no wobble, stretch or idle orbit, and palettes switch instantly. |
+| MoonPhaseScrubber | Snaps are critically damped (no overshoot or flick momentum) and the phase name changes without rolling. |
 
-All thirteen have VoiceOver labels and actions (e.g. pop next bubble, adjustable slider,
-erase, open/close shutter, squint, scatter/regroup, and a like toggle with the toggle trait and a Liked / Not liked value; FlyingButton is a plain button with its title as the label; GrainyRingGallery is adjustable (swipe up/down steps cards, value "Dunes, 1 of 8") with an Open action, and its detail view is modal with a Close button and the escape gesture; LiquidMetalCompass reads e.g. "Compass to Maya: 30° to your right, 1.2 kilometres", and is adjustable by 15° when faking the heading; SweaterRail exposes each garment as a button ("Cobalt Cardigan, $146") that opens its page, which is modal with a Close button and the escape gesture; FontCollection's flip board reads "Fontastic, set in Didot" with a shuffle action, chips carry the selected trait and a font count, each card is a button ("Didot, Display") and the detail view is modal with a Close button and the escape gesture; FollowBlobHero hides the decorative blob and exposes its headline, buttons and palette chips ("Lagoon colours", selected)).
+All fourteen have VoiceOver labels and actions (e.g. pop next bubble, adjustable slider,
+erase, open/close shutter, squint, scatter/regroup, and a like toggle with the toggle trait and a Liked / Not liked value; FlyingButton is a plain button with its title as the label; GrainyRingGallery is adjustable (swipe up/down steps cards, value "Dunes, 1 of 8") with an Open action, and its detail view is modal with a Close button and the escape gesture; LiquidMetalCompass reads e.g. "Compass to Maya: 30° to your right, 1.2 kilometres", and is adjustable by 15° when faking the heading; SweaterRail exposes each garment as a button ("Cobalt Cardigan, $146") that opens its page, which is modal with a Close button and the escape gesture; FontCollection's flip board reads "Fontastic, set in Didot" with a shuffle action, chips carry the selected trait and a font count, each card is a button ("Didot, Display") and the detail view is modal with a Close button and the escape gesture; FollowBlobHero hides the decorative blob and exposes its headline, buttons and palette chips ("Lagoon colours", selected); MoonPhaseScrubber is an adjustable element ("Moon phase, Waxing Crescent, 15 percent illuminated") that steps one named phase per swipe).
 
 ## Layout
 
@@ -431,7 +463,8 @@ Sources/
   SweaterRailCore/       SweaterRail/
   FontCollectionCore/    FontCollection/
   FollowBlobCore/        FollowBlobHero/
-  WhimsyGallery/         Demo gallery of all thirteen
+  MoonPhaseCore/         MoonPhaseScrubber/
+  WhimsyGallery/         Demo gallery of all fourteen
 Tests/                   Swift Testing suites for WhimsyCore and every core
 docs/                    README GIFs
 ```

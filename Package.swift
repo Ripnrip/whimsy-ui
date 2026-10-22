@@ -33,6 +33,7 @@ let package = Package(
         .library(name: "SweaterRail", targets: ["SweaterRail"]),
         .library(name: "FontCollection", targets: ["FontCollection"]),
         .library(name: "FollowBlobHero", targets: ["FollowBlobHero"]),
+        .library(name: "MoonPhaseScrubber", targets: ["MoonPhaseScrubber"]),
         // The pure-Swift cores on their own (no SwiftUI; build anywhere).
         .library(name: "PopTherapyCore", targets: ["PopTherapyCore"]),
         .library(name: "MagneticBeadCore", targets: ["MagneticBeadCore"]),
@@ -47,6 +48,7 @@ let package = Package(
         .library(name: "SweaterRailCore", targets: ["SweaterRailCore"]),
         .library(name: "FontCollectionCore", targets: ["FontCollectionCore"]),
         .library(name: "FollowBlobCore", targets: ["FollowBlobCore"]),
+        .library(name: "MoonPhaseCore", targets: ["MoonPhaseCore"]),
         // A demo gallery listing every component.
         .library(name: "WhimsyGallery", targets: ["WhimsyGallery"]),
     ],
@@ -96,9 +98,12 @@ let package = Package(
         .target(name: "FollowBlobCore", dependencies: ["WhimsyCore"]),
         .target(name: "FollowBlobHero", dependencies: ["FollowBlobCore"]),
 
+        .target(name: "MoonPhaseCore", dependencies: ["WhimsyCore"]),
+        .target(name: "MoonPhaseScrubber", dependencies: ["MoonPhaseCore"]),
+
         .target(name: "WhimsyGallery", dependencies: [
             "PopTherapy", "MagneticBeadSlider", "EraserDelete", "ShutterReveal", "AliveEyes", "ScatterRegroup", "SolarFlareLike", "FlyingButton",
-            "GrainyRingGallery", "LiquidMetalCompass", "SweaterRail", "FontCollection", "FollowBlobHero",
+            "GrainyRingGallery", "LiquidMetalCompass", "SweaterRail", "FontCollection", "FollowBlobHero", "MoonPhaseScrubber",
         ]),
 
         .testTarget(name: "WhimsyCoreTests", dependencies: ["WhimsyCore"]),
@@ -115,5 +120,6 @@ let package = Package(
         .testTarget(name: "SweaterRailCoreTests", dependencies: ["SweaterRailCore"]),
         .testTarget(name: "FontCollectionCoreTests", dependencies: ["FontCollectionCore"]),
         .testTarget(name: "FollowBlobCoreTests", dependencies: ["FollowBlobCore"]),
+        .testTarget(name: "MoonPhaseCoreTests", dependencies: ["MoonPhaseCore"]),
     ]
 )
