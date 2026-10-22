@@ -1,6 +1,6 @@
 # whimsy-ui
 
-Fourteen small, tactile SwiftUI components, each with a pure-Swift, unit-tested core:
+Fifteen small, tactile SwiftUI components, each with a pure-Swift, unit-tested core:
 
 | | Component | What it does |
 |---|---|---|
@@ -18,10 +18,11 @@ Fourteen small, tactile SwiftUI components, each with a pure-Swift, unit-tested 
 | 🔤 | **FontCollection** | A font specimen gallery: a split-flap headline flips through 16 built-in faces and settles, category chips make the cards hop and regroup, and each card opens into a detail view. |
 | 🫠 | **FollowBlobHero** | A landing-page hero whose blurred mesh-gradient blob chases your finger on a delayed two-stage spring, squashing and stretching along its velocity, with palette chips. |
 | 🌗 | **MoonPhaseScrubber** | An Animatable moon whose terminator is a half-ellipse of x-radius r·cos(2πp): drag sideways to scrub, release to spring-snap to the nearest of eight named phases with a soft haptic, plus earthshine near new moon. |
+| 🧵 | **ClothPoster** | A poster card that ripples like hanging cloth: a Metal distortionEffect sends waves out from your finger, a colorEffect adds sheen on the crests, release rings down on a damped spring, and a light haptic ticks per crest. |
 
 iOS 17+ / macOS 14+, Swift tools 6.0 (Swift 6 language mode).
 
-> **Honest status:** every core target builds, and all 360 tests pass on Linux (Swift 6.4).
+> **Honest status:** every core target builds, and all 377 tests pass on Linux (Swift 6.4).
 > The SwiftUI targets have **not yet been compiled or run on an Apple platform**. On Linux
 > they compile to empty modules (`#if canImport(SwiftUI)`). They were checked with
 > sourcekit-lsp (0 diagnostics), `swiftc -parse` and careful API review, but expect
@@ -49,8 +50,8 @@ targets: [
 ```
 
 Each component is its own product: `PopTherapy`, `MagneticBeadSlider`, `EraserDelete`,
-`ShutterReveal`, `AliveEyes`, `ScatterRegroup`, `SolarFlareLike`, `FlyingButton`, `GrainyRingGallery`, `LiquidMetalCompass`, `SweaterRail`, `FontCollection`, `FollowBlobHero` and `MoonPhaseScrubber`. There's also a SwiftUI-free `…Core` product for each
-(e.g. `ShutterRevealCore`), plus `WhimsyGallery`, a demo list of all fourteen.
+`ShutterReveal`, `AliveEyes`, `ScatterRegroup`, `SolarFlareLike`, `FlyingButton`, `GrainyRingGallery`, `LiquidMetalCompass`, `SweaterRail`, `FontCollection`, `FollowBlobHero`, `MoonPhaseScrubber` and `ClothPoster`. There's also a SwiftUI-free `…Core` product for each
+(e.g. `ShutterRevealCore`), plus `WhimsyGallery`, a demo list of all fifteen.
 
 ```swift
 import WhimsyGallery
@@ -419,6 +420,37 @@ MoonView(phase: phase).fill(.white).frame(width: 120, height: 120)
 - **Core:** `MoonMath`, `MoonPhaseName`, `MoonFormatting` and `MoonScrubModel` are plain Swift
   and fully tested, built on the shared `WhimsySpring`.
 
+### 🧵 ClothPoster
+
+![ClothPoster](docs/clothposter.gif)
+
+```swift
+import ClothPoster
+
+ClothPoster()                                          // the sample screen-print
+ClothPoster(size: CGSize(width: 280, height: 380), accessibilityLabel: "Gig poster") {
+    Image("gig-poster").resizable().scaledToFill()
+}
+```
+
+- **Ripples:** touch the card and circular waves leave your finger: height
+  `A·sin(k·d − ω·t)` behind a soft front moving at 230 pt/s (wavelength 52 pt), fading over
+  240 pt. A Metal `distortionEffect` (`clothRipple`) pulls each pixel along the radius by that
+  height, taking the touch position, time and amplitude as uniforms. The card is padded by 14 pt,
+  so its edges ripple too.
+- **Amplitude:** while you touch, a spring (k 60, ζ 0.9) follows 3.5 pt plus 0.008 pt per pt/s of
+  drag speed, capped at 10 pt, so a fast swipe raises taller crests. Let go and it rings down on
+  an underdamped spring (k 34, ζ 0.22): the cloth flaps through flat a few times and settles in
+  about 3 s. The effects switch off once it is still.
+- **Sheen:** a `colorEffect` (`clothSheen`) treats the ripple as a height field lit from the
+  upper left. Slopes facing the light brighten, those facing away darken, and a Blinn-Phong
+  highlight (above the flat-cloth baseline) glints on the crests.
+- **Haptics:** a light impact ticks for every new crest (one per 0.23 s period) while the
+  amplitude is at least 1.5 pt, at most every 0.12 s, with its intensity following the
+  amplitude, so the ticks fade out as the cloth rings down.
+- **Core:** `ClothWave`, `ClothShading` and `ClothModel` are plain Swift and fully tested. They
+  mirror the shader's maths line for line, and the amplitude uses the shared `WhimsySpring`.
+
 ---
 
 ## Accessibility
@@ -441,9 +473,10 @@ Every component handles **Reduce Motion**, each in its own way:
 | FontCollection | The flip board shows its font straight away (no flapping), filter changes crossfade cards in place, and the detail view crossfades instead of zooming. |
 | FollowBlobHero | One critically damped spring (no lag or overshoot), no wobble, stretch or idle orbit, and palettes switch instantly. |
 | MoonPhaseScrubber | Snaps are critically damped (no overshoot or flick momentum) and the phase name changes without rolling. |
+| ClothPoster | Ripples are 30 % as tall and the release settles critically damped, without flapping. |
 
-All fourteen have VoiceOver labels and actions (e.g. pop next bubble, adjustable slider,
-erase, open/close shutter, squint, scatter/regroup, and a like toggle with the toggle trait and a Liked / Not liked value; FlyingButton is a plain button with its title as the label; GrainyRingGallery is adjustable (swipe up/down steps cards, value "Dunes, 1 of 8") with an Open action, and its detail view is modal with a Close button and the escape gesture; LiquidMetalCompass reads e.g. "Compass to Maya: 30° to your right, 1.2 kilometres", and is adjustable by 15° when faking the heading; SweaterRail exposes each garment as a button ("Cobalt Cardigan, $146") that opens its page, which is modal with a Close button and the escape gesture; FontCollection's flip board reads "Fontastic, set in Didot" with a shuffle action, chips carry the selected trait and a font count, each card is a button ("Didot, Display") and the detail view is modal with a Close button and the escape gesture; FollowBlobHero hides the decorative blob and exposes its headline, buttons and palette chips ("Lagoon colours", selected); MoonPhaseScrubber is an adjustable element ("Moon phase, Waxing Crescent, 15 percent illuminated") that steps one named phase per swipe).
+All fifteen have VoiceOver labels and actions (e.g. pop next bubble, adjustable slider,
+erase, open/close shutter, squint, scatter/regroup, and a like toggle with the toggle trait and a Liked / Not liked value; FlyingButton is a plain button with its title as the label; GrainyRingGallery is adjustable (swipe up/down steps cards, value "Dunes, 1 of 8") with an Open action, and its detail view is modal with a Close button and the escape gesture; LiquidMetalCompass reads e.g. "Compass to Maya: 30° to your right, 1.2 kilometres", and is adjustable by 15° when faking the heading; SweaterRail exposes each garment as a button ("Cobalt Cardigan, $146") that opens its page, which is modal with a Close button and the escape gesture; FontCollection's flip board reads "Fontastic, set in Didot" with a shuffle action, chips carry the selected trait and a font count, each card is a button ("Didot, Display") and the detail view is modal with a Close button and the escape gesture; FollowBlobHero hides the decorative blob and exposes its headline, buttons and palette chips ("Lagoon colours", selected); MoonPhaseScrubber is an adjustable element ("Moon phase, Waxing Crescent, 15 percent illuminated") that steps one named phase per swipe; ClothPoster is a labelled image ("Poster: Soft Goods, Autumn Linen Fair, 24 to 27 October") with a "Ripple" action).
 
 ## Layout
 
@@ -464,7 +497,8 @@ Sources/
   FontCollectionCore/    FontCollection/
   FollowBlobCore/        FollowBlobHero/
   MoonPhaseCore/         MoonPhaseScrubber/
-  WhimsyGallery/         Demo gallery of all fourteen
+  ClothPosterCore/       ClothPoster/         (+ Resources/ClothPoster.metal)
+  WhimsyGallery/         Demo gallery of all fifteen
 Tests/                   Swift Testing suites for WhimsyCore and every core
 docs/                    README GIFs
 ```

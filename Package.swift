@@ -1,7 +1,7 @@
 // swift-tools-version: 6.0
 import PackageDescription
 
-// The Metal shaders (PopTherapy, GrainyRingGallery, LiquidMetalCompass) are compiled by Xcode into each module's
+// The Metal shaders (PopTherapy, GrainyRingGallery, LiquidMetalCompass, ClothPoster) are compiled by Xcode into each module's
 // default.metallib. SwiftPM on Linux/Windows has no Metal compiler, so the resources are
 // skipped there (the SwiftUI targets compile to empty modules on those platforms anyway).
 #if os(Linux) || os(Windows)
@@ -34,6 +34,7 @@ let package = Package(
         .library(name: "FontCollection", targets: ["FontCollection"]),
         .library(name: "FollowBlobHero", targets: ["FollowBlobHero"]),
         .library(name: "MoonPhaseScrubber", targets: ["MoonPhaseScrubber"]),
+        .library(name: "ClothPoster", targets: ["ClothPoster"]),
         // The pure-Swift cores on their own (no SwiftUI; build anywhere).
         .library(name: "PopTherapyCore", targets: ["PopTherapyCore"]),
         .library(name: "MagneticBeadCore", targets: ["MagneticBeadCore"]),
@@ -49,6 +50,7 @@ let package = Package(
         .library(name: "FontCollectionCore", targets: ["FontCollectionCore"]),
         .library(name: "FollowBlobCore", targets: ["FollowBlobCore"]),
         .library(name: "MoonPhaseCore", targets: ["MoonPhaseCore"]),
+        .library(name: "ClothPosterCore", targets: ["ClothPosterCore"]),
         // A demo gallery listing every component.
         .library(name: "WhimsyGallery", targets: ["WhimsyGallery"]),
     ],
@@ -101,9 +103,13 @@ let package = Package(
         .target(name: "MoonPhaseCore", dependencies: ["WhimsyCore"]),
         .target(name: "MoonPhaseScrubber", dependencies: ["MoonPhaseCore"]),
 
+        .target(name: "ClothPosterCore", dependencies: ["WhimsyCore"]),
+        .target(name: "ClothPoster", dependencies: ["ClothPosterCore"],
+                exclude: metalExclude, resources: metalResources),
+
         .target(name: "WhimsyGallery", dependencies: [
             "PopTherapy", "MagneticBeadSlider", "EraserDelete", "ShutterReveal", "AliveEyes", "ScatterRegroup", "SolarFlareLike", "FlyingButton",
-            "GrainyRingGallery", "LiquidMetalCompass", "SweaterRail", "FontCollection", "FollowBlobHero", "MoonPhaseScrubber",
+            "GrainyRingGallery", "LiquidMetalCompass", "SweaterRail", "FontCollection", "FollowBlobHero", "MoonPhaseScrubber", "ClothPoster",
         ]),
 
         .testTarget(name: "WhimsyCoreTests", dependencies: ["WhimsyCore"]),
@@ -121,5 +127,6 @@ let package = Package(
         .testTarget(name: "FontCollectionCoreTests", dependencies: ["FontCollectionCore"]),
         .testTarget(name: "FollowBlobCoreTests", dependencies: ["FollowBlobCore"]),
         .testTarget(name: "MoonPhaseCoreTests", dependencies: ["MoonPhaseCore"]),
+        .testTarget(name: "ClothPosterCoreTests", dependencies: ["ClothPosterCore"]),
     ]
 )
