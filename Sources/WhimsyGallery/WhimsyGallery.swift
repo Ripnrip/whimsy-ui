@@ -15,8 +15,9 @@ import GrainyRingGallery
 import LiquidMetalCompass
 import SweaterRail
 import FontCollection
+import FollowBlobHero
 
-/// A navigation list of all twelve components with a small live demo of each.
+/// A navigation list of all thirteen components with a small live demo of each.
 /// Drop `WhimsyGallery()` into a scene to browse them.
 public struct WhimsyGallery: View {
     public init() {}
@@ -48,7 +49,7 @@ public struct WhimsyGallery: View {
 }
 
 enum GalleryItem: String, CaseIterable, Identifiable, Hashable {
-    case popTherapy, magneticBeads, eraserDelete, shutterReveal, aliveEyes, scatterRegroup, solarFlare, flyingButton, ringGallery, liquidCompass, sweaterRail, fontCollection
+    case popTherapy, magneticBeads, eraserDelete, shutterReveal, aliveEyes, scatterRegroup, solarFlare, flyingButton, ringGallery, liquidCompass, sweaterRail, fontCollection, followBlob
     var id: String { rawValue }
 
     var title: String {
@@ -65,6 +66,7 @@ enum GalleryItem: String, CaseIterable, Identifiable, Hashable {
         case .liquidCompass: "Liquid Metal Compass"
         case .sweaterRail: "Sweater Rail"
         case .fontCollection: "Font Collection"
+        case .followBlob: "Follow Blob Hero"
         }
     }
 
@@ -82,6 +84,7 @@ enum GalleryItem: String, CaseIterable, Identifiable, Hashable {
         case .liquidCompass: "A chrome blob that leans toward a friend"
         case .sweaterRail: "A Dock-style clothes rail with a hero page"
         case .fontCollection: "A flip-board font showcase with specimen cards"
+        case .followBlob: "A neon blob that chases your finger"
         }
     }
 
@@ -99,6 +102,7 @@ enum GalleryItem: String, CaseIterable, Identifiable, Hashable {
         case .liquidCompass: "location.north.circle.fill"
         case .sweaterRail: "tshirt.fill"
         case .fontCollection: "textformat"
+        case .followBlob: "drop.fill"
         }
     }
 
@@ -116,6 +120,7 @@ enum GalleryItem: String, CaseIterable, Identifiable, Hashable {
         case .liquidCompass: CompassDemo()
         case .sweaterRail: SweaterRail()
         case .fontCollection: FontCollection()
+        case .followBlob: FollowBlobHero()
         }
     }
 }

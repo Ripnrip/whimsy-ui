@@ -1,6 +1,6 @@
 # whimsy-ui
 
-Twelve small, tactile SwiftUI components, each with a pure-Swift, unit-tested core:
+Thirteen small, tactile SwiftUI components, each with a pure-Swift, unit-tested core:
 
 | | Component | What it does |
 |---|---|---|
@@ -16,10 +16,11 @@ Twelve small, tactile SwiftUI components, each with a pure-Swift, unit-tested co
 | 🧭 | **LiquidMetalCompass** | A liquid-chrome blob that leans and stretches toward a friend, wobbling on springs as you turn, with a dead-on haptic tick. |
 | 🧶 | **SweaterRail** | A clothes rail that magnifies like the macOS Dock: garments spread, swell and swing on pendulums; tap one for a matched-geometry hero page, with a marquee ticker. |
 | 🔤 | **FontCollection** | A font specimen gallery: a split-flap headline flips through 16 built-in faces and settles, category chips make the cards hop and regroup, and each card opens into a detail view. |
+| 🫠 | **FollowBlobHero** | A landing-page hero whose blurred mesh-gradient blob chases your finger on a delayed two-stage spring, squashing and stretching along its velocity, with palette chips. |
 
 iOS 17+ / macOS 14+, Swift tools 6.0 (Swift 6 language mode).
 
-> **Honest status:** every core target builds, and all 332 tests pass on Linux (Swift 6.4).
+> **Honest status:** every core target builds, and all 344 tests pass on Linux (Swift 6.4).
 > The SwiftUI targets have **not yet been compiled or run on an Apple platform**. On Linux
 > they compile to empty modules (`#if canImport(SwiftUI)`). They were checked with
 > sourcekit-lsp (0 diagnostics), `swiftc -parse` and careful API review, but expect
@@ -47,8 +48,8 @@ targets: [
 ```
 
 Each component is its own product: `PopTherapy`, `MagneticBeadSlider`, `EraserDelete`,
-`ShutterReveal`, `AliveEyes`, `ScatterRegroup`, `SolarFlareLike`, `FlyingButton`, `GrainyRingGallery`, `LiquidMetalCompass`, `SweaterRail` and `FontCollection`. There's also a SwiftUI-free `…Core` product for each
-(e.g. `ShutterRevealCore`), plus `WhimsyGallery`, a demo list of all twelve.
+`ShutterReveal`, `AliveEyes`, `ScatterRegroup`, `SolarFlareLike`, `FlyingButton`, `GrainyRingGallery`, `LiquidMetalCompass`, `SweaterRail`, `FontCollection` and `FollowBlobHero`. There's also a SwiftUI-free `…Core` product for each
+(e.g. `ShutterRevealCore`), plus `WhimsyGallery`, a demo list of all thirteen.
 
 ```swift
 import WhimsyGallery
@@ -363,6 +364,30 @@ FontCollection(fonts: FontCatalog.standard.specimens.filter { $0.category != .sc
   `FontCollectionModel`, which ties them together and returns due haptics from `step(_:)`.
   All plain Swift and fully tested (42 tests).
 
+### 🫠 FollowBlobHero
+
+![FollowBlobHero](docs/followblob.gif)
+
+```swift
+import FollowBlobHero
+
+FollowBlobHero()
+FollowBlobHero(headline: "Ship delightful apps.", subhead: "…", primary: "Start free") { signUp() }
+```
+
+- **Delayed chase:** the blob follows your finger (or the pointer on macOS) through two springs
+  in series: a critically damped leader (k 38) pulled by the finger, and a bouncy follower
+  (k 95, ζ 0.55) pulled by the leader. That gives a lazy lag, then a soft overshoot.
+- **Squash and stretch:** the outline stretches along the velocity (up to +45 % at 1,400 pt/s)
+  with its area preserved, and three slow travelling lobes (k = 2, 3, 5) make it wobble more
+  the faster it moves.
+- **Colour:** a 3 × 3 `MeshGradient` on iOS 18 / macOS 15 whose control points drift and lean
+  with the motion, falling back to nine soft circles at the same points on iOS 17 / macOS 14.
+  Palette chips (Neon, Sunset, Lagoon, Orchid) crossfade over 0.6 s with a selection haptic.
+- **Idle:** let go and the blob drifts on a slow Lissajous loop around its home point.
+- **Core:** `ChaseSpring`, `BlobMorph`, `MeshField`, `BlobPalette` and `FollowBlobModel` are
+  plain Swift and fully tested, built on the shared `WhimsySpring2D`.
+
 ---
 
 ## Accessibility
@@ -383,9 +408,10 @@ Every component handles **Reduce Motion**, each in its own way:
 | LiquidMetalCompass | Critically damped turn (no overshoot or wobble), no swing stretch, static reflections, and the distance changes without rolling. |
 | SweaterRail | No pendulum swing, critically damped spreading (no overshoot), the marquee stands still, and the hero page opens with a short ease instead of a bouncy spring. |
 | FontCollection | The flip board shows its font straight away (no flapping), filter changes crossfade cards in place, and the detail view crossfades instead of zooming. |
+| FollowBlobHero | One critically damped spring (no lag or overshoot), no wobble, stretch or idle orbit, and palettes switch instantly. |
 
-All twelve have VoiceOver labels and actions (e.g. pop next bubble, adjustable slider,
-erase, open/close shutter, squint, scatter/regroup, and a like toggle with the toggle trait and a Liked / Not liked value; FlyingButton is a plain button with its title as the label; GrainyRingGallery is adjustable (swipe up/down steps cards, value "Dunes, 1 of 8") with an Open action, and its detail view is modal with a Close button and the escape gesture; LiquidMetalCompass reads e.g. "Compass to Maya: 30° to your right, 1.2 kilometres", and is adjustable by 15° when faking the heading; SweaterRail exposes each garment as a button ("Cobalt Cardigan, $146") that opens its page, which is modal with a Close button and the escape gesture; FontCollection's flip board reads "Fontastic, set in Didot" with a shuffle action, chips carry the selected trait and a font count, each card is a button ("Didot, Display") and the detail view is modal with a Close button and the escape gesture).
+All thirteen have VoiceOver labels and actions (e.g. pop next bubble, adjustable slider,
+erase, open/close shutter, squint, scatter/regroup, and a like toggle with the toggle trait and a Liked / Not liked value; FlyingButton is a plain button with its title as the label; GrainyRingGallery is adjustable (swipe up/down steps cards, value "Dunes, 1 of 8") with an Open action, and its detail view is modal with a Close button and the escape gesture; LiquidMetalCompass reads e.g. "Compass to Maya: 30° to your right, 1.2 kilometres", and is adjustable by 15° when faking the heading; SweaterRail exposes each garment as a button ("Cobalt Cardigan, $146") that opens its page, which is modal with a Close button and the escape gesture; FontCollection's flip board reads "Fontastic, set in Didot" with a shuffle action, chips carry the selected trait and a font count, each card is a button ("Didot, Display") and the detail view is modal with a Close button and the escape gesture; FollowBlobHero hides the decorative blob and exposes its headline, buttons and palette chips ("Lagoon colours", selected)).
 
 ## Layout
 
@@ -404,7 +430,8 @@ Sources/
   LiquidCompassCore/     LiquidMetalCompass/  (+ Resources/LiquidChrome.metal)
   SweaterRailCore/       SweaterRail/
   FontCollectionCore/    FontCollection/
-  WhimsyGallery/         Demo gallery of all twelve
+  FollowBlobCore/        FollowBlobHero/
+  WhimsyGallery/         Demo gallery of all thirteen
 Tests/                   Swift Testing suites for WhimsyCore and every core
 docs/                    README GIFs
 ```

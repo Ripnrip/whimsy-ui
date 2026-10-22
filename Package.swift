@@ -32,6 +32,7 @@ let package = Package(
         .library(name: "LiquidMetalCompass", targets: ["LiquidMetalCompass"]),
         .library(name: "SweaterRail", targets: ["SweaterRail"]),
         .library(name: "FontCollection", targets: ["FontCollection"]),
+        .library(name: "FollowBlobHero", targets: ["FollowBlobHero"]),
         // The pure-Swift cores on their own (no SwiftUI; build anywhere).
         .library(name: "PopTherapyCore", targets: ["PopTherapyCore"]),
         .library(name: "MagneticBeadCore", targets: ["MagneticBeadCore"]),
@@ -45,6 +46,7 @@ let package = Package(
         .library(name: "LiquidCompassCore", targets: ["LiquidCompassCore"]),
         .library(name: "SweaterRailCore", targets: ["SweaterRailCore"]),
         .library(name: "FontCollectionCore", targets: ["FontCollectionCore"]),
+        .library(name: "FollowBlobCore", targets: ["FollowBlobCore"]),
         // A demo gallery listing every component.
         .library(name: "WhimsyGallery", targets: ["WhimsyGallery"]),
     ],
@@ -91,9 +93,12 @@ let package = Package(
         .target(name: "FontCollectionCore", dependencies: ["WhimsyCore"]),
         .target(name: "FontCollection", dependencies: ["FontCollectionCore"]),
 
+        .target(name: "FollowBlobCore", dependencies: ["WhimsyCore"]),
+        .target(name: "FollowBlobHero", dependencies: ["FollowBlobCore"]),
+
         .target(name: "WhimsyGallery", dependencies: [
             "PopTherapy", "MagneticBeadSlider", "EraserDelete", "ShutterReveal", "AliveEyes", "ScatterRegroup", "SolarFlareLike", "FlyingButton",
-            "GrainyRingGallery", "LiquidMetalCompass", "SweaterRail", "FontCollection",
+            "GrainyRingGallery", "LiquidMetalCompass", "SweaterRail", "FontCollection", "FollowBlobHero",
         ]),
 
         .testTarget(name: "WhimsyCoreTests", dependencies: ["WhimsyCore"]),
@@ -109,5 +114,6 @@ let package = Package(
         .testTarget(name: "LiquidCompassCoreTests", dependencies: ["LiquidCompassCore"]),
         .testTarget(name: "SweaterRailCoreTests", dependencies: ["SweaterRailCore"]),
         .testTarget(name: "FontCollectionCoreTests", dependencies: ["FontCollectionCore"]),
+        .testTarget(name: "FollowBlobCoreTests", dependencies: ["FollowBlobCore"]),
     ]
 )
