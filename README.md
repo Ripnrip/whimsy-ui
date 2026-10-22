@@ -1,6 +1,6 @@
 # whimsy-ui
 
-Sixteen small, tactile SwiftUI components, each with a pure-Swift, unit-tested core:
+Seventeen small, tactile SwiftUI components, each with a pure-Swift, unit-tested core:
 
 | | Component | What it does |
 |---|---|---|
@@ -20,10 +20,11 @@ Sixteen small, tactile SwiftUI components, each with a pure-Swift, unit-tested c
 | 🌗 | **MoonPhaseScrubber** | An Animatable moon whose terminator is a half-ellipse of x-radius r·cos(2πp): drag sideways to scrub, release to spring-snap to the nearest of eight named phases with a soft haptic, plus earthshine near new moon. |
 | 🧵 | **ClothPoster** | A poster card that ripples like hanging cloth: a Metal distortionEffect sends waves out from your finger, a colorEffect adds sheen on the crests, release rings down on a damped spring, and a light haptic ticks per crest. |
 | 🖼️ | **TiltPhotoGrid** | A kinetic-typography intro of heavy black italic words cutting through three phrases, then a masonry grid of generated portraits that tilts and pans as one 3D plane away from your finger (or device motion), with per-card parallax. |
+| ⌚ | **ScrollSpinWatch** | A dark technical page where a smartwatch built from layered shapes turns front → side → back → front as you scroll, with copy that fades and slides in sync and a numericText stats row at the end. |
 
 iOS 17+ / macOS 14+, Swift tools 6.0 (Swift 6 language mode).
 
-> **Honest status:** every core target builds, and all 392 tests pass on Linux (Swift 6.4).
+> **Honest status:** every core target builds, and all 402 tests pass on Linux (Swift 6.4).
 > The SwiftUI targets have **not yet been compiled or run on an Apple platform**. On Linux
 > they compile to empty modules (`#if canImport(SwiftUI)`). They were checked with
 > sourcekit-lsp (0 diagnostics), `swiftc -parse` and careful API review, but expect
@@ -51,8 +52,8 @@ targets: [
 ```
 
 Each component is its own product: `PopTherapy`, `MagneticBeadSlider`, `EraserDelete`,
-`ShutterReveal`, `AliveEyes`, `ScatterRegroup`, `SolarFlareLike`, `FlyingButton`, `GrainyRingGallery`, `LiquidMetalCompass`, `SweaterRail`, `FontCollection`, `FollowBlobHero`, `MoonPhaseScrubber`, `ClothPoster` and `TiltPhotoGrid`. There's also a SwiftUI-free `…Core` product for each
-(e.g. `ShutterRevealCore`), plus `WhimsyGallery`, a demo list of all sixteen.
+`ShutterReveal`, `AliveEyes`, `ScatterRegroup`, `SolarFlareLike`, `FlyingButton`, `GrainyRingGallery`, `LiquidMetalCompass`, `SweaterRail`, `FontCollection`, `FollowBlobHero`, `MoonPhaseScrubber`, `ClothPoster`, `TiltPhotoGrid` and `ScrollSpinWatch`. There's also a SwiftUI-free `…Core` product for each
+(e.g. `ShutterRevealCore`), plus `WhimsyGallery`, a demo list of all seventeen.
 
 ```swift
 import WhimsyGallery
@@ -477,6 +478,33 @@ TiltPhotoGrid(phrases: ["NORTH WIND", "FIELD NOTES 2026"], useDeviceMotion: fals
 - **Core:** `KineticIntro`, `MasonryGrid`, `PortraitSpec`, `PlaneTilt` and `MotionTilt` are
   plain Swift and fully tested, seeded with `SeededRandom` and sprung with `WhimsySpring2D`.
 
+### ⌚ ScrollSpinWatch
+
+![ScrollSpinWatch](docs/spinwatch.gif)
+
+```swift
+import ScrollSpinWatch
+
+ScrollSpinWatch()          // full-screen; scroll to turn the watch over
+```
+
+- **Scroll-scrubbed turn:** a smartwatch built entirely from shapes (strap and case slices,
+  edge faces, dial, caseback, crown) fakes 3D by giving every layer its own
+  `rotation3DEffect` and an offset from projecting its depth, painted back-to-front.
+  Scrolling four screens turns it front → side → back → front (0° → 90° → 180° → 360°),
+  with holds at each pose. Side faces and slices take the light, so the profile and the
+  caseback shade as they turn.
+- **Synced copy:** each pose has a text block ("EVERY SECOND, REIMAGINED", "11.2 MM. ONE
+  BILLET.", "SAPPHIRE, BOTH SIDES.") that fades and slides up as its hold arrives. The tour
+  ends on a stats row (47 mm · 100 m · 36 h) counting up with `.contentTransition(.numericText())`
+  and the line "Machined, not molded." A red seconds hand, a yaw readout and a progress rail
+  are the small red accents.
+- **Scroll input:** `onScrollGeometryChange` on iOS 18 / macOS 15, with a `GeometryReader`
+  fallback on older systems.
+- **Core:** `KeyframeTrack` (sorted keyframes with per-segment easing), `SpinStory` (yaw
+  track, section opacity/offset, stat count-up) and `WatchProjection` (layer placement, paint
+  order, Lambert-ish shading) are plain Swift and fully tested.
+
 ---
 
 ## Accessibility
@@ -501,9 +529,10 @@ Every component handles **Reduce Motion**, each in its own way:
 | MoonPhaseScrubber | Snaps are critically damped (no overshoot or flick momentum) and the phase name changes without rolling. |
 | ClothPoster | Ripples are 30 % as tall and the release settles critically damped, without flapping. |
 | TiltPhotoGrid | Words appear without the slam, and the grid tilts and pans at 35 % strength on critically damped springs. |
+| ScrollSpinWatch | Text blocks cross-fade without sliding and the stats change without the numeric roll; the watch still follows your scroll. |
 
-All sixteen have VoiceOver labels and actions (e.g. pop next bubble, adjustable slider,
-erase, open/close shutter, squint, scatter/regroup, and a like toggle with the toggle trait and a Liked / Not liked value; FlyingButton is a plain button with its title as the label; GrainyRingGallery is adjustable (swipe up/down steps cards, value "Dunes, 1 of 8") with an Open action, and its detail view is modal with a Close button and the escape gesture; LiquidMetalCompass reads e.g. "Compass to Maya: 30° to your right, 1.2 kilometres", and is adjustable by 15° when faking the heading; SweaterRail exposes each garment as a button ("Cobalt Cardigan, $146") that opens its page, which is modal with a Close button and the escape gesture; FontCollection's flip board reads "Fontastic, set in Didot" with a shuffle action, chips carry the selected trait and a font count, each card is a button ("Didot, Display") and the detail view is modal with a Close button and the escape gesture; FollowBlobHero hides the decorative blob and exposes its headline, buttons and palette chips ("Lagoon colours", selected); MoonPhaseScrubber is an adjustable element ("Moon phase, Waxing Crescent, 15 percent illuminated") that steps one named phase per swipe; ClothPoster is a labelled image ("Poster: Soft Goods, Autumn Linen Fair, 24 to 27 October") with a "Ripple" action; TiltPhotoGrid reads its phrases, then "Photo album, 18 portraits", with "Skip intro" and "Replay intro" actions).
+All seventeen have VoiceOver labels and actions (e.g. pop next bubble, adjustable slider,
+erase, open/close shutter, squint, scatter/regroup, and a like toggle with the toggle trait and a Liked / Not liked value; FlyingButton is a plain button with its title as the label; GrainyRingGallery is adjustable (swipe up/down steps cards, value "Dunes, 1 of 8") with an Open action, and its detail view is modal with a Close button and the escape gesture; LiquidMetalCompass reads e.g. "Compass to Maya: 30° to your right, 1.2 kilometres", and is adjustable by 15° when faking the heading; SweaterRail exposes each garment as a button ("Cobalt Cardigan, $146") that opens its page, which is modal with a Close button and the escape gesture; FontCollection's flip board reads "Fontastic, set in Didot" with a shuffle action, chips carry the selected trait and a font count, each card is a button ("Didot, Display") and the detail view is modal with a Close button and the escape gesture; FollowBlobHero hides the decorative blob and exposes its headline, buttons and palette chips ("Lagoon colours", selected); MoonPhaseScrubber is an adjustable element ("Moon phase, Waxing Crescent, 15 percent illuminated") that steps one named phase per swipe; ClothPoster is a labelled image ("Poster: Soft Goods, Autumn Linen Fair, 24 to 27 October") with a "Ripple" action; TiltPhotoGrid reads its phrases, then "Photo album, 18 portraits", with "Skip intro" and "Replay intro" actions; ScrollSpinWatch is adjustable (swipe up/down steps front, side, back and the spec sheet) and reads the visible text block, with stats as "47 mm, Titanium case" and the watch hidden).
 
 ## Layout
 
@@ -526,7 +555,8 @@ Sources/
   MoonPhaseCore/         MoonPhaseScrubber/
   ClothPosterCore/       ClothPoster/         (+ Resources/ClothPoster.metal)
   TiltGridCore/          TiltPhotoGrid/
-  WhimsyGallery/         Demo gallery of all sixteen
+  SpinWatchCore/         ScrollSpinWatch/
+  WhimsyGallery/         Demo gallery of all seventeen
 Tests/                   Swift Testing suites for WhimsyCore and every core
 docs/                    README GIFs
 ```

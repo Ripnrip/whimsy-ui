@@ -36,6 +36,7 @@ let package = Package(
         .library(name: "MoonPhaseScrubber", targets: ["MoonPhaseScrubber"]),
         .library(name: "ClothPoster", targets: ["ClothPoster"]),
         .library(name: "TiltPhotoGrid", targets: ["TiltPhotoGrid"]),
+        .library(name: "ScrollSpinWatch", targets: ["ScrollSpinWatch"]),
         // The pure-Swift cores on their own (no SwiftUI; build anywhere).
         .library(name: "PopTherapyCore", targets: ["PopTherapyCore"]),
         .library(name: "MagneticBeadCore", targets: ["MagneticBeadCore"]),
@@ -53,6 +54,7 @@ let package = Package(
         .library(name: "MoonPhaseCore", targets: ["MoonPhaseCore"]),
         .library(name: "ClothPosterCore", targets: ["ClothPosterCore"]),
         .library(name: "TiltGridCore", targets: ["TiltGridCore"]),
+        .library(name: "SpinWatchCore", targets: ["SpinWatchCore"]),
         // A demo gallery listing every component.
         .library(name: "WhimsyGallery", targets: ["WhimsyGallery"]),
     ],
@@ -112,9 +114,12 @@ let package = Package(
         .target(name: "TiltGridCore", dependencies: ["WhimsyCore"]),
         .target(name: "TiltPhotoGrid", dependencies: ["TiltGridCore"]),
 
+        .target(name: "SpinWatchCore", dependencies: ["WhimsyCore"]),
+        .target(name: "ScrollSpinWatch", dependencies: ["SpinWatchCore"]),
+
         .target(name: "WhimsyGallery", dependencies: [
             "PopTherapy", "MagneticBeadSlider", "EraserDelete", "ShutterReveal", "AliveEyes", "ScatterRegroup", "SolarFlareLike", "FlyingButton",
-            "GrainyRingGallery", "LiquidMetalCompass", "SweaterRail", "FontCollection", "FollowBlobHero", "MoonPhaseScrubber", "ClothPoster", "TiltPhotoGrid",
+            "GrainyRingGallery", "LiquidMetalCompass", "SweaterRail", "FontCollection", "FollowBlobHero", "MoonPhaseScrubber", "ClothPoster", "TiltPhotoGrid", "ScrollSpinWatch",
         ]),
 
         .testTarget(name: "WhimsyCoreTests", dependencies: ["WhimsyCore"]),
@@ -134,5 +139,6 @@ let package = Package(
         .testTarget(name: "MoonPhaseCoreTests", dependencies: ["MoonPhaseCore"]),
         .testTarget(name: "ClothPosterCoreTests", dependencies: ["ClothPosterCore"]),
         .testTarget(name: "TiltGridCoreTests", dependencies: ["TiltGridCore"]),
+        .testTarget(name: "SpinWatchCoreTests", dependencies: ["SpinWatchCore"]),
     ]
 )
