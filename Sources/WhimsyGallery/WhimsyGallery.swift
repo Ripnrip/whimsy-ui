@@ -18,8 +18,9 @@ import FontCollection
 import FollowBlobHero
 import MoonPhaseScrubber
 import ClothPoster
+import TiltPhotoGrid
 
-/// A navigation list of all fifteen components with a small live demo of each.
+/// A navigation list of all sixteen components with a small live demo of each.
 /// Drop `WhimsyGallery()` into a scene to browse them.
 public struct WhimsyGallery: View {
     public init() {}
@@ -51,7 +52,7 @@ public struct WhimsyGallery: View {
 }
 
 enum GalleryItem: String, CaseIterable, Identifiable, Hashable {
-    case popTherapy, magneticBeads, eraserDelete, shutterReveal, aliveEyes, scatterRegroup, solarFlare, flyingButton, ringGallery, liquidCompass, sweaterRail, fontCollection, followBlob, moonPhase, clothPoster
+    case popTherapy, magneticBeads, eraserDelete, shutterReveal, aliveEyes, scatterRegroup, solarFlare, flyingButton, ringGallery, liquidCompass, sweaterRail, fontCollection, followBlob, moonPhase, clothPoster, tiltGrid
     var id: String { rawValue }
 
     var title: String {
@@ -71,6 +72,7 @@ enum GalleryItem: String, CaseIterable, Identifiable, Hashable {
         case .followBlob: "Follow Blob Hero"
         case .moonPhase: "Moon Phase Scrubber"
         case .clothPoster: "Cloth Poster"
+        case .tiltGrid: "Tilt Photo Grid"
         }
     }
 
@@ -91,6 +93,7 @@ enum GalleryItem: String, CaseIterable, Identifiable, Hashable {
         case .followBlob: "A neon blob that chases your finger"
         case .moonPhase: "Scrub a lunation; snaps to the eight phases"
         case .clothPoster: "Drag to send cloth ripples across a poster"
+        case .tiltGrid: "Kinetic type, then a tilting masonry grid"
         }
     }
 
@@ -111,6 +114,7 @@ enum GalleryItem: String, CaseIterable, Identifiable, Hashable {
         case .followBlob: "drop.fill"
         case .moonPhase: "moonphase.first.quarter"
         case .clothPoster: "water.waves"
+        case .tiltGrid: "square.grid.3x3.square"
         }
     }
 
@@ -131,6 +135,7 @@ enum GalleryItem: String, CaseIterable, Identifiable, Hashable {
         case .followBlob: FollowBlobHero()
         case .moonPhase: MoonPhaseScrubber()
         case .clothPoster: ClothPoster()
+        case .tiltGrid: TiltPhotoGrid(useDeviceMotion: false)
         }
     }
 }
