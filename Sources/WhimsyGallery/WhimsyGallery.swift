@@ -21,8 +21,9 @@ import ClothPoster
 import TiltPhotoGrid
 import ScrollSpinWatch
 import BoutiqueBurst
+import PeelableSticker
 
-/// A navigation list of all eighteen components with a small live demo of each.
+/// A navigation list of all nineteen components with a small live demo of each.
 /// Drop `WhimsyGallery()` into a scene to browse them.
 public struct WhimsyGallery: View {
     public init() {}
@@ -54,7 +55,7 @@ public struct WhimsyGallery: View {
 }
 
 enum GalleryItem: String, CaseIterable, Identifiable, Hashable {
-    case popTherapy, magneticBeads, eraserDelete, shutterReveal, aliveEyes, scatterRegroup, solarFlare, flyingButton, ringGallery, liquidCompass, sweaterRail, fontCollection, followBlob, moonPhase, clothPoster, tiltGrid, spinWatch, boutique
+    case popTherapy, magneticBeads, eraserDelete, shutterReveal, aliveEyes, scatterRegroup, solarFlare, flyingButton, ringGallery, liquidCompass, sweaterRail, fontCollection, followBlob, moonPhase, clothPoster, tiltGrid, spinWatch, boutique, peelSticker
     var id: String { rawValue }
 
     var title: String {
@@ -77,6 +78,7 @@ enum GalleryItem: String, CaseIterable, Identifiable, Hashable {
         case .tiltGrid: "Tilt Photo Grid"
         case .spinWatch: "Scroll Spin Watch"
         case .boutique: "Boutique Burst"
+        case .peelSticker: "Peelable Sticker"
         }
     }
 
@@ -100,6 +102,7 @@ enum GalleryItem: String, CaseIterable, Identifiable, Hashable {
         case .tiltGrid: "Kinetic type, then a tilting masonry grid"
         case .spinWatch: "A layered watch turned over by scrolling"
         case .boutique: "A serif word that bursts into a crowd of looks"
+        case .peelSticker: "Peel an emoji sticker off a card"
         }
     }
 
@@ -123,6 +126,7 @@ enum GalleryItem: String, CaseIterable, Identifiable, Hashable {
         case .tiltGrid: "square.grid.3x3.square"
         case .spinWatch: "applewatch"
         case .boutique: "bag"
+        case .peelSticker: "seal"
         }
     }
 
@@ -146,6 +150,7 @@ enum GalleryItem: String, CaseIterable, Identifiable, Hashable {
         case .tiltGrid: TiltPhotoGrid(useDeviceMotion: false)
         case .spinWatch: ScrollSpinWatch()
         case .boutique: BoutiqueBurst()
+        case .peelSticker: PeelableSticker()
         }
     }
 }
