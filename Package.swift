@@ -59,6 +59,8 @@ let package = Package(
         .library(name: "BoutiqueCore", targets: ["BoutiqueCore"]),
         .library(name: "PeelableSticker", targets: ["PeelableSticker"]),
         .library(name: "PeelCore", targets: ["PeelCore"]),
+        .library(name: "FrostCard", targets: ["FrostCard"]),
+        .library(name: "FrostCore", targets: ["FrostCore"]),
         // A demo gallery listing every component.
         .library(name: "WhimsyGallery", targets: ["WhimsyGallery"]),
     ],
@@ -125,9 +127,12 @@ let package = Package(
         .target(name: "PeelCore", dependencies: ["WhimsyCore"]),
         .target(name: "PeelableSticker", dependencies: ["PeelCore"]),
 
+        .target(name: "FrostCore", dependencies: ["WhimsyCore"]),
+        .target(name: "FrostCard", dependencies: ["FrostCore"]),
+
         .target(name: "WhimsyGallery", dependencies: [
             "PopTherapy", "MagneticBeadSlider", "EraserDelete", "ShutterReveal", "AliveEyes", "ScatterRegroup", "SolarFlareLike", "FlyingButton",
-            "GrainyRingGallery", "LiquidMetalCompass", "SweaterRail", "FontCollection", "FollowBlobHero", "MoonPhaseScrubber", "ClothPoster", "TiltPhotoGrid", "ScrollSpinWatch", "BoutiqueBurst", "PeelableSticker",
+            "GrainyRingGallery", "LiquidMetalCompass", "SweaterRail", "FontCollection", "FollowBlobHero", "MoonPhaseScrubber", "ClothPoster", "TiltPhotoGrid", "ScrollSpinWatch", "BoutiqueBurst", "PeelableSticker", "FrostCard",
         ]),
 
         .testTarget(name: "WhimsyCoreTests", dependencies: ["WhimsyCore"]),
@@ -150,5 +155,6 @@ let package = Package(
         .testTarget(name: "SpinWatchCoreTests", dependencies: ["SpinWatchCore"]),
         .testTarget(name: "BoutiqueCoreTests", dependencies: ["BoutiqueCore"]),
         .testTarget(name: "PeelCoreTests", dependencies: ["PeelCore"]),
+        .testTarget(name: "FrostCoreTests", dependencies: ["FrostCore"]),
     ]
 )

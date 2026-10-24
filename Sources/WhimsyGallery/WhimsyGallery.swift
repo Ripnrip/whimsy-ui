@@ -22,8 +22,9 @@ import TiltPhotoGrid
 import ScrollSpinWatch
 import BoutiqueBurst
 import PeelableSticker
+import FrostCard
 
-/// A navigation list of all nineteen components with a small live demo of each.
+/// A navigation list of all twenty components with a small live demo of each.
 /// Drop `WhimsyGallery()` into a scene to browse them.
 public struct WhimsyGallery: View {
     public init() {}
@@ -55,7 +56,7 @@ public struct WhimsyGallery: View {
 }
 
 enum GalleryItem: String, CaseIterable, Identifiable, Hashable {
-    case popTherapy, magneticBeads, eraserDelete, shutterReveal, aliveEyes, scatterRegroup, solarFlare, flyingButton, ringGallery, liquidCompass, sweaterRail, fontCollection, followBlob, moonPhase, clothPoster, tiltGrid, spinWatch, boutique, peelSticker
+    case popTherapy, magneticBeads, eraserDelete, shutterReveal, aliveEyes, scatterRegroup, solarFlare, flyingButton, ringGallery, liquidCompass, sweaterRail, fontCollection, followBlob, moonPhase, clothPoster, tiltGrid, spinWatch, boutique, peelSticker, frostCard
     var id: String { rawValue }
 
     var title: String {
@@ -79,6 +80,7 @@ enum GalleryItem: String, CaseIterable, Identifiable, Hashable {
         case .spinWatch: "Scroll Spin Watch"
         case .boutique: "Boutique Burst"
         case .peelSticker: "Peelable Sticker"
+        case .frostCard: "Frost Card"
         }
     }
 
@@ -103,6 +105,7 @@ enum GalleryItem: String, CaseIterable, Identifiable, Hashable {
         case .spinWatch: "A layered watch turned over by scrolling"
         case .boutique: "A serif word that bursts into a crowd of looks"
         case .peelSticker: "Peel an emoji sticker off a card"
+        case .frostCard: "Hold to frost it over, let go to melt"
         }
     }
 
@@ -127,6 +130,7 @@ enum GalleryItem: String, CaseIterable, Identifiable, Hashable {
         case .spinWatch: "applewatch"
         case .boutique: "bag"
         case .peelSticker: "seal"
+        case .frostCard: "snowflake"
         }
     }
 
@@ -151,6 +155,7 @@ enum GalleryItem: String, CaseIterable, Identifiable, Hashable {
         case .spinWatch: ScrollSpinWatch()
         case .boutique: BoutiqueBurst()
         case .peelSticker: PeelableSticker()
+        case .frostCard: FrostCard()
         }
     }
 }

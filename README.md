@@ -1,6 +1,6 @@
 # whimsy-ui
 
-Nineteen small, tactile SwiftUI components, each with a pure-Swift, unit-tested core:
+Twenty small, tactile SwiftUI components, each with a pure-Swift, unit-tested core:
 
 | | Component | What it does |
 |---|---|---|
@@ -23,10 +23,11 @@ Nineteen small, tactile SwiftUI components, each with a pure-Swift, unit-tested 
 | ⌚ | **ScrollSpinWatch** | A dark technical page where a smartwatch built from layered shapes turns front → side → back → front as you scroll, with copy that fades and slides in sync and a numericText stats row at the end. |
 | 🛍️ | **BoutiqueBurst** | A large serif "Boutique" with a few paper-doll cutouts; a tap fills the screen with dozens of figures in a staggered spring ripple, and tapping one keeps it while the rest slide away before it becomes the hero of a detail view. |
 | 🏷️ | **PeelableSticker** | An emoji sticker on a card that peels back from any corner along your finger, with a reflected flap showing its lighter back and a soft shadow at the fold; let go early and it springs flat, past halfway it pops off and tumbles away, and a fast yank tears it in two. |
+| ❄️ | **FrostCard** | A card that frosts over while you hold it: seeded ice crystals branch in from the edges at 60° as fractal line segments, then melt back in reverse with a soft blur and little droplets sliding down when you let go. |
 
 iOS 17+ / macOS 14+, Swift tools 6.0 (Swift 6 language mode).
 
-> **Honest status:** every core target builds, and all 427 tests pass on Linux (Swift 6.4).
+> **Honest status:** every core target builds, and all 439 tests pass on Linux (Swift 6.4).
 > The SwiftUI targets have **not yet been compiled or run on an Apple platform**. On Linux
 > they compile to empty modules (`#if canImport(SwiftUI)`). They were checked with
 > sourcekit-lsp (0 diagnostics), `swiftc -parse` and careful API review, but expect
@@ -54,8 +55,8 @@ targets: [
 ```
 
 Each component is its own product: `PopTherapy`, `MagneticBeadSlider`, `EraserDelete`,
-`ShutterReveal`, `AliveEyes`, `ScatterRegroup`, `SolarFlareLike`, `FlyingButton`, `GrainyRingGallery`, `LiquidMetalCompass`, `SweaterRail`, `FontCollection`, `FollowBlobHero`, `MoonPhaseScrubber`, `ClothPoster`, `TiltPhotoGrid`, `ScrollSpinWatch`, `BoutiqueBurst` and `PeelableSticker`. There's also a SwiftUI-free `…Core` product for each
-(e.g. `ShutterRevealCore`), plus `WhimsyGallery`, a demo list of all nineteen.
+`ShutterReveal`, `AliveEyes`, `ScatterRegroup`, `SolarFlareLike`, `FlyingButton`, `GrainyRingGallery`, `LiquidMetalCompass`, `SweaterRail`, `FontCollection`, `FollowBlobHero`, `MoonPhaseScrubber`, `ClothPoster`, `TiltPhotoGrid`, `ScrollSpinWatch`, `BoutiqueBurst`, `PeelableSticker` and `FrostCard`. There's also a SwiftUI-free `…Core` product for each
+(e.g. `ShutterRevealCore`), plus `WhimsyGallery`, a demo list of all twenty.
 
 ```swift
 import WhimsyGallery
@@ -561,6 +562,36 @@ PeelableSticker(prompt: "Peel me")
   `TumblePhysics` and `PeelModel` (the peel → spring-back / pop / tear → respawn machine) are
   plain Swift and fully tested.
 
+### ❄️ FrostCard
+
+![FrostCard](docs/frost.gif)
+
+```swift
+import FrostCard
+
+FrostCard()                                       // "GLACIER PASS" day ticket
+FrostCard(title: "NORTH FACE", subtitle: "Base camp · 4,200 m")
+```
+
+- **Frost:** touch and hold the card and ice crystals grow in from all four edges. About 22
+  stems start at seeded points along the perimeter, angled within 20° of straight inward;
+  each branches into 3, then 2, then 2 children at 60° (± 6°), alternating sides, each
+  generation 42–60 % as long and 62 % as wide: 484 segments, the same every time.
+- **Growth:** every segment grows at the same speed, and a child starts exactly when its
+  parent's tip passes the point it sprouts from, so the frost creeps rather than pops. Three
+  seconds of holding grows it all; a milky haze thickens from the edges as it goes.
+- **Melt:** let go and progress runs backwards over 1.3 s (youngest twigs retract first) under
+  a soft blur, while every fourth branch that melts away drops a bead of water that slides down
+  to a terminal speed and fades.
+- **Haptics:** the core emits a spawn event for each new branch; the view plays
+  `.sensoryFeedback(.impact(weight: .light, intensity: 0.55))` on a throttled tick counter
+  (at most one tick every 70 ms) so it feels like crackling, not buzzing.
+- **Drawing:** one `Canvas` inside a `TimelineView(.animation)` that pauses when the card is
+  clear: round-capped strokes with a soft glow pass for the stems, no Metal and no images.
+- **Core:** `CrystalPattern` (seeded generation), `CrystalBranch` (growth and tip at a
+  progress), `FrostModel` (hold/melt progress, spawn/melt events, haptic throttle, blur) and
+  `Droplet` (gravity against drag) are plain Swift and fully tested.
+
 ---
 
 ## Accessibility
@@ -588,9 +619,10 @@ Every component handles **Reduce Motion**, each in its own way:
 | ScrollSpinWatch | Text blocks cross-fade without sliding and the stats change without the numeric roll; the watch still follows your scroll. |
 | BoutiqueBurst | Figures cross-fade into place without the spring or the stagger, and leaving figures fade without sliding. |
 | PeelableSticker | A popped or torn sticker fades in place instead of spinning and falling; the peel itself still follows your finger. |
+| FrostCard | The finished crystal pattern fades in and out with the hold instead of growing branch by branch, with no melt blur and no droplets. |
 
-All nineteen have VoiceOver labels and actions (e.g. pop next bubble, adjustable slider,
-erase, open/close shutter, squint, scatter/regroup, and a like toggle with the toggle trait and a Liked / Not liked value; FlyingButton is a plain button with its title as the label; GrainyRingGallery is adjustable (swipe up/down steps cards, value "Dunes, 1 of 8") with an Open action, and its detail view is modal with a Close button and the escape gesture; LiquidMetalCompass reads e.g. "Compass to Maya: 30° to your right, 1.2 kilometres", and is adjustable by 15° when faking the heading; SweaterRail exposes each garment as a button ("Cobalt Cardigan, $146") that opens its page, which is modal with a Close button and the escape gesture; FontCollection's flip board reads "Fontastic, set in Didot" with a shuffle action, chips carry the selected trait and a font count, each card is a button ("Didot, Display") and the detail view is modal with a Close button and the escape gesture; FollowBlobHero hides the decorative blob and exposes its headline, buttons and palette chips ("Lagoon colours", selected); MoonPhaseScrubber is an adjustable element ("Moon phase, Waxing Crescent, 15 percent illuminated") that steps one named phase per swipe; ClothPoster is a labelled image ("Poster: Soft Goods, Autumn Linen Fair, 24 to 27 October") with a "Ripple" action; TiltPhotoGrid reads its phrases, then "Photo album, 18 portraits", with "Skip intro" and "Replay intro" actions; ScrollSpinWatch is adjustable (swipe up/down steps front, side, back and the spec sheet) and reads the visible text block, with stats as "47 mm, Titanium case" and the watch hidden; BoutiqueBurst reads "Boutique" as a header with an "Open the collection" action, then each figure as a button ("Plum Slip Dress, 315 dollars"), and its detail view is modal with a Close button and the escape gesture; PeelableSticker reads the sticker as "Strawberry sticker" with its peel percentage as the value and a "Peel off" action).
+All twenty have VoiceOver labels and actions (e.g. pop next bubble, adjustable slider,
+erase, open/close shutter, squint, scatter/regroup, and a like toggle with the toggle trait and a Liked / Not liked value; FlyingButton is a plain button with its title as the label; GrainyRingGallery is adjustable (swipe up/down steps cards, value "Dunes, 1 of 8") with an Open action, and its detail view is modal with a Close button and the escape gesture; LiquidMetalCompass reads e.g. "Compass to Maya: 30° to your right, 1.2 kilometres", and is adjustable by 15° when faking the heading; SweaterRail exposes each garment as a button ("Cobalt Cardigan, $146") that opens its page, which is modal with a Close button and the escape gesture; FontCollection's flip board reads "Fontastic, set in Didot" with a shuffle action, chips carry the selected trait and a font count, each card is a button ("Didot, Display") and the detail view is modal with a Close button and the escape gesture; FollowBlobHero hides the decorative blob and exposes its headline, buttons and palette chips ("Lagoon colours", selected); MoonPhaseScrubber is an adjustable element ("Moon phase, Waxing Crescent, 15 percent illuminated") that steps one named phase per swipe; ClothPoster is a labelled image ("Poster: Soft Goods, Autumn Linen Fair, 24 to 27 October") with a "Ripple" action; TiltPhotoGrid reads its phrases, then "Photo album, 18 portraits", with "Skip intro" and "Replay intro" actions; ScrollSpinWatch is adjustable (swipe up/down steps front, side, back and the spec sheet) and reads the visible text block, with stats as "47 mm, Titanium case" and the watch hidden; BoutiqueBurst reads "Boutique" as a header with an "Open the collection" action, then each figure as a button ("Plum Slip Dress, 315 dollars"), and its detail view is modal with a Close button and the escape gesture; PeelableSticker reads the sticker as "Strawberry sticker" with its peel percentage as the value and a "Peel off" action; FrostCard reads as "GLACIER PASS card" with the frosted percentage as its value and a "Frost over" / "Melt" action).
 
 ## Layout
 
@@ -616,7 +648,8 @@ Sources/
   SpinWatchCore/         ScrollSpinWatch/
   BoutiqueCore/          BoutiqueBurst/
   PeelCore/              PeelableSticker/
-  WhimsyGallery/         Demo gallery of all nineteen
+  FrostCore/             FrostCard/
+  WhimsyGallery/         Demo gallery of all twenty
 Tests/                   Swift Testing suites for WhimsyCore and every core
 docs/                    README GIFs
 ```
