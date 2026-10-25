@@ -1,6 +1,6 @@
 # whimsy-ui
 
-Twenty small, tactile SwiftUI components, each with a pure-Swift, unit-tested core:
+Twenty-one small, tactile SwiftUI components, each with a pure-Swift, unit-tested core:
 
 | | Component | What it does |
 |---|---|---|
@@ -24,10 +24,11 @@ Twenty small, tactile SwiftUI components, each with a pure-Swift, unit-tested co
 | 🛍️ | **BoutiqueBurst** | A large serif "Boutique" with a few paper-doll cutouts; a tap fills the screen with dozens of figures in a staggered spring ripple, and tapping one keeps it while the rest slide away before it becomes the hero of a detail view. |
 | 🏷️ | **PeelableSticker** | An emoji sticker on a card that peels back from any corner along your finger, with a reflected flap showing its lighter back and a soft shadow at the fold; let go early and it springs flat, past halfway it pops off and tumbles away, and a fast yank tears it in two. |
 | ❄️ | **FrostCard** | A card that frosts over while you hold it: seeded ice crystals branch in from the edges at 60° as fractal line segments, then melt back in reverse with a soft blur and little droplets sliding down when you let go. |
+| 🌈 | **HoloFoilCard** | A holographic trading card you drag to tilt (soft-clamped to ±15°). A Metal colorEffect sweeps a rainbow diffraction band across it with the tilt, and sparkles light only inside their own angle windows. It springs back with a wobble and ticks a light haptic each time the band crosses the centre. |
 
 iOS 17+ / macOS 14+, Swift tools 6.0 (Swift 6 language mode).
 
-> **Honest status:** every core target builds, and all 439 tests pass on Linux (Swift 6.4).
+> **Honest status:** every core target builds, and all 455 tests pass on Linux (Swift 6.4).
 > The SwiftUI targets have **not yet been compiled or run on an Apple platform**. On Linux
 > they compile to empty modules (`#if canImport(SwiftUI)`). They were checked with
 > sourcekit-lsp (0 diagnostics), `swiftc -parse` and careful API review, but expect
@@ -55,8 +56,8 @@ targets: [
 ```
 
 Each component is its own product: `PopTherapy`, `MagneticBeadSlider`, `EraserDelete`,
-`ShutterReveal`, `AliveEyes`, `ScatterRegroup`, `SolarFlareLike`, `FlyingButton`, `GrainyRingGallery`, `LiquidMetalCompass`, `SweaterRail`, `FontCollection`, `FollowBlobHero`, `MoonPhaseScrubber`, `ClothPoster`, `TiltPhotoGrid`, `ScrollSpinWatch`, `BoutiqueBurst`, `PeelableSticker` and `FrostCard`. There's also a SwiftUI-free `…Core` product for each
-(e.g. `ShutterRevealCore`), plus `WhimsyGallery`, a demo list of all twenty.
+`ShutterReveal`, `AliveEyes`, `ScatterRegroup`, `SolarFlareLike`, `FlyingButton`, `GrainyRingGallery`, `LiquidMetalCompass`, `SweaterRail`, `FontCollection`, `FollowBlobHero`, `MoonPhaseScrubber`, `ClothPoster`, `TiltPhotoGrid`, `ScrollSpinWatch`, `BoutiqueBurst`, `PeelableSticker`, `FrostCard` and `HoloFoilCard`. There's also a SwiftUI-free `…Core` product for each
+(e.g. `ShutterRevealCore`), plus `WhimsyGallery`, a demo list of all twenty-one.
 
 ```swift
 import WhimsyGallery
@@ -592,6 +593,38 @@ FrostCard(title: "NORTH FACE", subtitle: "Base camp · 4,200 m")
   progress), `FrostModel` (hold/melt progress, spawn/melt events, haptic throttle, blur) and
   `Droplet` (gravity against drag) are plain Swift and fully tested.
 
+### 🌈 HoloFoilCard
+
+![HoloFoilCard](docs/holo.gif)
+
+```swift
+import HoloFoilCard
+
+HoloFoilCard()                                    // "NOVA DRAKE", HP 120
+HoloFoilCard(title: "COMET FOX", hp: 90)
+```
+
+- **Tilt:** drag anywhere on the card. The translation maps to yaw and pitch at 0.12° per point,
+  through a `tanh` soft clamp, so it's linear near rest and eases into ±15° without ever passing it.
+  Dragging right pushes the right edge away and dragging up pushes the top away, as if you were pressing
+  the card. Two `rotation3DEffect`s (pitch, then yaw, perspective 0.5) tilt it.
+- **Spring back:** while you drag, the tilt chases the finger through a stiff, nearly critical
+  spring (k 420, ζ 0.9). Let go and it returns through k 170, ζ 0.5, so it wobbles once past flat.
+- **Foil shader:** `HoloFoil.metal` is a `[[stitchable]]` `colorEffect` loaded with
+  `ShaderLibrary.bundle(.module)`. A Gaussian rainbow band (cosine palette) slides along a shallow
+  diagonal as the card tilts, reaching past the corners at full tilt. Under it sit a faint all-over
+  foil tint and a soft glare that slides the opposite way.
+- **Sparkles:** half the cells of a 14 pt grid hold a four-point glint. Each glint has its own
+  hashed angle window (lowbias32), so it only lights when the tilt comes within 0.35 of that window.
+  Tilt the card and different glints come and go.
+- **Haptics:** the core emits an event whenever the band crosses the card centre, with ±0.04
+  hysteresis and at least 120 ms between ticks. The view plays
+  `.sensoryFeedback(.impact(weight: .light, intensity: 0.5))` on the crossing counter.
+- **Core:** `HoloTilt` (drag → tilt, soft clamp), `HoloModel` (springs, events),
+  `CenterCrossingDetector` and `HoloShading` (band, palette, sparkle gating, glints and the full
+  premultiplied shade) are plain Swift and tested. `HoloShading` mirrors the shader line for line,
+  and a test checks that the `.metal` constants match it.
+
 ---
 
 ## Accessibility
@@ -620,9 +653,10 @@ Every component handles **Reduce Motion**, each in its own way:
 | BoutiqueBurst | Figures cross-fade into place without the spring or the stagger, and leaving figures fade without sliding. |
 | PeelableSticker | A popped or torn sticker fades in place instead of spinning and falling; the peel itself still follows your finger. |
 | FrostCard | The finished crystal pattern fades in and out with the hold instead of growing branch by branch, with no melt blur and no droplets. |
+| HoloFoilCard | The card stays flat, with no 3D rotation and no wobble. Dragging still sweeps the foil band and sparkles, and the band settles back without overshoot. |
 
-All twenty have VoiceOver labels and actions (e.g. pop next bubble, adjustable slider,
-erase, open/close shutter, squint, scatter/regroup, and a like toggle with the toggle trait and a Liked / Not liked value; FlyingButton is a plain button with its title as the label; GrainyRingGallery is adjustable (swipe up/down steps cards, value "Dunes, 1 of 8") with an Open action, and its detail view is modal with a Close button and the escape gesture; LiquidMetalCompass reads e.g. "Compass to Maya: 30° to your right, 1.2 kilometres", and is adjustable by 15° when faking the heading; SweaterRail exposes each garment as a button ("Cobalt Cardigan, $146") that opens its page, which is modal with a Close button and the escape gesture; FontCollection's flip board reads "Fontastic, set in Didot" with a shuffle action, chips carry the selected trait and a font count, each card is a button ("Didot, Display") and the detail view is modal with a Close button and the escape gesture; FollowBlobHero hides the decorative blob and exposes its headline, buttons and palette chips ("Lagoon colours", selected); MoonPhaseScrubber is an adjustable element ("Moon phase, Waxing Crescent, 15 percent illuminated") that steps one named phase per swipe; ClothPoster is a labelled image ("Poster: Soft Goods, Autumn Linen Fair, 24 to 27 October") with a "Ripple" action; TiltPhotoGrid reads its phrases, then "Photo album, 18 portraits", with "Skip intro" and "Replay intro" actions; ScrollSpinWatch is adjustable (swipe up/down steps front, side, back and the spec sheet) and reads the visible text block, with stats as "47 mm, Titanium case" and the watch hidden; BoutiqueBurst reads "Boutique" as a header with an "Open the collection" action, then each figure as a button ("Plum Slip Dress, 315 dollars"), and its detail view is modal with a Close button and the escape gesture; PeelableSticker reads the sticker as "Strawberry sticker" with its peel percentage as the value and a "Peel off" action; FrostCard reads as "GLACIER PASS card" with the frosted percentage as its value and a "Frost over" / "Melt" action).
+All twenty-one have VoiceOver labels and actions (e.g. pop next bubble, adjustable slider,
+erase, open/close shutter, squint, scatter/regroup, and a like toggle with the toggle trait and a Liked / Not liked value; FlyingButton is a plain button with its title as the label; GrainyRingGallery is adjustable (swipe up/down steps cards, value "Dunes, 1 of 8") with an Open action, and its detail view is modal with a Close button and the escape gesture; LiquidMetalCompass reads e.g. "Compass to Maya: 30° to your right, 1.2 kilometres", and is adjustable by 15° when faking the heading; SweaterRail exposes each garment as a button ("Cobalt Cardigan, $146") that opens its page, which is modal with a Close button and the escape gesture; FontCollection's flip board reads "Fontastic, set in Didot" with a shuffle action, chips carry the selected trait and a font count, each card is a button ("Didot, Display") and the detail view is modal with a Close button and the escape gesture; FollowBlobHero hides the decorative blob and exposes its headline, buttons and palette chips ("Lagoon colours", selected); MoonPhaseScrubber is an adjustable element ("Moon phase, Waxing Crescent, 15 percent illuminated") that steps one named phase per swipe; ClothPoster is a labelled image ("Poster: Soft Goods, Autumn Linen Fair, 24 to 27 October") with a "Ripple" action; TiltPhotoGrid reads its phrases, then "Photo album, 18 portraits", with "Skip intro" and "Replay intro" actions; ScrollSpinWatch is adjustable (swipe up/down steps front, side, back and the spec sheet) and reads the visible text block, with stats as "47 mm, Titanium case" and the watch hidden; BoutiqueBurst reads "Boutique" as a header with an "Open the collection" action, then each figure as a button ("Plum Slip Dress, 315 dollars"), and its detail view is modal with a Close button and the escape gesture; PeelableSticker reads the sticker as "Strawberry sticker" with its peel percentage as the value and a "Peel off" action; FrostCard reads as "GLACIER PASS card" with the frosted percentage as its value and a "Frost over" / "Melt" action; HoloFoilCard reads as "NOVA DRAKE, holographic card", with the band position (left of centre, centred, right of centre) as its value. Swiping up and down sweeps the foil in 5° steps, and a "Flatten" action returns the card to flat).
 
 ## Layout
 
@@ -649,7 +683,8 @@ Sources/
   BoutiqueCore/          BoutiqueBurst/
   PeelCore/              PeelableSticker/
   FrostCore/             FrostCard/
-  WhimsyGallery/         Demo gallery of all twenty
+  HoloCore/              HoloFoilCard/        (+ Resources/HoloFoil.metal)
+  WhimsyGallery/         Demo gallery of all twenty-one
 Tests/                   Swift Testing suites for WhimsyCore and every core
 docs/                    README GIFs
 ```
