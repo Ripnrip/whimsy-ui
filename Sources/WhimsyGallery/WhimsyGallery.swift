@@ -24,8 +24,9 @@ import BoutiqueBurst
 import PeelableSticker
 import FrostCard
 import HoloFoilCard
+import OilPaintRestore
 
-/// A navigation list of all twenty-one components with a small live demo of each.
+/// A navigation list of all twenty-two components with a small live demo of each.
 /// Drop `WhimsyGallery()` into a scene to browse them.
 public struct WhimsyGallery: View {
     public init() {}
@@ -57,7 +58,7 @@ public struct WhimsyGallery: View {
 }
 
 enum GalleryItem: String, CaseIterable, Identifiable, Hashable {
-    case popTherapy, magneticBeads, eraserDelete, shutterReveal, aliveEyes, scatterRegroup, solarFlare, flyingButton, ringGallery, liquidCompass, sweaterRail, fontCollection, followBlob, moonPhase, clothPoster, tiltGrid, spinWatch, boutique, peelSticker, frostCard, holoFoilCard
+    case popTherapy, magneticBeads, eraserDelete, shutterReveal, aliveEyes, scatterRegroup, solarFlare, flyingButton, ringGallery, liquidCompass, sweaterRail, fontCollection, followBlob, moonPhase, clothPoster, tiltGrid, spinWatch, boutique, peelSticker, frostCard, holoFoilCard, oilPaintRestore
     var id: String { rawValue }
 
     var title: String {
@@ -83,6 +84,7 @@ enum GalleryItem: String, CaseIterable, Identifiable, Hashable {
         case .peelSticker: "Peelable Sticker"
         case .frostCard: "Frost Card"
         case .holoFoilCard: "Holo Foil Card"
+        case .oilPaintRestore: "Oil Paint Restore"
         }
     }
 
@@ -109,6 +111,7 @@ enum GalleryItem: String, CaseIterable, Identifiable, Hashable {
         case .peelSticker: "Peel an emoji sticker off a card"
         case .frostCard: "Hold to frost it over, let go to melt"
         case .holoFoilCard: "Drag to tilt a holographic card"
+        case .oilPaintRestore: "Paint colour back into a faded photo"
         }
     }
 
@@ -135,6 +138,7 @@ enum GalleryItem: String, CaseIterable, Identifiable, Hashable {
         case .peelSticker: "seal"
         case .frostCard: "snowflake"
         case .holoFoilCard: "sparkles.rectangle.stack"
+        case .oilPaintRestore: "paintbrush.pointed"
         }
     }
 
@@ -161,6 +165,7 @@ enum GalleryItem: String, CaseIterable, Identifiable, Hashable {
         case .peelSticker: PeelableSticker()
         case .frostCard: FrostCard()
         case .holoFoilCard: HoloFoilCard()
+        case .oilPaintRestore: OilPaintRestore()
         }
     }
 }

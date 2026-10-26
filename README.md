@@ -1,6 +1,6 @@
 # whimsy-ui
 
-Twenty-one small, tactile SwiftUI components, each with a pure-Swift, unit-tested core:
+Twenty-two small, tactile SwiftUI components, each with a pure-Swift, unit-tested core:
 
 | | Component | What it does |
 |---|---|---|
@@ -25,10 +25,11 @@ Twenty-one small, tactile SwiftUI components, each with a pure-Swift, unit-teste
 | 🏷️ | **PeelableSticker** | An emoji sticker on a card that peels back from any corner along your finger, with a reflected flap showing its lighter back and a soft shadow at the fold; let go early and it springs flat, past halfway it pops off and tumbles away, and a fast yank tears it in two. |
 | ❄️ | **FrostCard** | A card that frosts over while you hold it: seeded ice crystals branch in from the edges at 60° as fractal line segments, then melt back in reverse with a soft blur and little droplets sliding down when you let go. |
 | 🌈 | **HoloFoilCard** | A holographic trading card you drag to tilt (soft-clamped to ±15°). A Metal colorEffect sweeps a rainbow diffraction band across it with the tilt, and sparkles light only inside their own angle windows. It springs back with a wobble and ticks a light haptic each time the band crosses the centre. |
+| 🎨 | **OilPaintRestore** | A faded, blurred photo you restore by painting over it. Strokes get thinner the faster you drag, and wet paint smears slightly along the stroke and catches an impasto highlight from a Metal layerEffect. Each stroke dries matte over about 2 s, a light haptic ticks every few strokes, and "Restore all" brings the whole picture back. |
 
 iOS 17+ / macOS 14+, Swift tools 6.0 (Swift 6 language mode).
 
-> **Honest status:** every core target builds, and all 455 tests pass on Linux (Swift 6.4).
+> **Honest status:** every core target builds, and all 470 tests pass on Linux (Swift 6.4).
 > The SwiftUI targets have **not yet been compiled or run on an Apple platform**. On Linux
 > they compile to empty modules (`#if canImport(SwiftUI)`). They were checked with
 > sourcekit-lsp (0 diagnostics), `swiftc -parse` and careful API review, but expect
@@ -56,8 +57,8 @@ targets: [
 ```
 
 Each component is its own product: `PopTherapy`, `MagneticBeadSlider`, `EraserDelete`,
-`ShutterReveal`, `AliveEyes`, `ScatterRegroup`, `SolarFlareLike`, `FlyingButton`, `GrainyRingGallery`, `LiquidMetalCompass`, `SweaterRail`, `FontCollection`, `FollowBlobHero`, `MoonPhaseScrubber`, `ClothPoster`, `TiltPhotoGrid`, `ScrollSpinWatch`, `BoutiqueBurst`, `PeelableSticker`, `FrostCard` and `HoloFoilCard`. There's also a SwiftUI-free `…Core` product for each
-(e.g. `ShutterRevealCore`), plus `WhimsyGallery`, a demo list of all twenty-one.
+`ShutterReveal`, `AliveEyes`, `ScatterRegroup`, `SolarFlareLike`, `FlyingButton`, `GrainyRingGallery`, `LiquidMetalCompass`, `SweaterRail`, `FontCollection`, `FollowBlobHero`, `MoonPhaseScrubber`, `ClothPoster`, `TiltPhotoGrid`, `ScrollSpinWatch`, `BoutiqueBurst`, `PeelableSticker`, `FrostCard`, `HoloFoilCard` and `OilPaintRestore`. There's also a SwiftUI-free `…Core` product for each
+(e.g. `ShutterRevealCore`), plus `WhimsyGallery`, a demo list of all twenty-two.
 
 ```swift
 import WhimsyGallery
@@ -625,6 +626,40 @@ HoloFoilCard(title: "COMET FOX", hp: 90)
   premultiplied shade) are plain Swift and tested. `HoloShading` mirrors the shader line for line,
   and a test checks that the `.metal` constants match it.
 
+### 🎨 OilPaintRestore
+
+![OilPaintRestore](docs/paint.gif)
+
+```swift
+import OilPaintRestore
+
+OilPaintRestore()                                 // "Lakeside, 1962"
+OilPaintRestore(caption: "Harbour at dusk")
+```
+
+- **Photo:** a procedurally drawn landscape (sky gradient, sun, mountains, lake, cypresses and a
+  seeded meadow of flowers), shown greyscale and blurred under a faint paper wash. The full-colour
+  copy sits above it, masked by your paint.
+- **Strokes:** every drag sample is recorded with its timestamp. Width follows speed: 34 pt when slow,
+  down to 14 pt by 1400 pt/s, smoothed 35% per sample. Points closer than 2 pt are skipped, and a
+  finished stroke is simplified with a width-aware Ramer–Douglas–Peucker (0.75 pt, 1 pt of width),
+  so the taper survives.
+- **Mask:** a `Canvas` draws each stroke as round-capped segments under its own blur. A wet stroke
+  has 6 pt soft edges, which tighten to 1.5 pt as it dries.
+- **Wet paint shader:** `OilPaint.metal` holds two `[[stitchable]]` `layerEffect`s loaded with
+  `ShaderLibrary.bundle(.module)`. `paintSmear` averages 4 taps back along the newest stroke's
+  direction (up to 3 pt while wet). `paintGloss` lights a height field of 7 seeded bristle ridges
+  per wet stroke: a Blinn-Phong spec (shininess 18) relative to a flat surface, plus a faint sheen.
+- **Drying:** each stroke dries over 2 s on its own. Gloss and smear fade with
+  `1 − smoothstep(dry)`, the edges settle, and the core emits a `dried` event per stroke, in order.
+- **Haptics:** a light `.sensoryFeedback` impact every 3rd finished stroke, debounced to at most one
+  every 0.3 s. The core emits the events.
+- **Restore all / Reset:** the buttons (also accessibility actions) fade the whole photo in over
+  0.6 s or wipe it back to faded. Percent restored comes from a 4 pt coverage grid.
+- **Core:** `StrokeWidth`, `StrokeSimplifier`, `PaintStroke` (bristles, direction), `PaintCoverage`
+  (mask falloff), `PaintShading` (smear vector, highlight mirrored from the shader) and `PaintModel`
+  (drying, events) are plain Swift and tested. A test checks that the `.metal` constants match.
+
 ---
 
 ## Accessibility
@@ -654,9 +689,10 @@ Every component handles **Reduce Motion**, each in its own way:
 | PeelableSticker | A popped or torn sticker fades in place instead of spinning and falling; the peel itself still follows your finger. |
 | FrostCard | The finished crystal pattern fades in and out with the hold instead of growing branch by branch, with no melt blur and no droplets. |
 | HoloFoilCard | The card stays flat, with no 3D rotation and no wobble. Dragging still sweeps the foil band and sparkles, and the band settles back without overshoot. |
+| OilPaintRestore | Paint dries instantly, with no smear, gloss or edge settling. "Restore all" shows the full picture without the fade. |
 
 All twenty-one have VoiceOver labels and actions (e.g. pop next bubble, adjustable slider,
-erase, open/close shutter, squint, scatter/regroup, and a like toggle with the toggle trait and a Liked / Not liked value; FlyingButton is a plain button with its title as the label; GrainyRingGallery is adjustable (swipe up/down steps cards, value "Dunes, 1 of 8") with an Open action, and its detail view is modal with a Close button and the escape gesture; LiquidMetalCompass reads e.g. "Compass to Maya: 30° to your right, 1.2 kilometres", and is adjustable by 15° when faking the heading; SweaterRail exposes each garment as a button ("Cobalt Cardigan, $146") that opens its page, which is modal with a Close button and the escape gesture; FontCollection's flip board reads "Fontastic, set in Didot" with a shuffle action, chips carry the selected trait and a font count, each card is a button ("Didot, Display") and the detail view is modal with a Close button and the escape gesture; FollowBlobHero hides the decorative blob and exposes its headline, buttons and palette chips ("Lagoon colours", selected); MoonPhaseScrubber is an adjustable element ("Moon phase, Waxing Crescent, 15 percent illuminated") that steps one named phase per swipe; ClothPoster is a labelled image ("Poster: Soft Goods, Autumn Linen Fair, 24 to 27 October") with a "Ripple" action; TiltPhotoGrid reads its phrases, then "Photo album, 18 portraits", with "Skip intro" and "Replay intro" actions; ScrollSpinWatch is adjustable (swipe up/down steps front, side, back and the spec sheet) and reads the visible text block, with stats as "47 mm, Titanium case" and the watch hidden; BoutiqueBurst reads "Boutique" as a header with an "Open the collection" action, then each figure as a button ("Plum Slip Dress, 315 dollars"), and its detail view is modal with a Close button and the escape gesture; PeelableSticker reads the sticker as "Strawberry sticker" with its peel percentage as the value and a "Peel off" action; FrostCard reads as "GLACIER PASS card" with the frosted percentage as its value and a "Frost over" / "Melt" action; HoloFoilCard reads as "NOVA DRAKE, holographic card", with the band position (left of centre, centred, right of centre) as its value. Swiping up and down sweeps the foil in 5° steps, and a "Flatten" action returns the card to flat).
+erase, open/close shutter, squint, scatter/regroup, and a like toggle with the toggle trait and a Liked / Not liked value; FlyingButton is a plain button with its title as the label; GrainyRingGallery is adjustable (swipe up/down steps cards, value "Dunes, 1 of 8") with an Open action, and its detail view is modal with a Close button and the escape gesture; LiquidMetalCompass reads e.g. "Compass to Maya: 30° to your right, 1.2 kilometres", and is adjustable by 15° when faking the heading; SweaterRail exposes each garment as a button ("Cobalt Cardigan, $146") that opens its page, which is modal with a Close button and the escape gesture; FontCollection's flip board reads "Fontastic, set in Didot" with a shuffle action, chips carry the selected trait and a font count, each card is a button ("Didot, Display") and the detail view is modal with a Close button and the escape gesture; FollowBlobHero hides the decorative blob and exposes its headline, buttons and palette chips ("Lagoon colours", selected); MoonPhaseScrubber is an adjustable element ("Moon phase, Waxing Crescent, 15 percent illuminated") that steps one named phase per swipe; ClothPoster is a labelled image ("Poster: Soft Goods, Autumn Linen Fair, 24 to 27 October") with a "Ripple" action; TiltPhotoGrid reads its phrases, then "Photo album, 18 portraits", with "Skip intro" and "Replay intro" actions; ScrollSpinWatch is adjustable (swipe up/down steps front, side, back and the spec sheet) and reads the visible text block, with stats as "47 mm, Titanium case" and the watch hidden; BoutiqueBurst reads "Boutique" as a header with an "Open the collection" action, then each figure as a button ("Plum Slip Dress, 315 dollars"), and its detail view is modal with a Close button and the escape gesture; PeelableSticker reads the sticker as "Strawberry sticker" with its peel percentage as the value and a "Peel off" action; FrostCard reads as "GLACIER PASS card" with the frosted percentage as its value and a "Frost over" / "Melt" action; HoloFoilCard reads as "NOVA DRAKE, holographic card", with the band position (left of centre, centred, right of centre) as its value. Swiping up and down sweeps the foil in 5° steps, and a "Flatten" action returns the card to flat; OilPaintRestore reads as "Lakeside, 1962, faded photo", with the percent restored as its value. "Restore all" and "Reset" actions reveal the whole picture or fade it again).
 
 ## Layout
 
@@ -684,7 +720,8 @@ Sources/
   PeelCore/              PeelableSticker/
   FrostCore/             FrostCard/
   HoloCore/              HoloFoilCard/        (+ Resources/HoloFoil.metal)
-  WhimsyGallery/         Demo gallery of all twenty-one
+  PaintCore/             OilPaintRestore/     (+ Resources/OilPaint.metal)
+  WhimsyGallery/         Demo gallery of all twenty-two
 Tests/                   Swift Testing suites for WhimsyCore and every core
 docs/                    README GIFs
 ```
