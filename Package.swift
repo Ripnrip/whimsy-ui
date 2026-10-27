@@ -65,6 +65,8 @@ let package = Package(
         .library(name: "HoloCore", targets: ["HoloCore"]),
         .library(name: "OilPaintRestore", targets: ["OilPaintRestore"]),
         .library(name: "PaintCore", targets: ["PaintCore"]),
+        .library(name: "WiggleMatchSearch", targets: ["WiggleMatchSearch"]),
+        .library(name: "WiggleCore", targets: ["WiggleCore"]),
         // A demo gallery listing every component.
         .library(name: "WhimsyGallery", targets: ["WhimsyGallery"]),
     ],
@@ -142,9 +144,12 @@ let package = Package(
         .target(name: "OilPaintRestore", dependencies: ["PaintCore"],
                 exclude: metalExclude, resources: metalResources),
 
+        .target(name: "WiggleCore", dependencies: ["WhimsyCore"]),
+        .target(name: "WiggleMatchSearch", dependencies: ["WiggleCore"]),
+
         .target(name: "WhimsyGallery", dependencies: [
             "PopTherapy", "MagneticBeadSlider", "EraserDelete", "ShutterReveal", "AliveEyes", "ScatterRegroup", "SolarFlareLike", "FlyingButton",
-            "GrainyRingGallery", "LiquidMetalCompass", "SweaterRail", "FontCollection", "FollowBlobHero", "MoonPhaseScrubber", "ClothPoster", "TiltPhotoGrid", "ScrollSpinWatch", "BoutiqueBurst", "PeelableSticker", "FrostCard", "HoloFoilCard", "OilPaintRestore",
+            "GrainyRingGallery", "LiquidMetalCompass", "SweaterRail", "FontCollection", "FollowBlobHero", "MoonPhaseScrubber", "ClothPoster", "TiltPhotoGrid", "ScrollSpinWatch", "BoutiqueBurst", "PeelableSticker", "FrostCard", "HoloFoilCard", "OilPaintRestore", "WiggleMatchSearch",
         ]),
 
         .testTarget(name: "WhimsyCoreTests", dependencies: ["WhimsyCore"]),
@@ -170,5 +175,6 @@ let package = Package(
         .testTarget(name: "FrostCoreTests", dependencies: ["FrostCore"]),
         .testTarget(name: "HoloCoreTests", dependencies: ["HoloCore"]),
         .testTarget(name: "PaintCoreTests", dependencies: ["PaintCore"]),
+        .testTarget(name: "WiggleCoreTests", dependencies: ["WiggleCore"]),
     ]
 )

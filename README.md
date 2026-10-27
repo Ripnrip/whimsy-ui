@@ -1,6 +1,6 @@
 # whimsy-ui
 
-Twenty-two small, tactile SwiftUI components, each with a pure-Swift, unit-tested core:
+Twenty-three small, tactile SwiftUI components, each with a pure-Swift, unit-tested core:
 
 | | Component | What it does |
 |---|---|---|
@@ -26,10 +26,11 @@ Twenty-two small, tactile SwiftUI components, each with a pure-Swift, unit-teste
 | ❄️ | **FrostCard** | A card that frosts over while you hold it: seeded ice crystals branch in from the edges at 60° as fractal line segments, then melt back in reverse with a soft blur and little droplets sliding down when you let go. |
 | 🌈 | **HoloFoilCard** | A holographic trading card you drag to tilt (soft-clamped to ±15°). A Metal colorEffect sweeps a rainbow diffraction band across it with the tilt, and sparkles light only inside their own angle windows. It springs back with a wobble and ticks a light haptic each time the band crosses the centre. |
 | 🎨 | **OilPaintRestore** | A faded, blurred photo you restore by painting over it. Strokes get thinner the faster you drag, and wet paint smears slightly along the stroke and catches an impasto highlight from a Metal layerEffect. Each stroke dries matte over about 2 s, a light haptic ticks every few strokes, and "Restore all" brings the whole picture back. |
+| 〰️ | **WiggleMatchSearch** | A settings search with fuzzy subsequence matching that ranks word starts and consecutive runs highest. Every matched letter gets its own little sine-wave underline, and newly matched letters jiggle in on a spring with a light haptic. Half a second after you stop typing, the waves calm to a flat line. |
 
 iOS 17+ / macOS 14+, Swift tools 6.0 (Swift 6 language mode).
 
-> **Honest status:** every core target builds, and all 470 tests pass on Linux (Swift 6.4).
+> **Honest status:** every core target builds, and all 486 tests pass on Linux (Swift 6.4).
 > The SwiftUI targets have **not yet been compiled or run on an Apple platform**. On Linux
 > they compile to empty modules (`#if canImport(SwiftUI)`). They were checked with
 > sourcekit-lsp (0 diagnostics), `swiftc -parse` and careful API review, but expect
@@ -57,8 +58,8 @@ targets: [
 ```
 
 Each component is its own product: `PopTherapy`, `MagneticBeadSlider`, `EraserDelete`,
-`ShutterReveal`, `AliveEyes`, `ScatterRegroup`, `SolarFlareLike`, `FlyingButton`, `GrainyRingGallery`, `LiquidMetalCompass`, `SweaterRail`, `FontCollection`, `FollowBlobHero`, `MoonPhaseScrubber`, `ClothPoster`, `TiltPhotoGrid`, `ScrollSpinWatch`, `BoutiqueBurst`, `PeelableSticker`, `FrostCard`, `HoloFoilCard` and `OilPaintRestore`. There's also a SwiftUI-free `…Core` product for each
-(e.g. `ShutterRevealCore`), plus `WhimsyGallery`, a demo list of all twenty-two.
+`ShutterReveal`, `AliveEyes`, `ScatterRegroup`, `SolarFlareLike`, `FlyingButton`, `GrainyRingGallery`, `LiquidMetalCompass`, `SweaterRail`, `FontCollection`, `FollowBlobHero`, `MoonPhaseScrubber`, `ClothPoster`, `TiltPhotoGrid`, `ScrollSpinWatch`, `BoutiqueBurst`, `PeelableSticker`, `FrostCard`, `HoloFoilCard`, `OilPaintRestore` and `WiggleMatchSearch`. There's also a SwiftUI-free `…Core` product for each
+(e.g. `ShutterRevealCore`), plus `WhimsyGallery`, a demo list of all twenty-three.
 
 ```swift
 import WhimsyGallery
@@ -660,6 +661,37 @@ OilPaintRestore(caption: "Harbour at dusk")
   (mask falloff), `PaintShading` (smear vector, highlight mirrored from the shader) and `PaintModel`
   (drying, events) are plain Swift and tested. A test checks that the `.metal` constants match.
 
+### 〰️ WiggleMatchSearch
+
+![WiggleMatchSearch](docs/wiggle.gif)
+
+```swift
+import WiggleMatchSearch
+
+WiggleMatchSearch()                               // the 20-row settings demo
+WiggleMatchSearch(rows: myRows)                   // any [SettingsRow]
+```
+
+- **Fuzzy matching:** every query letter must appear in the title in order (ASCII case folding,
+  query spaces ignored). A dynamic-programming pass finds the best alignment. Each letter scores 16,
+  plus 24 at a word start (after a space or hyphen, or a camelCase hump) and 8 more for the very first
+  letter. A letter right after the previous match scores 20, and each skipped letter in between costs 3.
+  Letters skipped before the first match cost 1 each, up to 9. Results sort by score, then by shorter
+  title, and non-matches drop out. So "sec" finds **Sec**urity before **Se**ar**c**h.
+- **Wavy underlines:** each matched letter gets its own sine wave (9 pt wavelength, 2.4 Hz), drawn in
+  a `Canvas` and phase-shifted by the letter's index. Each wave tapers to the baseline at both ends,
+  so a run of matches reads as one squiggle. A `TimelineView` animates them.
+- **Calming:** a keystroke lifts the wave amplitude to 2.2 pt in 80 ms. It then eases down to a flat
+  line 0.5 s after the keystroke, and the next keystroke re-energizes it from wherever it is, without
+  a jump.
+- **Jiggle in:** only letters that weren't matched by the previous query jiggle. Each pops to 1.35×
+  and lifts 5 pt, then settles on an under-damped spring (k 260, ζ 0.32), staggered 30 ms per result
+  row so a keystroke ripples down the list. The underline stays put while the letter bounces.
+- **Haptics:** the core emits a `tick` when a keystroke matches new letters, at most one every
+  120 ms. The view plays `.sensoryFeedback(.impact(weight: .light, intensity: 0.6))` on it.
+- **Core:** `FuzzyMatcher`, `MatchDiff`, `WaveEnvelope`, `WaveUnderline`, `LetterJiggle` and
+  `WiggleModel` (events, timing) are plain Swift and tested.
+
 ---
 
 ## Accessibility
@@ -690,9 +722,10 @@ Every component handles **Reduce Motion**, each in its own way:
 | FrostCard | The finished crystal pattern fades in and out with the hold instead of growing branch by branch, with no melt blur and no droplets. |
 | HoloFoilCard | The card stays flat, with no 3D rotation and no wobble. Dragging still sweeps the foil band and sparkles, and the band settles back without overshoot. |
 | OilPaintRestore | Paint dries instantly, with no smear, gloss or edge settling. "Restore all" shows the full picture without the fade. |
+| WiggleMatchSearch | Underlines are straight, static lines and letters don't jiggle. Matching, sorting and haptics work as usual. |
 
 All twenty-one have VoiceOver labels and actions (e.g. pop next bubble, adjustable slider,
-erase, open/close shutter, squint, scatter/regroup, and a like toggle with the toggle trait and a Liked / Not liked value; FlyingButton is a plain button with its title as the label; GrainyRingGallery is adjustable (swipe up/down steps cards, value "Dunes, 1 of 8") with an Open action, and its detail view is modal with a Close button and the escape gesture; LiquidMetalCompass reads e.g. "Compass to Maya: 30° to your right, 1.2 kilometres", and is adjustable by 15° when faking the heading; SweaterRail exposes each garment as a button ("Cobalt Cardigan, $146") that opens its page, which is modal with a Close button and the escape gesture; FontCollection's flip board reads "Fontastic, set in Didot" with a shuffle action, chips carry the selected trait and a font count, each card is a button ("Didot, Display") and the detail view is modal with a Close button and the escape gesture; FollowBlobHero hides the decorative blob and exposes its headline, buttons and palette chips ("Lagoon colours", selected); MoonPhaseScrubber is an adjustable element ("Moon phase, Waxing Crescent, 15 percent illuminated") that steps one named phase per swipe; ClothPoster is a labelled image ("Poster: Soft Goods, Autumn Linen Fair, 24 to 27 October") with a "Ripple" action; TiltPhotoGrid reads its phrases, then "Photo album, 18 portraits", with "Skip intro" and "Replay intro" actions; ScrollSpinWatch is adjustable (swipe up/down steps front, side, back and the spec sheet) and reads the visible text block, with stats as "47 mm, Titanium case" and the watch hidden; BoutiqueBurst reads "Boutique" as a header with an "Open the collection" action, then each figure as a button ("Plum Slip Dress, 315 dollars"), and its detail view is modal with a Close button and the escape gesture; PeelableSticker reads the sticker as "Strawberry sticker" with its peel percentage as the value and a "Peel off" action; FrostCard reads as "GLACIER PASS card" with the frosted percentage as its value and a "Frost over" / "Melt" action; HoloFoilCard reads as "NOVA DRAKE, holographic card", with the band position (left of centre, centred, right of centre) as its value. Swiping up and down sweeps the foil in 5° steps, and a "Flatten" action returns the card to flat; OilPaintRestore reads as "Lakeside, 1962, faded photo", with the percent restored as its value. "Restore all" and "Reset" actions reveal the whole picture or fade it again).
+erase, open/close shutter, squint, scatter/regroup, and a like toggle with the toggle trait and a Liked / Not liked value; FlyingButton is a plain button with its title as the label; GrainyRingGallery is adjustable (swipe up/down steps cards, value "Dunes, 1 of 8") with an Open action, and its detail view is modal with a Close button and the escape gesture; LiquidMetalCompass reads e.g. "Compass to Maya: 30° to your right, 1.2 kilometres", and is adjustable by 15° when faking the heading; SweaterRail exposes each garment as a button ("Cobalt Cardigan, $146") that opens its page, which is modal with a Close button and the escape gesture; FontCollection's flip board reads "Fontastic, set in Didot" with a shuffle action, chips carry the selected trait and a font count, each card is a button ("Didot, Display") and the detail view is modal with a Close button and the escape gesture; FollowBlobHero hides the decorative blob and exposes its headline, buttons and palette chips ("Lagoon colours", selected); MoonPhaseScrubber is an adjustable element ("Moon phase, Waxing Crescent, 15 percent illuminated") that steps one named phase per swipe; ClothPoster is a labelled image ("Poster: Soft Goods, Autumn Linen Fair, 24 to 27 October") with a "Ripple" action; TiltPhotoGrid reads its phrases, then "Photo album, 18 portraits", with "Skip intro" and "Replay intro" actions; ScrollSpinWatch is adjustable (swipe up/down steps front, side, back and the spec sheet) and reads the visible text block, with stats as "47 mm, Titanium case" and the watch hidden; BoutiqueBurst reads "Boutique" as a header with an "Open the collection" action, then each figure as a button ("Plum Slip Dress, 315 dollars"), and its detail view is modal with a Close button and the escape gesture; PeelableSticker reads the sticker as "Strawberry sticker" with its peel percentage as the value and a "Peel off" action; FrostCard reads as "GLACIER PASS card" with the frosted percentage as its value and a "Frost over" / "Melt" action; HoloFoilCard reads as "NOVA DRAKE, holographic card", with the band position (left of centre, centred, right of centre) as its value. Swiping up and down sweeps the foil in 5° steps, and a "Flatten" action returns the card to flat; OilPaintRestore reads as "Lakeside, 1962, faded photo", with the percent restored as its value. "Restore all" and "Reset" actions reveal the whole picture or fade it again; WiggleMatchSearch announces the result count as you type ("3 results"). Each row reads as its title with the subtitle as its value, and a "Matched letters" custom content item lists the letters that matched).
 
 ## Layout
 
@@ -721,7 +754,8 @@ Sources/
   FrostCore/             FrostCard/
   HoloCore/              HoloFoilCard/        (+ Resources/HoloFoil.metal)
   PaintCore/             OilPaintRestore/     (+ Resources/OilPaint.metal)
-  WhimsyGallery/         Demo gallery of all twenty-two
+  WiggleCore/            WiggleMatchSearch/
+  WhimsyGallery/         Demo gallery of all twenty-three
 Tests/                   Swift Testing suites for WhimsyCore and every core
 docs/                    README GIFs
 ```
