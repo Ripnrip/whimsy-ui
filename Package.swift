@@ -67,6 +67,8 @@ let package = Package(
         .library(name: "PaintCore", targets: ["PaintCore"]),
         .library(name: "WiggleMatchSearch", targets: ["WiggleMatchSearch"]),
         .library(name: "WiggleCore", targets: ["WiggleCore"]),
+        .library(name: "PourOpenMenu", targets: ["PourOpenMenu"]),
+        .library(name: "PourCore", targets: ["PourCore"]),
         // A demo gallery listing every component.
         .library(name: "WhimsyGallery", targets: ["WhimsyGallery"]),
     ],
@@ -147,9 +149,12 @@ let package = Package(
         .target(name: "WiggleCore", dependencies: ["WhimsyCore"]),
         .target(name: "WiggleMatchSearch", dependencies: ["WiggleCore"]),
 
+        .target(name: "PourCore", dependencies: ["WhimsyCore"]),
+        .target(name: "PourOpenMenu", dependencies: ["PourCore"]),
+
         .target(name: "WhimsyGallery", dependencies: [
             "PopTherapy", "MagneticBeadSlider", "EraserDelete", "ShutterReveal", "AliveEyes", "ScatterRegroup", "SolarFlareLike", "FlyingButton",
-            "GrainyRingGallery", "LiquidMetalCompass", "SweaterRail", "FontCollection", "FollowBlobHero", "MoonPhaseScrubber", "ClothPoster", "TiltPhotoGrid", "ScrollSpinWatch", "BoutiqueBurst", "PeelableSticker", "FrostCard", "HoloFoilCard", "OilPaintRestore", "WiggleMatchSearch",
+            "GrainyRingGallery", "LiquidMetalCompass", "SweaterRail", "FontCollection", "FollowBlobHero", "MoonPhaseScrubber", "ClothPoster", "TiltPhotoGrid", "ScrollSpinWatch", "BoutiqueBurst", "PeelableSticker", "FrostCard", "HoloFoilCard", "OilPaintRestore", "WiggleMatchSearch", "PourOpenMenu",
         ]),
 
         .testTarget(name: "WhimsyCoreTests", dependencies: ["WhimsyCore"]),
@@ -176,5 +181,6 @@ let package = Package(
         .testTarget(name: "HoloCoreTests", dependencies: ["HoloCore"]),
         .testTarget(name: "PaintCoreTests", dependencies: ["PaintCore"]),
         .testTarget(name: "WiggleCoreTests", dependencies: ["WiggleCore"]),
+        .testTarget(name: "PourCoreTests", dependencies: ["PourCore"]),
     ]
 )

@@ -26,8 +26,9 @@ import FrostCard
 import HoloFoilCard
 import OilPaintRestore
 import WiggleMatchSearch
+import PourOpenMenu
 
-/// A navigation list of all twenty-three components with a small live demo of each.
+/// A navigation list of all twenty-four components with a small live demo of each.
 /// Drop `WhimsyGallery()` into a scene to browse them.
 public struct WhimsyGallery: View {
     public init() {}
@@ -59,7 +60,7 @@ public struct WhimsyGallery: View {
 }
 
 enum GalleryItem: String, CaseIterable, Identifiable, Hashable {
-    case popTherapy, magneticBeads, eraserDelete, shutterReveal, aliveEyes, scatterRegroup, solarFlare, flyingButton, ringGallery, liquidCompass, sweaterRail, fontCollection, followBlob, moonPhase, clothPoster, tiltGrid, spinWatch, boutique, peelSticker, frostCard, holoFoilCard, oilPaintRestore, wiggleMatchSearch
+    case popTherapy, magneticBeads, eraserDelete, shutterReveal, aliveEyes, scatterRegroup, solarFlare, flyingButton, ringGallery, liquidCompass, sweaterRail, fontCollection, followBlob, moonPhase, clothPoster, tiltGrid, spinWatch, boutique, peelSticker, frostCard, holoFoilCard, oilPaintRestore, wiggleMatchSearch, pourOpenMenu
     var id: String { rawValue }
 
     var title: String {
@@ -87,6 +88,7 @@ enum GalleryItem: String, CaseIterable, Identifiable, Hashable {
         case .holoFoilCard: "Holo Foil Card"
         case .oilPaintRestore: "Oil Paint Restore"
         case .wiggleMatchSearch: "Wiggle Match Search"
+        case .pourOpenMenu: "Pour Open Menu"
         }
     }
 
@@ -115,6 +117,7 @@ enum GalleryItem: String, CaseIterable, Identifiable, Hashable {
         case .holoFoilCard: "Drag to tilt a holographic card"
         case .oilPaintRestore: "Paint colour back into a faded photo"
         case .wiggleMatchSearch: "Fuzzy search with wavy match underlines"
+        case .pourOpenMenu: "A sort pill that melts into goo drops"
         }
     }
 
@@ -143,6 +146,7 @@ enum GalleryItem: String, CaseIterable, Identifiable, Hashable {
         case .holoFoilCard: "sparkles.rectangle.stack"
         case .oilPaintRestore: "paintbrush.pointed"
         case .wiggleMatchSearch: "magnifyingglass"
+        case .pourOpenMenu: "chevron.down.circle"
         }
     }
 
@@ -171,6 +175,7 @@ enum GalleryItem: String, CaseIterable, Identifiable, Hashable {
         case .holoFoilCard: HoloFoilCard()
         case .oilPaintRestore: OilPaintRestore()
         case .wiggleMatchSearch: WiggleMatchSearch()
+        case .pourOpenMenu: PourOpenMenu()
         }
     }
 }

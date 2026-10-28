@@ -1,6 +1,6 @@
 # whimsy-ui
 
-Twenty-three small, tactile SwiftUI components, each with a pure-Swift, unit-tested core:
+Twenty-four small, tactile SwiftUI components, each with a pure-Swift, unit-tested core:
 
 | | Component | What it does |
 |---|---|---|
@@ -27,10 +27,11 @@ Twenty-three small, tactile SwiftUI components, each with a pure-Swift, unit-tes
 | 🌈 | **HoloFoilCard** | A holographic trading card you drag to tilt (soft-clamped to ±15°). A Metal colorEffect sweeps a rainbow diffraction band across it with the tilt, and sparkles light only inside their own angle windows. It springs back with a wobble and ticks a light haptic each time the band crosses the centre. |
 | 🎨 | **OilPaintRestore** | A faded, blurred photo you restore by painting over it. Strokes get thinner the faster you drag, and wet paint smears slightly along the stroke and catches an impasto highlight from a Metal layerEffect. Each stroke dries matte over about 2 s, a light haptic ticks every few strokes, and "Restore all" brings the whole picture back. |
 | 〰️ | **WiggleMatchSearch** | A settings search with fuzzy subsequence matching that ranks word starts and consecutive runs highest. Every matched letter gets its own little sine-wave underline, and newly matched letters jiggle in on a spring with a light haptic. Half a second after you stop typing, the waves calm to a flat line. |
+| 🫗 | **PourOpenMenu** | A "Sort: Newest" pill that melts downward into a four-option menu of metaball drops (blur plus alpha threshold in a Canvas). The options drip out one after another, stretch into thin necks and pinch off. Picking one crossfades the label and pours everything back up, with a lift shadow and a soft haptic on landing. |
 
 iOS 17+ / macOS 14+, Swift tools 6.0 (Swift 6 language mode).
 
-> **Honest status:** every core target builds, and all 486 tests pass on Linux (Swift 6.4).
+> **Honest status:** every core target builds, and all 506 tests pass on Linux (Swift 6.4).
 > The SwiftUI targets have **not yet been compiled or run on an Apple platform**. On Linux
 > they compile to empty modules (`#if canImport(SwiftUI)`). They were checked with
 > sourcekit-lsp (0 diagnostics), `swiftc -parse` and careful API review, but expect
@@ -58,8 +59,8 @@ targets: [
 ```
 
 Each component is its own product: `PopTherapy`, `MagneticBeadSlider`, `EraserDelete`,
-`ShutterReveal`, `AliveEyes`, `ScatterRegroup`, `SolarFlareLike`, `FlyingButton`, `GrainyRingGallery`, `LiquidMetalCompass`, `SweaterRail`, `FontCollection`, `FollowBlobHero`, `MoonPhaseScrubber`, `ClothPoster`, `TiltPhotoGrid`, `ScrollSpinWatch`, `BoutiqueBurst`, `PeelableSticker`, `FrostCard`, `HoloFoilCard`, `OilPaintRestore` and `WiggleMatchSearch`. There's also a SwiftUI-free `…Core` product for each
-(e.g. `ShutterRevealCore`), plus `WhimsyGallery`, a demo list of all twenty-three.
+`ShutterReveal`, `AliveEyes`, `ScatterRegroup`, `SolarFlareLike`, `FlyingButton`, `GrainyRingGallery`, `LiquidMetalCompass`, `SweaterRail`, `FontCollection`, `FollowBlobHero`, `MoonPhaseScrubber`, `ClothPoster`, `TiltPhotoGrid`, `ScrollSpinWatch`, `BoutiqueBurst`, `PeelableSticker`, `FrostCard`, `HoloFoilCard`, `OilPaintRestore`, `WiggleMatchSearch` and `PourOpenMenu`. There's also a SwiftUI-free `…Core` product for each
+(e.g. `ShutterRevealCore`), plus `WhimsyGallery`, a demo list of all twenty-four.
 
 ```swift
 import WhimsyGallery
@@ -692,6 +693,39 @@ WiggleMatchSearch(rows: myRows)                   // any [SettingsRow]
 - **Core:** `FuzzyMatcher`, `MatchDiff`, `WaveEnvelope`, `WaveUnderline`, `LetterJiggle` and
   `WiggleModel` (events, timing) are plain Swift and tested.
 
+### 🫗 PourOpenMenu
+
+![PourOpenMenu](docs/pour.gif)
+
+```swift
+import PourOpenMenu
+
+PourOpenMenu()                                    // "Sort: Newest" over a small sorted list
+PourOpenMenu(options: ["Newest", "Oldest", "Popular", "A to Z"], selected: 2)
+```
+
+- **Goo:** the pill and the four option drops are drawn as rounded blobs into a `Canvas` layer with
+  `blur(radius: 8)` and then `alphaThreshold(min: 0.5)`. Blobs that sit close together melt into one
+  shape, and a gap of about 10 pt or more pinches them apart.
+- **Drip:** one master clock runs 0 to 0.77 s. Drop *i* starts *i* × 90 ms after the first and takes
+  0.5 s on an ease-out-back curve (a 1.2 overshoot), growing from 55% to full size as it leaves the
+  pill. Between neighbouring blobs the core builds an hourglass-shaped neck. Its width is 44 pt when
+  they touch and falls to nothing at a 10 pt gap, and its waist is thinner than its ends, so a drip
+  stretches thin before it lets go. Necks are chained top to bottom, so a drop still trailing in the
+  pill bridges to the one ahead.
+- **Pour back:** picking an option runs the same clock backwards, so closing is the exact reverse of
+  opening and the farthest drop leaves first. Tapping the pill or picking an option while it is
+  mid-pour reverses from wherever it is, with no jump.
+- **Label crossfade:** "Sort: Newest" and "Sort: Popular" crossfade over 0.28 s on an ease-in-out
+  curve. Picking again mid-fade continues from whichever label was dominant.
+- **Lift:** while the master clock runs, the pill (with its goo) scales by `1 + 0.04 · sin(progress · π)`.
+  Its shadow grows from radius 3 and 10% opacity to radius 16, 8 pt down and 28% opacity, and the view
+  sits above its neighbours.
+- **Haptics:** the core emits `landed(open:)` and a `haptic` when the pour finishes in either direction,
+  at most one every 150 ms. The view plays `.sensoryFeedback(.impact(flexibility: .soft))`.
+- **Core:** `PourLayout`, `PourTimeline`, `PourLift`, `PourLabelFade`, `PourCatalog` and `PourModel`
+  (state machine, events) are plain Swift and tested.
+
 ---
 
 ## Accessibility
@@ -723,9 +757,10 @@ Every component handles **Reduce Motion**, each in its own way:
 | HoloFoilCard | The card stays flat, with no 3D rotation and no wobble. Dragging still sweeps the foil band and sparkles, and the band settles back without overshoot. |
 | OilPaintRestore | Paint dries instantly, with no smear, gloss or edge settling. "Restore all" shows the full picture without the fade. |
 | WiggleMatchSearch | Underlines are straight, static lines and letters don't jiggle. Matching, sorting and haptics work as usual. |
+| PourOpenMenu | A plain fade: the options appear as separate pills fading in place, with no goo, no travel and no lift. The label crossfade is shortened to 0.15 s. Haptics work as usual. |
 
 All twenty-one have VoiceOver labels and actions (e.g. pop next bubble, adjustable slider,
-erase, open/close shutter, squint, scatter/regroup, and a like toggle with the toggle trait and a Liked / Not liked value; FlyingButton is a plain button with its title as the label; GrainyRingGallery is adjustable (swipe up/down steps cards, value "Dunes, 1 of 8") with an Open action, and its detail view is modal with a Close button and the escape gesture; LiquidMetalCompass reads e.g. "Compass to Maya: 30° to your right, 1.2 kilometres", and is adjustable by 15° when faking the heading; SweaterRail exposes each garment as a button ("Cobalt Cardigan, $146") that opens its page, which is modal with a Close button and the escape gesture; FontCollection's flip board reads "Fontastic, set in Didot" with a shuffle action, chips carry the selected trait and a font count, each card is a button ("Didot, Display") and the detail view is modal with a Close button and the escape gesture; FollowBlobHero hides the decorative blob and exposes its headline, buttons and palette chips ("Lagoon colours", selected); MoonPhaseScrubber is an adjustable element ("Moon phase, Waxing Crescent, 15 percent illuminated") that steps one named phase per swipe; ClothPoster is a labelled image ("Poster: Soft Goods, Autumn Linen Fair, 24 to 27 October") with a "Ripple" action; TiltPhotoGrid reads its phrases, then "Photo album, 18 portraits", with "Skip intro" and "Replay intro" actions; ScrollSpinWatch is adjustable (swipe up/down steps front, side, back and the spec sheet) and reads the visible text block, with stats as "47 mm, Titanium case" and the watch hidden; BoutiqueBurst reads "Boutique" as a header with an "Open the collection" action, then each figure as a button ("Plum Slip Dress, 315 dollars"), and its detail view is modal with a Close button and the escape gesture; PeelableSticker reads the sticker as "Strawberry sticker" with its peel percentage as the value and a "Peel off" action; FrostCard reads as "GLACIER PASS card" with the frosted percentage as its value and a "Frost over" / "Melt" action; HoloFoilCard reads as "NOVA DRAKE, holographic card", with the band position (left of centre, centred, right of centre) as its value. Swiping up and down sweeps the foil in 5° steps, and a "Flatten" action returns the card to flat; OilPaintRestore reads as "Lakeside, 1962, faded photo", with the percent restored as its value. "Restore all" and "Reset" actions reveal the whole picture or fade it again; WiggleMatchSearch announces the result count as you type ("3 results"). Each row reads as its title with the subtitle as its value, and a "Matched letters" custom content item lists the letters that matched).
+erase, open/close shutter, squint, scatter/regroup, and a like toggle with the toggle trait and a Liked / Not liked value; FlyingButton is a plain button with its title as the label; GrainyRingGallery is adjustable (swipe up/down steps cards, value "Dunes, 1 of 8") with an Open action, and its detail view is modal with a Close button and the escape gesture; LiquidMetalCompass reads e.g. "Compass to Maya: 30° to your right, 1.2 kilometres", and is adjustable by 15° when faking the heading; SweaterRail exposes each garment as a button ("Cobalt Cardigan, $146") that opens its page, which is modal with a Close button and the escape gesture; FontCollection's flip board reads "Fontastic, set in Didot" with a shuffle action, chips carry the selected trait and a font count, each card is a button ("Didot, Display") and the detail view is modal with a Close button and the escape gesture; FollowBlobHero hides the decorative blob and exposes its headline, buttons and palette chips ("Lagoon colours", selected); MoonPhaseScrubber is an adjustable element ("Moon phase, Waxing Crescent, 15 percent illuminated") that steps one named phase per swipe; ClothPoster is a labelled image ("Poster: Soft Goods, Autumn Linen Fair, 24 to 27 October") with a "Ripple" action; TiltPhotoGrid reads its phrases, then "Photo album, 18 portraits", with "Skip intro" and "Replay intro" actions; ScrollSpinWatch is adjustable (swipe up/down steps front, side, back and the spec sheet) and reads the visible text block, with stats as "47 mm, Titanium case" and the watch hidden; BoutiqueBurst reads "Boutique" as a header with an "Open the collection" action, then each figure as a button ("Plum Slip Dress, 315 dollars"), and its detail view is modal with a Close button and the escape gesture; PeelableSticker reads the sticker as "Strawberry sticker" with its peel percentage as the value and a "Peel off" action; FrostCard reads as "GLACIER PASS card" with the frosted percentage as its value and a "Frost over" / "Melt" action; HoloFoilCard reads as "NOVA DRAKE, holographic card", with the band position (left of centre, centred, right of centre) as its value. Swiping up and down sweeps the foil in 5° steps, and a "Flatten" action returns the card to flat; OilPaintRestore reads as "Lakeside, 1962, faded photo", with the percent restored as its value. "Restore all" and "Reset" actions reveal the whole picture or fade it again; WiggleMatchSearch announces the result count as you type ("3 results"). Each row reads as its title with the subtitle as its value, and a "Matched letters" custom content item lists the letters that matched; PourOpenMenu's pill reads \"Sort, Newest\" with an Expanded or Collapsed value, and the options are buttons (the current one with the selected trait) that are hidden while the menu is closed. Picking one announces \"Sorted by Popular\", and the escape gesture closes the menu).
 
 ## Layout
 
@@ -755,7 +790,8 @@ Sources/
   HoloCore/              HoloFoilCard/        (+ Resources/HoloFoil.metal)
   PaintCore/             OilPaintRestore/     (+ Resources/OilPaint.metal)
   WiggleCore/            WiggleMatchSearch/
-  WhimsyGallery/         Demo gallery of all twenty-three
+  PourCore/              PourOpenMenu/
+  WhimsyGallery/         Demo gallery of all twenty-four
 Tests/                   Swift Testing suites for WhimsyCore and every core
 docs/                    README GIFs
 ```
