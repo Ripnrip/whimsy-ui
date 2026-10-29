@@ -69,6 +69,8 @@ let package = Package(
         .library(name: "WiggleCore", targets: ["WiggleCore"]),
         .library(name: "PourOpenMenu", targets: ["PourOpenMenu"]),
         .library(name: "PourCore", targets: ["PourCore"]),
+        .library(name: "OctoDoneChecklist", targets: ["OctoDoneChecklist"]),
+        .library(name: "OctoCore", targets: ["OctoCore"]),
         // A demo gallery listing every component.
         .library(name: "WhimsyGallery", targets: ["WhimsyGallery"]),
     ],
@@ -152,9 +154,12 @@ let package = Package(
         .target(name: "PourCore", dependencies: ["WhimsyCore"]),
         .target(name: "PourOpenMenu", dependencies: ["PourCore"]),
 
+        .target(name: "OctoCore", dependencies: ["WhimsyCore"]),
+        .target(name: "OctoDoneChecklist", dependencies: ["OctoCore"]),
+
         .target(name: "WhimsyGallery", dependencies: [
             "PopTherapy", "MagneticBeadSlider", "EraserDelete", "ShutterReveal", "AliveEyes", "ScatterRegroup", "SolarFlareLike", "FlyingButton",
-            "GrainyRingGallery", "LiquidMetalCompass", "SweaterRail", "FontCollection", "FollowBlobHero", "MoonPhaseScrubber", "ClothPoster", "TiltPhotoGrid", "ScrollSpinWatch", "BoutiqueBurst", "PeelableSticker", "FrostCard", "HoloFoilCard", "OilPaintRestore", "WiggleMatchSearch", "PourOpenMenu",
+            "GrainyRingGallery", "LiquidMetalCompass", "SweaterRail", "FontCollection", "FollowBlobHero", "MoonPhaseScrubber", "ClothPoster", "TiltPhotoGrid", "ScrollSpinWatch", "BoutiqueBurst", "PeelableSticker", "FrostCard", "HoloFoilCard", "OilPaintRestore", "WiggleMatchSearch", "PourOpenMenu", "OctoDoneChecklist",
         ]),
 
         .testTarget(name: "WhimsyCoreTests", dependencies: ["WhimsyCore"]),
@@ -182,5 +187,6 @@ let package = Package(
         .testTarget(name: "PaintCoreTests", dependencies: ["PaintCore"]),
         .testTarget(name: "WiggleCoreTests", dependencies: ["WiggleCore"]),
         .testTarget(name: "PourCoreTests", dependencies: ["PourCore"]),
+        .testTarget(name: "OctoCoreTests", dependencies: ["OctoCore"]),
     ]
 )

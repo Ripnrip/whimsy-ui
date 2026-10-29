@@ -1,6 +1,6 @@
 # whimsy-ui
 
-Twenty-four small, tactile SwiftUI components, each with a pure-Swift, unit-tested core:
+Twenty-five small, tactile SwiftUI components, each with a pure-Swift, unit-tested core:
 
 | | Component | What it does |
 |---|---|---|
@@ -28,10 +28,11 @@ Twenty-four small, tactile SwiftUI components, each with a pure-Swift, unit-test
 | 🎨 | **OilPaintRestore** | A faded, blurred photo you restore by painting over it. Strokes get thinner the faster you drag, and wet paint smears slightly along the stroke and catches an impasto highlight from a Metal layerEffect. Each stroke dries matte over about 2 s, a light haptic ticks every few strokes, and "Restore all" brings the whole picture back. |
 | 〰️ | **WiggleMatchSearch** | A settings search with fuzzy subsequence matching that ranks word starts and consecutive runs highest. Every matched letter gets its own little sine-wave underline, and newly matched letters jiggle in on a spring with a light haptic. Half a second after you stop typing, the waves calm to a flat line. |
 | 🫗 | **PourOpenMenu** | A "Sort: Newest" pill that melts downward into a four-option menu of metaball drops (blur plus alpha threshold in a Canvas). The options drip out one after another, stretch into thin necks and pinch off. Picking one crossfades the label and pours everything back up, with a lift shadow and a soft haptic on landing. |
+| 🐙 | **OctoDoneChecklist** | A five-row to-do list. Tick a row and the checkmark draws in, a blurred halftone blob swells up from below, a dotted tentacle curls over the row, and ink and row are pulled down together with a volume-preserving squash and stretch before the row collapses and the rows below spring up. Complete all sweeps the ink through every remaining row, and Reset brings them back. |
 
 iOS 17+ / macOS 14+, Swift tools 6.0 (Swift 6 language mode).
 
-> **Honest status:** every core target builds, and all 506 tests pass on Linux (Swift 6.4).
+> **Honest status:** every core target builds, and all 535 tests pass on Linux (Swift 6.4).
 > The SwiftUI targets have **not yet been compiled or run on an Apple platform**. On Linux
 > they compile to empty modules (`#if canImport(SwiftUI)`). They were checked with
 > sourcekit-lsp (0 diagnostics), `swiftc -parse` and careful API review, but expect
@@ -59,8 +60,8 @@ targets: [
 ```
 
 Each component is its own product: `PopTherapy`, `MagneticBeadSlider`, `EraserDelete`,
-`ShutterReveal`, `AliveEyes`, `ScatterRegroup`, `SolarFlareLike`, `FlyingButton`, `GrainyRingGallery`, `LiquidMetalCompass`, `SweaterRail`, `FontCollection`, `FollowBlobHero`, `MoonPhaseScrubber`, `ClothPoster`, `TiltPhotoGrid`, `ScrollSpinWatch`, `BoutiqueBurst`, `PeelableSticker`, `FrostCard`, `HoloFoilCard`, `OilPaintRestore`, `WiggleMatchSearch` and `PourOpenMenu`. There's also a SwiftUI-free `…Core` product for each
-(e.g. `ShutterRevealCore`), plus `WhimsyGallery`, a demo list of all twenty-four.
+`ShutterReveal`, `AliveEyes`, `ScatterRegroup`, `SolarFlareLike`, `FlyingButton`, `GrainyRingGallery`, `LiquidMetalCompass`, `SweaterRail`, `FontCollection`, `FollowBlobHero`, `MoonPhaseScrubber`, `ClothPoster`, `TiltPhotoGrid`, `ScrollSpinWatch`, `BoutiqueBurst`, `PeelableSticker`, `FrostCard`, `HoloFoilCard`, `OilPaintRestore`, `WiggleMatchSearch`, `PourOpenMenu` and `OctoDoneChecklist`. There's also a SwiftUI-free `…Core` product for each
+(e.g. `ShutterRevealCore`), plus `WhimsyGallery`, a demo list of all twenty-five.
 
 ```swift
 import WhimsyGallery
@@ -726,6 +727,44 @@ PourOpenMenu(options: ["Newest", "Oldest", "Popular", "A to Z"], selected: 2)
 - **Core:** `PourLayout`, `PourTimeline`, `PourLift`, `PourLabelFade`, `PourCatalog` and `PourModel`
   (state machine, events) are plain Swift and tested.
 
+### 🐙 OctoDoneChecklist
+
+![OctoDoneChecklist](docs/octo.gif)
+
+```swift
+import OctoDoneChecklist
+
+OctoDoneChecklist()                                   // five sample tasks, Complete all and Reset
+OctoDoneChecklist(titles: myTasks, tentacle: false)   // your own rows, ink without the tentacle
+```
+
+- **Per-row timeline:** one clock per row. The check draws in over 0.25 s and a halftone blob swells up
+  from below until 0.7 s. Then the tentacle grabs the row until 1.0 s, and the pull runs to 1.55 s.
+  The collapse starts at 1.3 s, while the pull is still finishing, and ends at 1.8 s.
+- **Halftone ink:** the blob is a dot lattice fixed in row coordinates (7 pt apart, odd rows shifted half
+  a cell). Each dot's radius is 3.3 pt times a radial falloff, `1 - smoothstep(0, 1, d)`, of its
+  normalised distance from the blob's centre, so dots grow in place as the blob swells and the
+  edge fades. A 1.4 pt blur softens them.
+- **Tentacle:** a curve that starts at the bottom right of the row, runs up the right side, over the
+  top and down the left, tightening as it goes. It is drawn as three dots abreast along 44 samples,
+  and its width tapers from 14 pt to 1.5 pt, growing with the grab.
+- **Squash and stretch:** the row and its ink are scaled `x = 1/y`, so the area never changes. The group
+  squashes by up to 12% as the tentacle grabs, then stretches as it is pulled down 72 pt on an
+  under-damped spring (stiffness 150, ζ 0.45), which overshoots and rings. The row fades out during the pull.
+- **Collapse:** slot heights follow a spring (stiffness 220, ζ 0.55) that overshoots about 13%, so the
+  rows below shoot up slightly past their final place and settle back. It blends onto exactly 1 so the
+  layout lands cleanly.
+- **Tap while animating:** a tap before the grab (the first 0.7 s) undoes the tick, rolling the row's
+  clock back at 2x. Tapping again resumes from where it is. Once the ink has grabbed, the row is committed
+  and taps are ignored.
+- **Complete all:** every row that isn't already on its way, including ones mid-rollback, is scheduled
+  280 ms after the one before. A tap on a row still waiting starts it straight away.
+- **Reset:** gone rows grow back in over 0.4 s, and rows still mid-flight snap back to unticked.
+- **Haptics:** the core emits a `haptic(.grab)` when the grab begins and a `haptic(.gone)` when the row
+  has collapsed, each at most once per 120 ms. The view plays a light impact and a soft impact.
+- **Core:** `OctoTiming`, `OctoInk` (blob, halftone dots, tentacle), `OctoLayout`, `OctoRowFrame`,
+  `OctoModel` (state machine, sweep scheduler, events) and `OctoAnnouncement` are plain Swift and tested.
+
 ---
 
 ## Accessibility
@@ -758,9 +797,10 @@ Every component handles **Reduce Motion**, each in its own way:
 | OilPaintRestore | Paint dries instantly, with no smear, gloss or edge settling. "Restore all" shows the full picture without the fade. |
 | WiggleMatchSearch | Underlines are straight, static lines and letters don't jiggle. Matching, sorting and haptics work as usual. |
 | PourOpenMenu | A plain fade: the options appear as separate pills fading in place, with no goo, no travel and no lift. The label crossfade is shortened to 0.15 s. Haptics work as usual. |
+| OctoDoneChecklist | No ink, tentacle, squash or pull: the row ticks, fades and collapses in 0.7 s. Haptics and announcements work as usual. |
 
 All twenty-one have VoiceOver labels and actions (e.g. pop next bubble, adjustable slider,
-erase, open/close shutter, squint, scatter/regroup, and a like toggle with the toggle trait and a Liked / Not liked value; FlyingButton is a plain button with its title as the label; GrainyRingGallery is adjustable (swipe up/down steps cards, value "Dunes, 1 of 8") with an Open action, and its detail view is modal with a Close button and the escape gesture; LiquidMetalCompass reads e.g. "Compass to Maya: 30° to your right, 1.2 kilometres", and is adjustable by 15° when faking the heading; SweaterRail exposes each garment as a button ("Cobalt Cardigan, $146") that opens its page, which is modal with a Close button and the escape gesture; FontCollection's flip board reads "Fontastic, set in Didot" with a shuffle action, chips carry the selected trait and a font count, each card is a button ("Didot, Display") and the detail view is modal with a Close button and the escape gesture; FollowBlobHero hides the decorative blob and exposes its headline, buttons and palette chips ("Lagoon colours", selected); MoonPhaseScrubber is an adjustable element ("Moon phase, Waxing Crescent, 15 percent illuminated") that steps one named phase per swipe; ClothPoster is a labelled image ("Poster: Soft Goods, Autumn Linen Fair, 24 to 27 October") with a "Ripple" action; TiltPhotoGrid reads its phrases, then "Photo album, 18 portraits", with "Skip intro" and "Replay intro" actions; ScrollSpinWatch is adjustable (swipe up/down steps front, side, back and the spec sheet) and reads the visible text block, with stats as "47 mm, Titanium case" and the watch hidden; BoutiqueBurst reads "Boutique" as a header with an "Open the collection" action, then each figure as a button ("Plum Slip Dress, 315 dollars"), and its detail view is modal with a Close button and the escape gesture; PeelableSticker reads the sticker as "Strawberry sticker" with its peel percentage as the value and a "Peel off" action; FrostCard reads as "GLACIER PASS card" with the frosted percentage as its value and a "Frost over" / "Melt" action; HoloFoilCard reads as "NOVA DRAKE, holographic card", with the band position (left of centre, centred, right of centre) as its value. Swiping up and down sweeps the foil in 5° steps, and a "Flatten" action returns the card to flat; OilPaintRestore reads as "Lakeside, 1962, faded photo", with the percent restored as its value. "Restore all" and "Reset" actions reveal the whole picture or fade it again; WiggleMatchSearch announces the result count as you type ("3 results"). Each row reads as its title with the subtitle as its value, and a "Matched letters" custom content item lists the letters that matched; PourOpenMenu's pill reads \"Sort, Newest\" with an Expanded or Collapsed value, and the options are buttons (the current one with the selected trait) that are hidden while the menu is closed. Picking one announces \"Sorted by Popular\", and the escape gesture closes the menu).
+erase, open/close shutter, squint, scatter/regroup, and a like toggle with the toggle trait and a Liked / Not liked value; FlyingButton is a plain button with its title as the label; GrainyRingGallery is adjustable (swipe up/down steps cards, value "Dunes, 1 of 8") with an Open action, and its detail view is modal with a Close button and the escape gesture; LiquidMetalCompass reads e.g. "Compass to Maya: 30° to your right, 1.2 kilometres", and is adjustable by 15° when faking the heading; SweaterRail exposes each garment as a button ("Cobalt Cardigan, $146") that opens its page, which is modal with a Close button and the escape gesture; FontCollection's flip board reads "Fontastic, set in Didot" with a shuffle action, chips carry the selected trait and a font count, each card is a button ("Didot, Display") and the detail view is modal with a Close button and the escape gesture; FollowBlobHero hides the decorative blob and exposes its headline, buttons and palette chips ("Lagoon colours", selected); MoonPhaseScrubber is an adjustable element ("Moon phase, Waxing Crescent, 15 percent illuminated") that steps one named phase per swipe; ClothPoster is a labelled image ("Poster: Soft Goods, Autumn Linen Fair, 24 to 27 October") with a "Ripple" action; TiltPhotoGrid reads its phrases, then "Photo album, 18 portraits", with "Skip intro" and "Replay intro" actions; ScrollSpinWatch is adjustable (swipe up/down steps front, side, back and the spec sheet) and reads the visible text block, with stats as "47 mm, Titanium case" and the watch hidden; BoutiqueBurst reads "Boutique" as a header with an "Open the collection" action, then each figure as a button ("Plum Slip Dress, 315 dollars"), and its detail view is modal with a Close button and the escape gesture; PeelableSticker reads the sticker as "Strawberry sticker" with its peel percentage as the value and a "Peel off" action; FrostCard reads as "GLACIER PASS card" with the frosted percentage as its value and a "Frost over" / "Melt" action; HoloFoilCard reads as "NOVA DRAKE, holographic card", with the band position (left of centre, centred, right of centre) as its value. Swiping up and down sweeps the foil in 5° steps, and a "Flatten" action returns the card to flat; OilPaintRestore reads as "Lakeside, 1962, faded photo", with the percent restored as its value. "Restore all" and "Reset" actions reveal the whole picture or fade it again; WiggleMatchSearch announces the result count as you type ("3 results"). Each row reads as its title with the subtitle as its value, and a "Matched letters" custom content item lists the letters that matched; PourOpenMenu's pill reads \"Sort, Newest\" with an Expanded or Collapsed value, and the options are buttons (the current one with the selected trait) that are hidden while the menu is closed. Picking one announces \"Sorted by Popular\", and the escape gesture closes the menu; OctoDoneChecklist's rows are toggles with the task as the label and Completed or Not completed as the value. Ticking announces "Completed Water the ferns" (and "… not completed" for an undo). Complete all and Reset are buttons with hints, rows that have gone are hidden from VoiceOver, and a sweep announces "Completing 3 tasks").
 
 ## Layout
 
@@ -791,7 +831,8 @@ Sources/
   PaintCore/             OilPaintRestore/     (+ Resources/OilPaint.metal)
   WiggleCore/            WiggleMatchSearch/
   PourCore/              PourOpenMenu/
-  WhimsyGallery/         Demo gallery of all twenty-four
+  OctoCore/              OctoDoneChecklist/
+  WhimsyGallery/         Demo gallery of all twenty-five
 Tests/                   Swift Testing suites for WhimsyCore and every core
 docs/                    README GIFs
 ```
