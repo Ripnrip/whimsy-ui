@@ -1,6 +1,6 @@
 # whimsy-ui
 
-Twenty-five small, tactile SwiftUI components, each with a pure-Swift, unit-tested core:
+Twenty-six small, tactile SwiftUI components, each with a pure-Swift, unit-tested core:
 
 | | Component | What it does |
 |---|---|---|
@@ -29,10 +29,11 @@ Twenty-five small, tactile SwiftUI components, each with a pure-Swift, unit-test
 | 〰️ | **WiggleMatchSearch** | A settings search with fuzzy subsequence matching that ranks word starts and consecutive runs highest. Every matched letter gets its own little sine-wave underline, and newly matched letters jiggle in on a spring with a light haptic. Half a second after you stop typing, the waves calm to a flat line. |
 | 🫗 | **PourOpenMenu** | A "Sort: Newest" pill that melts downward into a four-option menu of metaball drops (blur plus alpha threshold in a Canvas). The options drip out one after another, stretch into thin necks and pinch off. Picking one crossfades the label and pours everything back up, with a lift shadow and a soft haptic on landing. |
 | 🐙 | **OctoDoneChecklist** | A five-row to-do list. Tick a row and the checkmark draws in, a blurred halftone blob swells up from below, a dotted tentacle curls over the row, and ink and row are pulled down together with a volume-preserving squash and stretch before the row collapses and the rows below spring up. Complete all sweeps the ink through every remaining row, and Reset brings them back. |
+| 🎵 | **AsciiNowPlaying** | A now-playing card whose album art is drawn entirely in text. A generated cover is boxed down to 48 columns, mapped from luminance to a ten-glyph ramp and drawn in tinted monospaced glyphs that shimmer slowly. Tap and the glyphs scramble outward from your finger, then settle back cell by cell with a light haptic. Drag up or down and the art resamples between crunchy (24 columns) and fine (72). |
 
 iOS 17+ / macOS 14+, Swift tools 6.0 (Swift 6 language mode).
 
-> **Honest status:** every core target builds, and all 535 tests pass on Linux (Swift 6.4).
+> **Honest status:** every core target builds, and all 570 tests pass on Linux (Swift 6.4).
 > The SwiftUI targets have **not yet been compiled or run on an Apple platform**. On Linux
 > they compile to empty modules (`#if canImport(SwiftUI)`). They were checked with
 > sourcekit-lsp (0 diagnostics), `swiftc -parse` and careful API review, but expect
@@ -60,8 +61,8 @@ targets: [
 ```
 
 Each component is its own product: `PopTherapy`, `MagneticBeadSlider`, `EraserDelete`,
-`ShutterReveal`, `AliveEyes`, `ScatterRegroup`, `SolarFlareLike`, `FlyingButton`, `GrainyRingGallery`, `LiquidMetalCompass`, `SweaterRail`, `FontCollection`, `FollowBlobHero`, `MoonPhaseScrubber`, `ClothPoster`, `TiltPhotoGrid`, `ScrollSpinWatch`, `BoutiqueBurst`, `PeelableSticker`, `FrostCard`, `HoloFoilCard`, `OilPaintRestore`, `WiggleMatchSearch`, `PourOpenMenu` and `OctoDoneChecklist`. There's also a SwiftUI-free `…Core` product for each
-(e.g. `ShutterRevealCore`), plus `WhimsyGallery`, a demo list of all twenty-five.
+`ShutterReveal`, `AliveEyes`, `ScatterRegroup`, `SolarFlareLike`, `FlyingButton`, `GrainyRingGallery`, `LiquidMetalCompass`, `SweaterRail`, `FontCollection`, `FollowBlobHero`, `MoonPhaseScrubber`, `ClothPoster`, `TiltPhotoGrid`, `ScrollSpinWatch`, `BoutiqueBurst`, `PeelableSticker`, `FrostCard`, `HoloFoilCard`, `OilPaintRestore`, `WiggleMatchSearch`, `PourOpenMenu`, `OctoDoneChecklist` and `AsciiNowPlaying`. There's also a SwiftUI-free `…Core` product for each
+(e.g. `ShutterRevealCore`), plus `WhimsyGallery`, a demo list of all twenty-six.
 
 ```swift
 import WhimsyGallery
@@ -765,6 +766,29 @@ OctoDoneChecklist(titles: myTasks, tentacle: false)   // your own rows, ink with
 - **Core:** `OctoTiming`, `OctoInk` (blob, halftone dots, tentacle), `OctoLayout`, `OctoRowFrame`,
   `OctoModel` (state machine, sweep scheduler, events) and `OctoAnnouncement` are plain Swift and tested.
 
+### 🎵 AsciiNowPlaying
+
+![AsciiNowPlaying](docs/ascii.gif)
+
+```swift
+import AsciiNowPlaying
+
+AsciiNowPlaying()                                          // "Static Lullaby" by Mira & the Quiet Arcades
+AsciiNowPlaying(track: AsciiTrack(title: "Paper Moons", artist: "The Low Tides", duration: 187))
+```
+
+- **Cover:** there is no image file. A 192 x 192 cover is generated in code: a sky gradient, a striped sun, a few stars and three sine hills. The core samples it at pixel centres, so it is identical on every platform.
+- **Downsample:** a box filter with fractional edge weights turns the cover into 24 to 72 columns (48 by default). Each cell keeps its average colour, its luminance and a tint (the colour scaled up to full brightness, so dark cells keep their hue).
+- **Ramp:** luminance (`0.2126 r + 0.7152 g + 0.0722 b`) goes through a 0.8 gamma, then picks a glyph from `' .:-=+*#%@'`. Tapping scrambles with that ramp plus 22 punctuation and digit glyphs.
+- **Canvas:** each distinct glyph is resolved once in white. A `drawLayer` with `.sourceAtop` fills every cell rectangle in its tint, so thousands of coloured glyphs cost one resolve per glyph.
+- **Breathing:** brightness adds `0.14 * sin(2 pi t / 5 s + 7u + 4.5v + 1.2 sin(3 pi v))`, a 5 s wave whose phase changes across the art. The same value brightens the tint by up to 17%. While paused the wave shrinks to 30% in about a third of a second.
+- **Scramble:** a tap starts a radial wave from the touch point. Cells begin scrambling within 0.15 s, change glyph 24 times a second, and each resolves at `0.30 s + 0.85 s * distance + up to 0.12 s of jitter`. A resolved cell flashes 50% brighter for 0.18 s. The whole thing ends 1.45 s after the tap. Tapping again restarts it with new glyphs.
+- **Seeded and stateless:** every random glyph is `hash(seed, epoch, cell, step)` with a 32-bit integer hash, so a frame can be computed on its own, replays are exact, and the web port matches the Swift output bit for bit.
+- **Density drag:** dragging the art 260 pt up goes from 24 columns to 72 and the same distance down goes back. Drag starts from the current density and the type size follows (1.3 times the cell). Grids are cached per column count.
+- **Haptics:** the core emits `haptic` when the resolve completes, at most once per 250 ms. The view plays a light impact.
+- **Player:** play and pause, a scrubber and `1:23` / `-2:10` labels. A `Slider` seeks. The track ends by stopping at its duration.
+- **Core:** `AsciiImage`, `AsciiCover`, `AsciiGrid`, `AsciiRamp`, `AsciiHash`, `AsciiShimmer`, `AsciiScramble`, `AsciiDensity`, `AsciiPlayer` and `AsciiModel` (state machine, events, cells) are plain Swift and tested.
+
 ---
 
 ## Accessibility
@@ -798,9 +822,10 @@ Every component handles **Reduce Motion**, each in its own way:
 | WiggleMatchSearch | Underlines are straight, static lines and letters don't jiggle. Matching, sorting and haptics work as usual. |
 | PourOpenMenu | A plain fade: the options appear as separate pills fading in place, with no goo, no travel and no lift. The label crossfade is shortened to 0.15 s. Haptics work as usual. |
 | OctoDoneChecklist | No ink, tentacle, squash or pull: the row ticks, fades and collapses in 0.7 s. Haptics and announcements work as usual. |
+| AsciiNowPlaying | No shimmer, no scramble: a tap resolves instantly with the haptic, and the timeline stops when nothing is changing. Density drag, play and pause work as usual. |
 
 All twenty-one have VoiceOver labels and actions (e.g. pop next bubble, adjustable slider,
-erase, open/close shutter, squint, scatter/regroup, and a like toggle with the toggle trait and a Liked / Not liked value; FlyingButton is a plain button with its title as the label; GrainyRingGallery is adjustable (swipe up/down steps cards, value "Dunes, 1 of 8") with an Open action, and its detail view is modal with a Close button and the escape gesture; LiquidMetalCompass reads e.g. "Compass to Maya: 30° to your right, 1.2 kilometres", and is adjustable by 15° when faking the heading; SweaterRail exposes each garment as a button ("Cobalt Cardigan, $146") that opens its page, which is modal with a Close button and the escape gesture; FontCollection's flip board reads "Fontastic, set in Didot" with a shuffle action, chips carry the selected trait and a font count, each card is a button ("Didot, Display") and the detail view is modal with a Close button and the escape gesture; FollowBlobHero hides the decorative blob and exposes its headline, buttons and palette chips ("Lagoon colours", selected); MoonPhaseScrubber is an adjustable element ("Moon phase, Waxing Crescent, 15 percent illuminated") that steps one named phase per swipe; ClothPoster is a labelled image ("Poster: Soft Goods, Autumn Linen Fair, 24 to 27 October") with a "Ripple" action; TiltPhotoGrid reads its phrases, then "Photo album, 18 portraits", with "Skip intro" and "Replay intro" actions; ScrollSpinWatch is adjustable (swipe up/down steps front, side, back and the spec sheet) and reads the visible text block, with stats as "47 mm, Titanium case" and the watch hidden; BoutiqueBurst reads "Boutique" as a header with an "Open the collection" action, then each figure as a button ("Plum Slip Dress, 315 dollars"), and its detail view is modal with a Close button and the escape gesture; PeelableSticker reads the sticker as "Strawberry sticker" with its peel percentage as the value and a "Peel off" action; FrostCard reads as "GLACIER PASS card" with the frosted percentage as its value and a "Frost over" / "Melt" action; HoloFoilCard reads as "NOVA DRAKE, holographic card", with the band position (left of centre, centred, right of centre) as its value. Swiping up and down sweeps the foil in 5° steps, and a "Flatten" action returns the card to flat; OilPaintRestore reads as "Lakeside, 1962, faded photo", with the percent restored as its value. "Restore all" and "Reset" actions reveal the whole picture or fade it again; WiggleMatchSearch announces the result count as you type ("3 results"). Each row reads as its title with the subtitle as its value, and a "Matched letters" custom content item lists the letters that matched; PourOpenMenu's pill reads \"Sort, Newest\" with an Expanded or Collapsed value, and the options are buttons (the current one with the selected trait) that are hidden while the menu is closed. Picking one announces \"Sorted by Popular\", and the escape gesture closes the menu; OctoDoneChecklist's rows are toggles with the task as the label and Completed or Not completed as the value. Ticking announces "Completed Water the ferns" (and "… not completed" for an undo). Complete all and Reset are buttons with hints, rows that have gone are hidden from VoiceOver, and a sweep announces "Completing 3 tasks").
+erase, open/close shutter, squint, scatter/regroup, and a like toggle with the toggle trait and a Liked / Not liked value; FlyingButton is a plain button with its title as the label; GrainyRingGallery is adjustable (swipe up/down steps cards, value "Dunes, 1 of 8") with an Open action, and its detail view is modal with a Close button and the escape gesture; LiquidMetalCompass reads e.g. "Compass to Maya: 30° to your right, 1.2 kilometres", and is adjustable by 15° when faking the heading; SweaterRail exposes each garment as a button ("Cobalt Cardigan, $146") that opens its page, which is modal with a Close button and the escape gesture; FontCollection's flip board reads "Fontastic, set in Didot" with a shuffle action, chips carry the selected trait and a font count, each card is a button ("Didot, Display") and the detail view is modal with a Close button and the escape gesture; FollowBlobHero hides the decorative blob and exposes its headline, buttons and palette chips ("Lagoon colours", selected); MoonPhaseScrubber is an adjustable element ("Moon phase, Waxing Crescent, 15 percent illuminated") that steps one named phase per swipe; ClothPoster is a labelled image ("Poster: Soft Goods, Autumn Linen Fair, 24 to 27 October") with a "Ripple" action; TiltPhotoGrid reads its phrases, then "Photo album, 18 portraits", with "Skip intro" and "Replay intro" actions; ScrollSpinWatch is adjustable (swipe up/down steps front, side, back and the spec sheet) and reads the visible text block, with stats as "47 mm, Titanium case" and the watch hidden; BoutiqueBurst reads "Boutique" as a header with an "Open the collection" action, then each figure as a button ("Plum Slip Dress, 315 dollars"), and its detail view is modal with a Close button and the escape gesture; PeelableSticker reads the sticker as "Strawberry sticker" with its peel percentage as the value and a "Peel off" action; FrostCard reads as "GLACIER PASS card" with the frosted percentage as its value and a "Frost over" / "Melt" action; HoloFoilCard reads as "NOVA DRAKE, holographic card", with the band position (left of centre, centred, right of centre) as its value. Swiping up and down sweeps the foil in 5° steps, and a "Flatten" action returns the card to flat; OilPaintRestore reads as "Lakeside, 1962, faded photo", with the percent restored as its value. "Restore all" and "Reset" actions reveal the whole picture or fade it again; WiggleMatchSearch announces the result count as you type ("3 results"). Each row reads as its title with the subtitle as its value, and a "Matched letters" custom content item lists the letters that matched; PourOpenMenu's pill reads \"Sort, Newest\" with an Expanded or Collapsed value, and the options are buttons (the current one with the selected trait) that are hidden while the menu is closed. Picking one announces \"Sorted by Popular\", and the escape gesture closes the menu; OctoDoneChecklist's rows are toggles with the task as the label and Completed or Not completed as the value. Ticking announces "Completed Water the ferns" (and "… not completed" for an undo). Complete all and Reset are buttons with hints, rows that have gone are hidden from VoiceOver, and a sweep announces "Completing 3 tasks"; AsciiNowPlaying reads as one card: the track and artist, then Playing or Paused. The art is an image named ASCII album art with the value 48 columns, medium. It is adjustable, so swipe up or down to step the detail by 8 columns, and it has a Scramble action. Play and Pause is a button, the scrubber reads 1:23 of 3:34, and changes announce "Playing", "Paused" or "Detail 56 columns, fine".).
 
 ## Layout
 
@@ -832,7 +857,8 @@ Sources/
   WiggleCore/            WiggleMatchSearch/
   PourCore/              PourOpenMenu/
   OctoCore/              OctoDoneChecklist/
-  WhimsyGallery/         Demo gallery of all twenty-five
+  AsciiCore/             AsciiNowPlaying/
+  WhimsyGallery/         Demo gallery of all twenty-six
 Tests/                   Swift Testing suites for WhimsyCore and every core
 docs/                    README GIFs
 ```

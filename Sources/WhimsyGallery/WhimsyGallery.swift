@@ -28,8 +28,9 @@ import OilPaintRestore
 import WiggleMatchSearch
 import PourOpenMenu
 import OctoDoneChecklist
+import AsciiNowPlaying
 
-/// A navigation list of all twenty-five components with a small live demo of each.
+/// A navigation list of all twenty-six components with a small live demo of each.
 /// Drop `WhimsyGallery()` into a scene to browse them.
 public struct WhimsyGallery: View {
     public init() {}
@@ -61,7 +62,7 @@ public struct WhimsyGallery: View {
 }
 
 enum GalleryItem: String, CaseIterable, Identifiable, Hashable {
-    case popTherapy, magneticBeads, eraserDelete, shutterReveal, aliveEyes, scatterRegroup, solarFlare, flyingButton, ringGallery, liquidCompass, sweaterRail, fontCollection, followBlob, moonPhase, clothPoster, tiltGrid, spinWatch, boutique, peelSticker, frostCard, holoFoilCard, oilPaintRestore, wiggleMatchSearch, pourOpenMenu, octoDoneChecklist
+    case popTherapy, magneticBeads, eraserDelete, shutterReveal, aliveEyes, scatterRegroup, solarFlare, flyingButton, ringGallery, liquidCompass, sweaterRail, fontCollection, followBlob, moonPhase, clothPoster, tiltGrid, spinWatch, boutique, peelSticker, frostCard, holoFoilCard, oilPaintRestore, wiggleMatchSearch, pourOpenMenu, octoDoneChecklist, asciiNowPlaying
     var id: String { rawValue }
 
     var title: String {
@@ -91,6 +92,7 @@ enum GalleryItem: String, CaseIterable, Identifiable, Hashable {
         case .wiggleMatchSearch: "Wiggle Match Search"
         case .pourOpenMenu: "Pour Open Menu"
         case .octoDoneChecklist: "Octo Done Checklist"
+        case .asciiNowPlaying: "ASCII Now Playing"
         }
     }
 
@@ -121,6 +123,7 @@ enum GalleryItem: String, CaseIterable, Identifiable, Hashable {
         case .wiggleMatchSearch: "Fuzzy search with wavy match underlines"
         case .pourOpenMenu: "A sort pill that melts into goo drops"
         case .octoDoneChecklist: "Done rows get eaten by halftone ink"
+        case .asciiNowPlaying: "Album art made of breathing, scrambling text"
         }
     }
 
@@ -151,6 +154,7 @@ enum GalleryItem: String, CaseIterable, Identifiable, Hashable {
         case .wiggleMatchSearch: "magnifyingglass"
         case .pourOpenMenu: "chevron.down.circle"
         case .octoDoneChecklist: "checklist"
+        case .asciiNowPlaying: "music.note"
         }
     }
 
@@ -181,6 +185,7 @@ enum GalleryItem: String, CaseIterable, Identifiable, Hashable {
         case .wiggleMatchSearch: WiggleMatchSearch()
         case .pourOpenMenu: PourOpenMenu()
         case .octoDoneChecklist: OctoDoneChecklist()
+        case .asciiNowPlaying: AsciiNowPlaying()
         }
     }
 }
