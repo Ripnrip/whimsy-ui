@@ -29,8 +29,9 @@ import WiggleMatchSearch
 import PourOpenMenu
 import OctoDoneChecklist
 import AsciiNowPlaying
+import DogEarPeelCard
 
-/// A navigation list of all twenty-six components with a small live demo of each.
+/// A navigation list of all twenty-seven components with a small live demo of each.
 /// Drop `WhimsyGallery()` into a scene to browse them.
 public struct WhimsyGallery: View {
     public init() {}
@@ -62,7 +63,7 @@ public struct WhimsyGallery: View {
 }
 
 enum GalleryItem: String, CaseIterable, Identifiable, Hashable {
-    case popTherapy, magneticBeads, eraserDelete, shutterReveal, aliveEyes, scatterRegroup, solarFlare, flyingButton, ringGallery, liquidCompass, sweaterRail, fontCollection, followBlob, moonPhase, clothPoster, tiltGrid, spinWatch, boutique, peelSticker, frostCard, holoFoilCard, oilPaintRestore, wiggleMatchSearch, pourOpenMenu, octoDoneChecklist, asciiNowPlaying
+    case popTherapy, magneticBeads, eraserDelete, shutterReveal, aliveEyes, scatterRegroup, solarFlare, flyingButton, ringGallery, liquidCompass, sweaterRail, fontCollection, followBlob, moonPhase, clothPoster, tiltGrid, spinWatch, boutique, peelSticker, frostCard, holoFoilCard, oilPaintRestore, wiggleMatchSearch, pourOpenMenu, octoDoneChecklist, asciiNowPlaying, dogEarPeelCard
     var id: String { rawValue }
 
     var title: String {
@@ -93,6 +94,7 @@ enum GalleryItem: String, CaseIterable, Identifiable, Hashable {
         case .pourOpenMenu: "Pour Open Menu"
         case .octoDoneChecklist: "Octo Done Checklist"
         case .asciiNowPlaying: "ASCII Now Playing"
+        case .dogEarPeelCard: "Dog-Ear Peel Card"
         }
     }
 
@@ -124,6 +126,7 @@ enum GalleryItem: String, CaseIterable, Identifiable, Hashable {
         case .pourOpenMenu: "A sort pill that melts into goo drops"
         case .octoDoneChecklist: "Done rows get eaten by halftone ink"
         case .asciiNowPlaying: "Album art made of breathing, scrambling text"
+        case .dogEarPeelCard: "Peel a card's corner to find the note under it"
         }
     }
 
@@ -155,6 +158,7 @@ enum GalleryItem: String, CaseIterable, Identifiable, Hashable {
         case .pourOpenMenu: "chevron.down.circle"
         case .octoDoneChecklist: "checklist"
         case .asciiNowPlaying: "music.note"
+        case .dogEarPeelCard: "doc.richtext"
         }
     }
 
@@ -186,6 +190,7 @@ enum GalleryItem: String, CaseIterable, Identifiable, Hashable {
         case .pourOpenMenu: PourOpenMenu()
         case .octoDoneChecklist: OctoDoneChecklist()
         case .asciiNowPlaying: AsciiNowPlaying()
+        case .dogEarPeelCard: DogEarPeelCard()
         }
     }
 }

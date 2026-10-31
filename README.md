@@ -1,6 +1,6 @@
 # whimsy-ui
 
-Twenty-six small, tactile SwiftUI components, each with a pure-Swift, unit-tested core:
+Twenty-seven small, tactile SwiftUI components, each with a pure-Swift, unit-tested core:
 
 | | Component | What it does |
 |---|---|---|
@@ -30,10 +30,11 @@ Twenty-six small, tactile SwiftUI components, each with a pure-Swift, unit-teste
 | 🫗 | **PourOpenMenu** | A "Sort: Newest" pill that melts downward into a four-option menu of metaball drops (blur plus alpha threshold in a Canvas). The options drip out one after another, stretch into thin necks and pinch off. Picking one crossfades the label and pours everything back up, with a lift shadow and a soft haptic on landing. |
 | 🐙 | **OctoDoneChecklist** | A five-row to-do list. Tick a row and the checkmark draws in, a blurred halftone blob swells up from below, a dotted tentacle curls over the row, and ink and row are pulled down together with a volume-preserving squash and stretch before the row collapses and the rows below spring up. Complete all sweeps the ink through every remaining row, and Reset brings them back. |
 | 🎵 | **AsciiNowPlaying** | A now-playing card whose album art is drawn entirely in text. A generated cover is boxed down to 48 columns, mapped from luminance to a ten-glyph ramp and drawn in tinted monospaced glyphs that shimmer slowly. Tap and the glyphs scramble outward from your finger, then settle back cell by cell with a light haptic. Drag up or down and the art resamples between crunchy (24 columns) and fine (72). |
+| 💌 | **DogEarPeelCard** | A Halloween invitation whose bottom-right corner folds back as you drag, with true paper geometry: the crease is the perpendicular bisector of corner and finger, the lifted part is mirrored across it as a shaded paper back, and a soft shadow falls on the card. Let go early and the corner springs flat with a small bounce. Past 60% the fold sweeps across and the card flies away, revealing a hidden note. Reset puts it back. |
 
 iOS 17+ / macOS 14+, Swift tools 6.0 (Swift 6 language mode).
 
-> **Honest status:** every core target builds, and all 570 tests pass on Linux (Swift 6.4).
+> **Honest status:** every core target builds, and all 615 tests pass on Linux (Swift 6.4).
 > The SwiftUI targets have **not yet been compiled or run on an Apple platform**. On Linux
 > they compile to empty modules (`#if canImport(SwiftUI)`). They were checked with
 > sourcekit-lsp (0 diagnostics), `swiftc -parse` and careful API review, but expect
@@ -61,8 +62,8 @@ targets: [
 ```
 
 Each component is its own product: `PopTherapy`, `MagneticBeadSlider`, `EraserDelete`,
-`ShutterReveal`, `AliveEyes`, `ScatterRegroup`, `SolarFlareLike`, `FlyingButton`, `GrainyRingGallery`, `LiquidMetalCompass`, `SweaterRail`, `FontCollection`, `FollowBlobHero`, `MoonPhaseScrubber`, `ClothPoster`, `TiltPhotoGrid`, `ScrollSpinWatch`, `BoutiqueBurst`, `PeelableSticker`, `FrostCard`, `HoloFoilCard`, `OilPaintRestore`, `WiggleMatchSearch`, `PourOpenMenu`, `OctoDoneChecklist` and `AsciiNowPlaying`. There's also a SwiftUI-free `…Core` product for each
-(e.g. `ShutterRevealCore`), plus `WhimsyGallery`, a demo list of all twenty-six.
+`ShutterReveal`, `AliveEyes`, `ScatterRegroup`, `SolarFlareLike`, `FlyingButton`, `GrainyRingGallery`, `LiquidMetalCompass`, `SweaterRail`, `FontCollection`, `FollowBlobHero`, `MoonPhaseScrubber`, `ClothPoster`, `TiltPhotoGrid`, `ScrollSpinWatch`, `BoutiqueBurst`, `PeelableSticker`, `FrostCard`, `HoloFoilCard`, `OilPaintRestore`, `WiggleMatchSearch`, `PourOpenMenu`, `OctoDoneChecklist`, `AsciiNowPlaying` and `DogEarPeelCard`. There's also a SwiftUI-free `…Core` product for each
+(e.g. `ShutterRevealCore`), plus `WhimsyGallery`, a demo list of all twenty-seven.
 
 ```swift
 import WhimsyGallery
@@ -789,6 +790,29 @@ AsciiNowPlaying(track: AsciiTrack(title: "Paper Moons", artist: "The Low Tides",
 - **Player:** play and pause, a scrubber and `1:23` / `-2:10` labels. A `Slider` seeks. The track ends by stopping at its duration.
 - **Core:** `AsciiImage`, `AsciiCover`, `AsciiGrid`, `AsciiRamp`, `AsciiHash`, `AsciiShimmer`, `AsciiScramble`, `AsciiDensity`, `AsciiPlayer` and `AsciiModel` (state machine, events, cells) are plain Swift and tested.
 
+### 💌 DogEarPeelCard
+
+![DogEarPeelCard](docs/dogear.gif)
+
+```swift
+import DogEarPeelCard
+
+DogEarPeelCard()   // a Halloween invitation with a note hidden underneath, and a Reset button
+```
+
+- **Not the sticker:** `PeelableSticker` lifts a small sticker from any corner and tumbles it away. This is a full-size card with one dog-ear, a note under it, and a commit threshold. The fold maths is not repeated: `DogEarCore` imports `PeelCore` and uses its `Polygon` (half-plane clipping, area, centroid), `FoldLine` and `PeelState`, plus `WhimsySpring` and `WhimsyMath` from `WhimsyCore`.
+- **Fold:** the crease is the perpendicular bisector of the segment from the corner to your finger. The card (a 300 x 420 rounded rectangle sampled into a polygon) is clipped to the side still lying flat. The other side is reflected across the crease and drawn as a lilac paper back, so the corner tip lands exactly on your finger.
+- **Shading:** a `LinearGradient` runs from the crease across the flap. It is black at 14% alpha at the crease (up to 36% fully peeled), clear halfway, and 10% white at the far edge. The flap casts a soft shadow on the card: its outline pushed along the peel direction by 4 to 14 pt, blurred 6 to 16 pt, at 16% to 40% opacity, clipped to the part still flat. The card itself throws a 14 pt shadow onto the note.
+- **Peel progress:** finger travel divided by how far the card reaches from the corner along that direction, 0 to 1. It is not the lifted area, because 60% of the area would need a finger outside the card. The area fraction from `PeelCore` is still reported.
+- **Clamp:** the finger can pull at most 100% of that reach, so the crease stays on the card and some of it stays flat. Dragging out of the card lifts nothing, and a pull under 0.5 pt is flat.
+- **Threshold:** crossing 60% arms the peel and re-arms only after dropping below 57%, so hovering on the line doesn't chatter. Letting go armed peels the card off, and letting go below springs it back. Crossing in either direction plays a light haptic.
+- **Spring back:** an under-damped spring on the pull (stiffness 380, damping ratio 0.4). It swings through flat, which closes the fold, and the next swing lifts the corner a few points again before it settles, in under a second.
+- **Peel off:** over 0.5 s the pull eases to twice the card's reach, so the crease sweeps across the whole card and the flap is the entire card folded over. Then it flies for 0.55 s, sliding 200 pt along the peel direction, turning up to 0.16 rad about its centre and fading out. The note is revealed and announced after about 1.05 s.
+- **Reset:** the card fades back in over 0.5 s, growing from 94% to full size.
+- **Haptics:** the core emits `haptic(.threshold)` on a threshold crossing and `haptic(.peelOff)` when the card is released past it, at most once per 120 ms. The view plays a light impact.
+- **Reduce Motion:** the spring is critically damped (no wobble), and a peel-off fades the card out over 0.35 s instead of sweeping and flying it. Dragging stays direct.
+- **Core:** `DogEarLayout` (card shape, corner, reach), `DogEarRules`, `DogEarShading`, `DogEarContent`, `DogEarModel` (state machine, events, frame) and `DogEarAnnouncement` are plain Swift and tested.
+
 ---
 
 ## Accessibility
@@ -823,9 +847,10 @@ Every component handles **Reduce Motion**, each in its own way:
 | PourOpenMenu | A plain fade: the options appear as separate pills fading in place, with no goo, no travel and no lift. The label crossfade is shortened to 0.15 s. Haptics work as usual. |
 | OctoDoneChecklist | No ink, tentacle, squash or pull: the row ticks, fades and collapses in 0.7 s. Haptics and announcements work as usual. |
 | AsciiNowPlaying | No shimmer, no scramble: a tap resolves instantly with the haptic, and the timeline stops when nothing is changing. Density drag, play and pause work as usual. |
+| DogEarPeelCard | No wobble: the corner closes with a critically damped spring, and a peel-off fades the card out in 0.35 s instead of sweeping and flying it away. Dragging, haptics and the reveal work as usual. |
 
 All twenty-one have VoiceOver labels and actions (e.g. pop next bubble, adjustable slider,
-erase, open/close shutter, squint, scatter/regroup, and a like toggle with the toggle trait and a Liked / Not liked value; FlyingButton is a plain button with its title as the label; GrainyRingGallery is adjustable (swipe up/down steps cards, value "Dunes, 1 of 8") with an Open action, and its detail view is modal with a Close button and the escape gesture; LiquidMetalCompass reads e.g. "Compass to Maya: 30° to your right, 1.2 kilometres", and is adjustable by 15° when faking the heading; SweaterRail exposes each garment as a button ("Cobalt Cardigan, $146") that opens its page, which is modal with a Close button and the escape gesture; FontCollection's flip board reads "Fontastic, set in Didot" with a shuffle action, chips carry the selected trait and a font count, each card is a button ("Didot, Display") and the detail view is modal with a Close button and the escape gesture; FollowBlobHero hides the decorative blob and exposes its headline, buttons and palette chips ("Lagoon colours", selected); MoonPhaseScrubber is an adjustable element ("Moon phase, Waxing Crescent, 15 percent illuminated") that steps one named phase per swipe; ClothPoster is a labelled image ("Poster: Soft Goods, Autumn Linen Fair, 24 to 27 October") with a "Ripple" action; TiltPhotoGrid reads its phrases, then "Photo album, 18 portraits", with "Skip intro" and "Replay intro" actions; ScrollSpinWatch is adjustable (swipe up/down steps front, side, back and the spec sheet) and reads the visible text block, with stats as "47 mm, Titanium case" and the watch hidden; BoutiqueBurst reads "Boutique" as a header with an "Open the collection" action, then each figure as a button ("Plum Slip Dress, 315 dollars"), and its detail view is modal with a Close button and the escape gesture; PeelableSticker reads the sticker as "Strawberry sticker" with its peel percentage as the value and a "Peel off" action; FrostCard reads as "GLACIER PASS card" with the frosted percentage as its value and a "Frost over" / "Melt" action; HoloFoilCard reads as "NOVA DRAKE, holographic card", with the band position (left of centre, centred, right of centre) as its value. Swiping up and down sweeps the foil in 5° steps, and a "Flatten" action returns the card to flat; OilPaintRestore reads as "Lakeside, 1962, faded photo", with the percent restored as its value. "Restore all" and "Reset" actions reveal the whole picture or fade it again; WiggleMatchSearch announces the result count as you type ("3 results"). Each row reads as its title with the subtitle as its value, and a "Matched letters" custom content item lists the letters that matched; PourOpenMenu's pill reads \"Sort, Newest\" with an Expanded or Collapsed value, and the options are buttons (the current one with the selected trait) that are hidden while the menu is closed. Picking one announces \"Sorted by Popular\", and the escape gesture closes the menu; OctoDoneChecklist's rows are toggles with the task as the label and Completed or Not completed as the value. Ticking announces "Completed Water the ferns" (and "… not completed" for an undo). Complete all and Reset are buttons with hints, rows that have gone are hidden from VoiceOver, and a sweep announces "Completing 3 tasks"; AsciiNowPlaying reads as one card: the track and artist, then Playing or Paused. The art is an image named ASCII album art with the value 48 columns, medium. It is adjustable, so swipe up or down to step the detail by 8 columns, and it has a Scramble action. Play and Pause is a button, the scrubber reads 1:23 of 3:34, and changes announce "Playing", "Paused" or "Detail 56 columns, fine".).
+erase, open/close shutter, squint, scatter/regroup, and a like toggle with the toggle trait and a Liked / Not liked value; FlyingButton is a plain button with its title as the label; GrainyRingGallery is adjustable (swipe up/down steps cards, value "Dunes, 1 of 8") with an Open action, and its detail view is modal with a Close button and the escape gesture; LiquidMetalCompass reads e.g. "Compass to Maya: 30° to your right, 1.2 kilometres", and is adjustable by 15° when faking the heading; SweaterRail exposes each garment as a button ("Cobalt Cardigan, $146") that opens its page, which is modal with a Close button and the escape gesture; FontCollection's flip board reads "Fontastic, set in Didot" with a shuffle action, chips carry the selected trait and a font count, each card is a button ("Didot, Display") and the detail view is modal with a Close button and the escape gesture; FollowBlobHero hides the decorative blob and exposes its headline, buttons and palette chips ("Lagoon colours", selected); MoonPhaseScrubber is an adjustable element ("Moon phase, Waxing Crescent, 15 percent illuminated") that steps one named phase per swipe; ClothPoster is a labelled image ("Poster: Soft Goods, Autumn Linen Fair, 24 to 27 October") with a "Ripple" action; TiltPhotoGrid reads its phrases, then "Photo album, 18 portraits", with "Skip intro" and "Replay intro" actions; ScrollSpinWatch is adjustable (swipe up/down steps front, side, back and the spec sheet) and reads the visible text block, with stats as "47 mm, Titanium case" and the watch hidden; BoutiqueBurst reads "Boutique" as a header with an "Open the collection" action, then each figure as a button ("Plum Slip Dress, 315 dollars"), and its detail view is modal with a Close button and the escape gesture; PeelableSticker reads the sticker as "Strawberry sticker" with its peel percentage as the value and a "Peel off" action; FrostCard reads as "GLACIER PASS card" with the frosted percentage as its value and a "Frost over" / "Melt" action; HoloFoilCard reads as "NOVA DRAKE, holographic card", with the band position (left of centre, centred, right of centre) as its value. Swiping up and down sweeps the foil in 5° steps, and a "Flatten" action returns the card to flat; OilPaintRestore reads as "Lakeside, 1962, faded photo", with the percent restored as its value. "Restore all" and "Reset" actions reveal the whole picture or fade it again; WiggleMatchSearch announces the result count as you type ("3 results"). Each row reads as its title with the subtitle as its value, and a "Matched letters" custom content item lists the letters that matched; PourOpenMenu's pill reads \"Sort, Newest\" with an Expanded or Collapsed value, and the options are buttons (the current one with the selected trait) that are hidden while the menu is closed. Picking one announces \"Sorted by Popular\", and the escape gesture closes the menu; OctoDoneChecklist's rows are toggles with the task as the label and Completed or Not completed as the value. Ticking announces "Completed Water the ferns" (and "… not completed" for an undo). Complete all and Reset are buttons with hints, rows that have gone are hidden from VoiceOver, and a sweep announces "Completing 3 tasks"; AsciiNowPlaying reads as one card: the track and artist, then Playing or Paused. The art is an image named ASCII album art with the value 48 columns, medium. It is adjustable, so swipe up or down to step the detail by 8 columns, and it has a Scramble action. Play and Pause is a button, the scrubber reads 1:23 of 3:34, and changes announce "Playing", "Paused" or "Detail 56 columns, fine"; DogEarPeelCard reads as one card: the invitation text, with the value Closed, Peeling 40 percent or Peeled away. It has a Peel action that comes away from rest, so nobody has to drag. Once the card has gone, the note is a separate element that reads its heading, text and address, and the reveal is announced as "Card peeled away" followed by the note. Reset is a button, and a restore announces "Card restored").
 
 ## Layout
 
@@ -858,7 +883,8 @@ Sources/
   PourCore/              PourOpenMenu/
   OctoCore/              OctoDoneChecklist/
   AsciiCore/             AsciiNowPlaying/
-  WhimsyGallery/         Demo gallery of all twenty-six
+  DogEarCore/            DogEarPeelCard/
+  WhimsyGallery/         Demo gallery of all twenty-seven
 Tests/                   Swift Testing suites for WhimsyCore and every core
 docs/                    README GIFs
 ```

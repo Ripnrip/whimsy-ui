@@ -73,6 +73,8 @@ let package = Package(
         .library(name: "OctoCore", targets: ["OctoCore"]),
         .library(name: "AsciiNowPlaying", targets: ["AsciiNowPlaying"]),
         .library(name: "AsciiCore", targets: ["AsciiCore"]),
+        .library(name: "DogEarPeelCard", targets: ["DogEarPeelCard"]),
+        .library(name: "DogEarCore", targets: ["DogEarCore"]),
         // A demo gallery listing every component.
         .library(name: "WhimsyGallery", targets: ["WhimsyGallery"]),
     ],
@@ -161,10 +163,12 @@ let package = Package(
 
         .target(name: "AsciiCore", dependencies: ["WhimsyCore"]),
         .target(name: "AsciiNowPlaying", dependencies: ["AsciiCore"]),
+        .target(name: "DogEarCore", dependencies: ["PeelCore"]),
+        .target(name: "DogEarPeelCard", dependencies: ["DogEarCore"]),
 
         .target(name: "WhimsyGallery", dependencies: [
             "PopTherapy", "MagneticBeadSlider", "EraserDelete", "ShutterReveal", "AliveEyes", "ScatterRegroup", "SolarFlareLike", "FlyingButton",
-            "GrainyRingGallery", "LiquidMetalCompass", "SweaterRail", "FontCollection", "FollowBlobHero", "MoonPhaseScrubber", "ClothPoster", "TiltPhotoGrid", "ScrollSpinWatch", "BoutiqueBurst", "PeelableSticker", "FrostCard", "HoloFoilCard", "OilPaintRestore", "WiggleMatchSearch", "PourOpenMenu", "OctoDoneChecklist", "AsciiNowPlaying",
+            "GrainyRingGallery", "LiquidMetalCompass", "SweaterRail", "FontCollection", "FollowBlobHero", "MoonPhaseScrubber", "ClothPoster", "TiltPhotoGrid", "ScrollSpinWatch", "BoutiqueBurst", "PeelableSticker", "FrostCard", "HoloFoilCard", "OilPaintRestore", "WiggleMatchSearch", "PourOpenMenu", "OctoDoneChecklist", "AsciiNowPlaying", "DogEarPeelCard",
         ]),
 
         .testTarget(name: "WhimsyCoreTests", dependencies: ["WhimsyCore"]),
@@ -194,5 +198,6 @@ let package = Package(
         .testTarget(name: "PourCoreTests", dependencies: ["PourCore"]),
         .testTarget(name: "OctoCoreTests", dependencies: ["OctoCore"]),
         .testTarget(name: "AsciiCoreTests", dependencies: ["AsciiCore"]),
+        .testTarget(name: "DogEarCoreTests", dependencies: ["DogEarCore"]),
     ]
 )
