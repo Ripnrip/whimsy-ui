@@ -1,7 +1,7 @@
 // swift-tools-version: 6.0
 import PackageDescription
 
-// The Metal shaders (PopTherapy, GrainyRingGallery, LiquidMetalCompass, ClothPoster, HoloFoilCard, OilPaintRestore) are compiled by Xcode into each module's
+// The Metal shaders (PopTherapy, GrainyRingGallery, LiquidMetalCompass, ClothPoster, HoloFoilCard, OilPaintRestore, ChannelFlipCard) are compiled by Xcode into each module's
 // default.metallib. SwiftPM on Linux/Windows has no Metal compiler, so the resources are
 // skipped there (the SwiftUI targets compile to empty modules on those platforms anyway).
 #if os(Linux) || os(Windows)
@@ -77,6 +77,8 @@ let package = Package(
         .library(name: "DogEarCore", targets: ["DogEarCore"]),
         .library(name: "ColorFigureGumball", targets: ["ColorFigureGumball"]),
         .library(name: "ColorFigureCore", targets: ["ColorFigureCore"]),
+        .library(name: "ChannelFlipCard", targets: ["ChannelFlipCard"]),
+        .library(name: "ChannelFlipCore", targets: ["ChannelFlipCore"]),
         // A demo gallery listing every component.
         .library(name: "WhimsyGallery", targets: ["WhimsyGallery"]),
     ],
@@ -170,9 +172,13 @@ let package = Package(
         .target(name: "ColorFigureCore", dependencies: ["WhimsyCore"]),
         .target(name: "ColorFigureGumball", dependencies: ["ColorFigureCore"]),
 
+        .target(name: "ChannelFlipCore", dependencies: ["WhimsyCore"]),
+        .target(name: "ChannelFlipCard", dependencies: ["ChannelFlipCore"],
+                exclude: metalExclude, resources: metalResources),
+
         .target(name: "WhimsyGallery", dependencies: [
             "PopTherapy", "MagneticBeadSlider", "EraserDelete", "ShutterReveal", "AliveEyes", "ScatterRegroup", "SolarFlareLike", "FlyingButton",
-            "GrainyRingGallery", "LiquidMetalCompass", "SweaterRail", "FontCollection", "FollowBlobHero", "MoonPhaseScrubber", "ClothPoster", "TiltPhotoGrid", "ScrollSpinWatch", "BoutiqueBurst", "PeelableSticker", "FrostCard", "HoloFoilCard", "OilPaintRestore", "WiggleMatchSearch", "PourOpenMenu", "OctoDoneChecklist", "AsciiNowPlaying", "DogEarPeelCard", "ColorFigureGumball",
+            "GrainyRingGallery", "LiquidMetalCompass", "SweaterRail", "FontCollection", "FollowBlobHero", "MoonPhaseScrubber", "ClothPoster", "TiltPhotoGrid", "ScrollSpinWatch", "BoutiqueBurst", "PeelableSticker", "FrostCard", "HoloFoilCard", "OilPaintRestore", "WiggleMatchSearch", "PourOpenMenu", "OctoDoneChecklist", "AsciiNowPlaying", "DogEarPeelCard", "ColorFigureGumball", "ChannelFlipCard",
         ]),
 
         .testTarget(name: "WhimsyCoreTests", dependencies: ["WhimsyCore"]),
@@ -204,5 +210,6 @@ let package = Package(
         .testTarget(name: "AsciiCoreTests", dependencies: ["AsciiCore"]),
         .testTarget(name: "DogEarCoreTests", dependencies: ["DogEarCore"]),
         .testTarget(name: "ColorFigureCoreTests", dependencies: ["ColorFigureCore"]),
+        .testTarget(name: "ChannelFlipCoreTests", dependencies: ["ChannelFlipCore"]),
     ]
 )

@@ -1,6 +1,6 @@
 # whimsy-ui
 
-Twenty-eight small, tactile SwiftUI components, each with a pure-Swift, unit-tested core:
+Twenty-nine small, tactile SwiftUI components, each with a pure-Swift, unit-tested core:
 
 | | Component | What it does |
 |---|---|---|
@@ -32,10 +32,11 @@ Twenty-eight small, tactile SwiftUI components, each with a pure-Swift, unit-tes
 | 🎵 | **AsciiNowPlaying** | A now-playing card whose album art is drawn entirely in text. A generated cover is boxed down to 48 columns, mapped from luminance to a ten-glyph ramp and drawn in tinted monospaced glyphs that shimmer slowly. Tap and the glyphs scramble outward from your finger, then settle back cell by cell with a light haptic. Drag up or down and the art resamples between crunchy (24 columns) and fine (72). |
 | 💌 | **DogEarPeelCard** | A Halloween invitation whose bottom-right corner folds back as you drag, with true paper geometry: the crease is the perpendicular bisector of corner and finger, the lifted part is mirrored across it as a shaded paper back, and a soft shadow falls on the card. Let go early and the corner springs flat with a small bounce. Past 60% the fold sweeps across and the card flies away, revealing a hidden note. Reset puts it back. |
 | 🍬 | **ColorFigureGumball** | A hand-inked isometric gumball machine in generated shapes. Drag it to turn a full 360° with inertia, insert a coin, turn the crank and a gumball drops out of the flap. See-through shows the coin mech, pocket wheel, spring and chute with labelled parts, and swatches and a wobble slider restyle the ink. Inspired by Colorfigures by April Zhu (MIT). |
+| 📺 | **ChannelFlipCard** | A photo card that flips pictures like an old CRT TV changing channel. Tap and the photo tears sideways in horizontal bands over five discrete frames, red and blue split, static crackles and it flashes white at the moment the photo swaps. Swipe for next or previous: a slow swipe is mild and short, a fast flick up to twice as long and much stronger. A green channel number fades in and out. Six generated photos, or pass your own images. |
 
 iOS 17+ / macOS 14+, Swift tools 6.0 (Swift 6 language mode).
 
-> **Honest status:** every core target builds, and all 740 tests pass on Linux (Swift 6.4).
+> **Honest status:** every core target builds, and all 850 tests pass on Linux (Swift 6.4).
 > The SwiftUI targets have **not yet been compiled or run on an Apple platform**. On Linux
 > they compile to empty modules (`#if canImport(SwiftUI)`). They were checked with
 > sourcekit-lsp (0 diagnostics), `swiftc -parse` and careful API review, but expect
@@ -63,8 +64,8 @@ targets: [
 ```
 
 Each component is its own product: `PopTherapy`, `MagneticBeadSlider`, `EraserDelete`,
-`ShutterReveal`, `AliveEyes`, `ScatterRegroup`, `SolarFlareLike`, `FlyingButton`, `GrainyRingGallery`, `LiquidMetalCompass`, `SweaterRail`, `FontCollection`, `FollowBlobHero`, `MoonPhaseScrubber`, `ClothPoster`, `TiltPhotoGrid`, `ScrollSpinWatch`, `BoutiqueBurst`, `PeelableSticker`, `FrostCard`, `HoloFoilCard`, `OilPaintRestore`, `WiggleMatchSearch`, `PourOpenMenu`, `OctoDoneChecklist`, `AsciiNowPlaying`, `DogEarPeelCard` and `ColorFigureGumball`. There's also a SwiftUI-free `…Core` product for each
-(e.g. `ShutterRevealCore`), plus `WhimsyGallery`, a demo list of all twenty-eight.
+`ShutterReveal`, `AliveEyes`, `ScatterRegroup`, `SolarFlareLike`, `FlyingButton`, `GrainyRingGallery`, `LiquidMetalCompass`, `SweaterRail`, `FontCollection`, `FollowBlobHero`, `MoonPhaseScrubber`, `ClothPoster`, `TiltPhotoGrid`, `ScrollSpinWatch`, `BoutiqueBurst`, `PeelableSticker`, `FrostCard`, `HoloFoilCard`, `OilPaintRestore`, `WiggleMatchSearch`, `PourOpenMenu`, `OctoDoneChecklist`, `AsciiNowPlaying`, `DogEarPeelCard`, `ColorFigureGumball` and `ChannelFlipCard`. There's also a SwiftUI-free `…Core` product for each
+(e.g. `ShutterRevealCore`), plus `WhimsyGallery`, a demo list of all twenty-nine.
 
 ```swift
 import WhimsyGallery
@@ -880,6 +881,50 @@ WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN 
 SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 ```
 
+### 📺 ChannelFlipCard
+
+![ChannelFlipCard](docs/channelflip.gif)
+
+```swift
+import ChannelFlipCard
+
+ChannelFlipCard()                                   // six generated photos
+ChannelFlipCard(images: [Image("a"), Image("b")])   // your own, with optional captions for VoiceOver
+```
+
+- **What it does:** a photo card that changes picture like an old CRT TV changing channel. **Tap** for the next photo: for 0.35 s
+  the picture tears sideways in horizontal bands, red and blue pull apart, a bar rolls down the screen, static crackles and the
+  photo flashes toward white. The photo is swapped on the brightest frame, then it settles. **Swipe** left for next, right for
+  previous: a slow swipe is a short, mild glitch and a fast flick is a longer, stronger one. A green "CH 03" number fades in and out.
+- **Discrete frames:** the effect updates 15 times a second, whatever the display rate, so it jitters like a TV instead of gliding.
+  A transition shows `round(duration × 15)` frames, at least 3 and always odd (a tap shows 5, a flick 11), so the middle frame
+  sits exactly at progress 0.5. Frame `i` of `n` is at progress `(i + 1) / (n + 1)`, never exactly 0 or 1, so every frame has some glitch.
+- **Envelope and swap:** intensity is `sin(π·progress)^1.2` times the strength (0.6 for a tap). It peaks on the middle frame,
+  and that is exactly the frame on which the photo underneath is swapped and the light haptic fires, however large a frame step the display takes.
+- **Tears:** the card is cut into 7-point bands. Each band hashes (lowbias32 of the frame seed and the band number) to decide
+  whether it tears, with chance `0.3 + 0.6 × intensity`, and by how much: up to 14 % of the width × intensity either way, wrapping
+  round the edges. The seed changes every frame, so every frame tears differently, and the same seed always tears the same way.
+- **The rest of the look:** red and blue are sampled `4 % of the width × intensity` either side of green. Odd 2-point rows dim by up to 12 %,
+  the picture brightens up to 30 %, 2-point static cells add up to ±0.35, and the whole thing mixes toward white by `0.55 × intensity²`.
+  A rolling bar (±7 % of the height around the progress row) always tears its bands, 1.5× as far, and its static is 1.5× as strong.
+- **Swipe speed:** the speed of the last 0.12 s of the drag (a finger that stopped before lifting counts as slow) maps linearly from
+  250 pt/s to 2200 pt/s onto a duration of 0.35 s to 0.7 s and a strength of 0.45 to 1.0, clamped. Under 12 pt of movement is a tap;
+  a mostly horizontal drag of at least 24 pt is a swipe; anything else does nothing.
+- **Rapid taps:** a change that hasn't reached its swap yet is swapped at once before the next one starts, so quick taps never stall.
+  Haptics are at most one every 80 ms and play `.sensoryFeedback(.impact(weight: .light, intensity: 0.5))`.
+- **Channel number:** "CH 01" to "CH nn", one-based with two digits, in old-TV green with a glow. It fades in over 0.12 s, holds
+  for 1.6 s and fades out over 0.6 s, after which the timeline pauses. `showsChannelNumber: false` hides it and
+  `staticNoise: false` turns the static off.
+- **Pure-Swift core:** `ChannelFlipCore` owns the envelope, frame quantization, swap-moment detection, band hashing, split and
+  flash amounts, the speed mapping, the gesture classifier, the velocity tracker, index wrap, the state machine and the six generated
+  scenes. It imports only Foundation, so it tests on Linux (110 tests). A test reads the `.metal` file and checks its constants,
+  hash constants and signature against the core.
+- **Metal shader:** `ChannelFlip.metal` is one `.layerEffect` with `progress`, `intensity`, `seed` and `noiseAmount` (plus the card
+  size), loaded with `ShaderLibrary.bundle(.module)`, and `maxSampleOffset` of the card width for the tears. At intensity 0 the effect is switched off.
+- **Photos:** six generated pictures (dunes, lagoon, city, alps, neon grid, paper garden) drawn from gradients, circles, polygons and
+  lines, so it works without any assets. The shader treats `Image` photos the same way.
+- **Web port:** `webports/channelflip.html` repeats the core and the shader per pixel with the same constants and a scripted session.
+
 ---
 
 ## Accessibility
@@ -916,9 +961,10 @@ Every component handles **Reduce Motion**, each in its own way:
 | AsciiNowPlaying | No shimmer, no scramble: a tap resolves instantly with the haptic, and the timeline stops when nothing is changing. Density drag, play and pause work as usual. |
 | DogEarPeelCard | No wobble: the corner closes with a critically damped spring, and a peel-off fades the card out in 0.35 s instead of sweeping and flying it away. Dragging, haptics and the reveal work as usual. |
 | ColorFigureGumball | The coin lands at once, the turntable doesn't coast or settle, see-through switches without a fade, and a dispense takes 0.45 s instead of 1.75 s. Dragging, the crank, labels and haptics work as usual. |
+| ChannelFlipCard | The tears, colour split, flash and static are off: a change is a 0.2 s crossfade whatever the swipe speed. Tapping, swiping, the haptic and the channel number work as usual. |
 
 All twenty-one have VoiceOver labels and actions (e.g. pop next bubble, adjustable slider,
-erase, open/close shutter, squint, scatter/regroup, and a like toggle with the toggle trait and a Liked / Not liked value; FlyingButton is a plain button with its title as the label; GrainyRingGallery is adjustable (swipe up/down steps cards, value "Dunes, 1 of 8") with an Open action, and its detail view is modal with a Close button and the escape gesture; LiquidMetalCompass reads e.g. "Compass to Maya: 30° to your right, 1.2 kilometres", and is adjustable by 15° when faking the heading; SweaterRail exposes each garment as a button ("Cobalt Cardigan, $146") that opens its page, which is modal with a Close button and the escape gesture; FontCollection's flip board reads "Fontastic, set in Didot" with a shuffle action, chips carry the selected trait and a font count, each card is a button ("Didot, Display") and the detail view is modal with a Close button and the escape gesture; FollowBlobHero hides the decorative blob and exposes its headline, buttons and palette chips ("Lagoon colours", selected); MoonPhaseScrubber is an adjustable element ("Moon phase, Waxing Crescent, 15 percent illuminated") that steps one named phase per swipe; ClothPoster is a labelled image ("Poster: Soft Goods, Autumn Linen Fair, 24 to 27 October") with a "Ripple" action; TiltPhotoGrid reads its phrases, then "Photo album, 18 portraits", with "Skip intro" and "Replay intro" actions; ScrollSpinWatch is adjustable (swipe up/down steps front, side, back and the spec sheet) and reads the visible text block, with stats as "47 mm, Titanium case" and the watch hidden; BoutiqueBurst reads "Boutique" as a header with an "Open the collection" action, then each figure as a button ("Plum Slip Dress, 315 dollars"), and its detail view is modal with a Close button and the escape gesture; PeelableSticker reads the sticker as "Strawberry sticker" with its peel percentage as the value and a "Peel off" action; FrostCard reads as "GLACIER PASS card" with the frosted percentage as its value and a "Frost over" / "Melt" action; HoloFoilCard reads as "NOVA DRAKE, holographic card", with the band position (left of centre, centred, right of centre) as its value. Swiping up and down sweeps the foil in 5° steps, and a "Flatten" action returns the card to flat; OilPaintRestore reads as "Lakeside, 1962, faded photo", with the percent restored as its value. "Restore all" and "Reset" actions reveal the whole picture or fade it again; WiggleMatchSearch announces the result count as you type ("3 results"). Each row reads as its title with the subtitle as its value, and a "Matched letters" custom content item lists the letters that matched; PourOpenMenu's pill reads \"Sort, Newest\" with an Expanded or Collapsed value, and the options are buttons (the current one with the selected trait) that are hidden while the menu is closed. Picking one announces \"Sorted by Popular\", and the escape gesture closes the menu; OctoDoneChecklist's rows are toggles with the task as the label and Completed or Not completed as the value. Ticking announces "Completed Water the ferns" (and "… not completed" for an undo). Complete all and Reset are buttons with hints, rows that have gone are hidden from VoiceOver, and a sweep announces "Completing 3 tasks"; AsciiNowPlaying reads as one card: the track and artist, then Playing or Paused. The art is an image named ASCII album art with the value 48 columns, medium. It is adjustable, so swipe up or down to step the detail by 8 columns, and it has a Scramble action. Play and Pause is a button, the scrubber reads 1:23 of 3:34, and changes announce "Playing", "Paused" or "Detail 56 columns, fine"; DogEarPeelCard reads as one card: the invitation text, with the value Closed, Peeling 40 percent or Peeled away. It has a Peel action that comes away from rest, so nobody has to drag. Once the card has gone, the note is a separate element that reads its heading, text and address, and the reveal is announced as "Card peeled away" followed by the note. Reset is a button, and a restore announces "Card restored"; ColorFigureGumball reads as one element, "Gumball machine", whose value is the status (such as "Turn the crank"), whether see-through is on and how many gumballs it has dispensed. Insert coin, Turn crank and Toggle see-through are custom actions, so nobody has to drag. The swatches are labelled buttons with the selected one marked, the wobble slider reads as a percentage, and "Coin in. Turn the crank", "Dispensing" and the colour of the gumball that came out are announced).
+erase, open/close shutter, squint, scatter/regroup, and a like toggle with the toggle trait and a Liked / Not liked value; FlyingButton is a plain button with its title as the label; GrainyRingGallery is adjustable (swipe up/down steps cards, value "Dunes, 1 of 8") with an Open action, and its detail view is modal with a Close button and the escape gesture; LiquidMetalCompass reads e.g. "Compass to Maya: 30° to your right, 1.2 kilometres", and is adjustable by 15° when faking the heading; SweaterRail exposes each garment as a button ("Cobalt Cardigan, $146") that opens its page, which is modal with a Close button and the escape gesture; FontCollection's flip board reads "Fontastic, set in Didot" with a shuffle action, chips carry the selected trait and a font count, each card is a button ("Didot, Display") and the detail view is modal with a Close button and the escape gesture; FollowBlobHero hides the decorative blob and exposes its headline, buttons and palette chips ("Lagoon colours", selected); MoonPhaseScrubber is an adjustable element ("Moon phase, Waxing Crescent, 15 percent illuminated") that steps one named phase per swipe; ClothPoster is a labelled image ("Poster: Soft Goods, Autumn Linen Fair, 24 to 27 October") with a "Ripple" action; TiltPhotoGrid reads its phrases, then "Photo album, 18 portraits", with "Skip intro" and "Replay intro" actions; ScrollSpinWatch is adjustable (swipe up/down steps front, side, back and the spec sheet) and reads the visible text block, with stats as "47 mm, Titanium case" and the watch hidden; BoutiqueBurst reads "Boutique" as a header with an "Open the collection" action, then each figure as a button ("Plum Slip Dress, 315 dollars"), and its detail view is modal with a Close button and the escape gesture; PeelableSticker reads the sticker as "Strawberry sticker" with its peel percentage as the value and a "Peel off" action; FrostCard reads as "GLACIER PASS card" with the frosted percentage as its value and a "Frost over" / "Melt" action; HoloFoilCard reads as "NOVA DRAKE, holographic card", with the band position (left of centre, centred, right of centre) as its value. Swiping up and down sweeps the foil in 5° steps, and a "Flatten" action returns the card to flat; OilPaintRestore reads as "Lakeside, 1962, faded photo", with the percent restored as its value. "Restore all" and "Reset" actions reveal the whole picture or fade it again; WiggleMatchSearch announces the result count as you type ("3 results"). Each row reads as its title with the subtitle as its value, and a "Matched letters" custom content item lists the letters that matched; PourOpenMenu's pill reads \"Sort, Newest\" with an Expanded or Collapsed value, and the options are buttons (the current one with the selected trait) that are hidden while the menu is closed. Picking one announces \"Sorted by Popular\", and the escape gesture closes the menu; OctoDoneChecklist's rows are toggles with the task as the label and Completed or Not completed as the value. Ticking announces "Completed Water the ferns" (and "… not completed" for an undo). Complete all and Reset are buttons with hints, rows that have gone are hidden from VoiceOver, and a sweep announces "Completing 3 tasks"; AsciiNowPlaying reads as one card: the track and artist, then Playing or Paused. The art is an image named ASCII album art with the value 48 columns, medium. It is adjustable, so swipe up or down to step the detail by 8 columns, and it has a Scramble action. Play and Pause is a button, the scrubber reads 1:23 of 3:34, and changes announce "Playing", "Paused" or "Detail 56 columns, fine"; DogEarPeelCard reads as one card: the invitation text, with the value Closed, Peeling 40 percent or Peeled away. It has a Peel action that comes away from rest, so nobody has to drag. Once the card has gone, the note is a separate element that reads its heading, text and address, and the reveal is announced as "Card peeled away" followed by the note. Reset is a button, and a restore announces "Card restored"; ColorFigureGumball reads as one element, "Gumball machine", whose value is the status (such as "Turn the crank"), whether see-through is on and how many gumballs it has dispensed. Insert coin, Turn crank and Toggle see-through are custom actions, so nobody has to drag. The swatches are labelled buttons with the selected one marked, the wobble slider reads as a percentage, and "Coin in. Turn the crank", "Dispensing" and the colour of the gumball that came out are announced; ChannelFlipCard reads as one element, "Channel flip card", whose value is the channel number, the photo's caption and its place (such as "CH 03, Night City, photo 3 of 6"). Adjusting up or down changes photo, Next channel and Previous channel are custom actions, and every change is announced with its channel number and caption).
 
 ## Layout
 
@@ -953,7 +999,8 @@ Sources/
   AsciiCore/             AsciiNowPlaying/
   DogEarCore/            DogEarPeelCard/
   ColorFigureCore/       ColorFigureGumball/
-  WhimsyGallery/         Demo gallery of all twenty-eight
+  ChannelFlipCore/       ChannelFlipCard/
+  WhimsyGallery/         Demo gallery of all twenty-nine
 Tests/                   Swift Testing suites for WhimsyCore and every core
 docs/                    README GIFs
 ```
