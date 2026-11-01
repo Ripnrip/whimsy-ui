@@ -30,8 +30,9 @@ import PourOpenMenu
 import OctoDoneChecklist
 import AsciiNowPlaying
 import DogEarPeelCard
+import ColorFigureGumball
 
-/// A navigation list of all twenty-seven components with a small live demo of each.
+/// A navigation list of all twenty-eight components with a small live demo of each.
 /// Drop `WhimsyGallery()` into a scene to browse them.
 public struct WhimsyGallery: View {
     public init() {}
@@ -63,7 +64,7 @@ public struct WhimsyGallery: View {
 }
 
 enum GalleryItem: String, CaseIterable, Identifiable, Hashable {
-    case popTherapy, magneticBeads, eraserDelete, shutterReveal, aliveEyes, scatterRegroup, solarFlare, flyingButton, ringGallery, liquidCompass, sweaterRail, fontCollection, followBlob, moonPhase, clothPoster, tiltGrid, spinWatch, boutique, peelSticker, frostCard, holoFoilCard, oilPaintRestore, wiggleMatchSearch, pourOpenMenu, octoDoneChecklist, asciiNowPlaying, dogEarPeelCard
+    case popTherapy, magneticBeads, eraserDelete, shutterReveal, aliveEyes, scatterRegroup, solarFlare, flyingButton, ringGallery, liquidCompass, sweaterRail, fontCollection, followBlob, moonPhase, clothPoster, tiltGrid, spinWatch, boutique, peelSticker, frostCard, holoFoilCard, oilPaintRestore, wiggleMatchSearch, pourOpenMenu, octoDoneChecklist, asciiNowPlaying, dogEarPeelCard, colorFigureGumball
     var id: String { rawValue }
 
     var title: String {
@@ -95,6 +96,7 @@ enum GalleryItem: String, CaseIterable, Identifiable, Hashable {
         case .octoDoneChecklist: "Octo Done Checklist"
         case .asciiNowPlaying: "ASCII Now Playing"
         case .dogEarPeelCard: "Dog-Ear Peel Card"
+        case .colorFigureGumball: "Color Figure Gumball"
         }
     }
 
@@ -127,6 +129,7 @@ enum GalleryItem: String, CaseIterable, Identifiable, Hashable {
         case .octoDoneChecklist: "Done rows get eaten by halftone ink"
         case .asciiNowPlaying: "Album art made of breathing, scrambling text"
         case .dogEarPeelCard: "Peel a card's corner to find the note under it"
+        case .colorFigureGumball: "A hand-inked gumball machine you can turn and open"
         }
     }
 
@@ -159,6 +162,7 @@ enum GalleryItem: String, CaseIterable, Identifiable, Hashable {
         case .octoDoneChecklist: "checklist"
         case .asciiNowPlaying: "music.note"
         case .dogEarPeelCard: "doc.richtext"
+        case .colorFigureGumball: "circle.hexagongrid.fill"
         }
     }
 
@@ -191,6 +195,7 @@ enum GalleryItem: String, CaseIterable, Identifiable, Hashable {
         case .octoDoneChecklist: OctoDoneChecklist()
         case .asciiNowPlaying: AsciiNowPlaying()
         case .dogEarPeelCard: DogEarPeelCard()
+        case .colorFigureGumball: ColorFigureGumball()
         }
     }
 }

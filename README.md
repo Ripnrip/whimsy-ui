@@ -1,6 +1,6 @@
 # whimsy-ui
 
-Twenty-seven small, tactile SwiftUI components, each with a pure-Swift, unit-tested core:
+Twenty-eight small, tactile SwiftUI components, each with a pure-Swift, unit-tested core:
 
 | | Component | What it does |
 |---|---|---|
@@ -31,10 +31,11 @@ Twenty-seven small, tactile SwiftUI components, each with a pure-Swift, unit-tes
 | 🐙 | **OctoDoneChecklist** | A five-row to-do list. Tick a row and the checkmark draws in, a blurred halftone blob swells up from below, a dotted tentacle curls over the row, and ink and row are pulled down together with a volume-preserving squash and stretch before the row collapses and the rows below spring up. Complete all sweeps the ink through every remaining row, and Reset brings them back. |
 | 🎵 | **AsciiNowPlaying** | A now-playing card whose album art is drawn entirely in text. A generated cover is boxed down to 48 columns, mapped from luminance to a ten-glyph ramp and drawn in tinted monospaced glyphs that shimmer slowly. Tap and the glyphs scramble outward from your finger, then settle back cell by cell with a light haptic. Drag up or down and the art resamples between crunchy (24 columns) and fine (72). |
 | 💌 | **DogEarPeelCard** | A Halloween invitation whose bottom-right corner folds back as you drag, with true paper geometry: the crease is the perpendicular bisector of corner and finger, the lifted part is mirrored across it as a shaded paper back, and a soft shadow falls on the card. Let go early and the corner springs flat with a small bounce. Past 60% the fold sweeps across and the card flies away, revealing a hidden note. Reset puts it back. |
+| 🍬 | **ColorFigureGumball** | A hand-inked isometric gumball machine in generated shapes. Drag it to turn a full 360° with inertia, insert a coin, turn the crank and a gumball drops out of the flap. See-through shows the coin mech, pocket wheel, spring and chute with labelled parts, and swatches and a wobble slider restyle the ink. Inspired by Colorfigures by April Zhu (MIT). |
 
 iOS 17+ / macOS 14+, Swift tools 6.0 (Swift 6 language mode).
 
-> **Honest status:** every core target builds, and all 615 tests pass on Linux (Swift 6.4).
+> **Honest status:** every core target builds, and all 740 tests pass on Linux (Swift 6.4).
 > The SwiftUI targets have **not yet been compiled or run on an Apple platform**. On Linux
 > they compile to empty modules (`#if canImport(SwiftUI)`). They were checked with
 > sourcekit-lsp (0 diagnostics), `swiftc -parse` and careful API review, but expect
@@ -62,8 +63,8 @@ targets: [
 ```
 
 Each component is its own product: `PopTherapy`, `MagneticBeadSlider`, `EraserDelete`,
-`ShutterReveal`, `AliveEyes`, `ScatterRegroup`, `SolarFlareLike`, `FlyingButton`, `GrainyRingGallery`, `LiquidMetalCompass`, `SweaterRail`, `FontCollection`, `FollowBlobHero`, `MoonPhaseScrubber`, `ClothPoster`, `TiltPhotoGrid`, `ScrollSpinWatch`, `BoutiqueBurst`, `PeelableSticker`, `FrostCard`, `HoloFoilCard`, `OilPaintRestore`, `WiggleMatchSearch`, `PourOpenMenu`, `OctoDoneChecklist`, `AsciiNowPlaying` and `DogEarPeelCard`. There's also a SwiftUI-free `…Core` product for each
-(e.g. `ShutterRevealCore`), plus `WhimsyGallery`, a demo list of all twenty-seven.
+`ShutterReveal`, `AliveEyes`, `ScatterRegroup`, `SolarFlareLike`, `FlyingButton`, `GrainyRingGallery`, `LiquidMetalCompass`, `SweaterRail`, `FontCollection`, `FollowBlobHero`, `MoonPhaseScrubber`, `ClothPoster`, `TiltPhotoGrid`, `ScrollSpinWatch`, `BoutiqueBurst`, `PeelableSticker`, `FrostCard`, `HoloFoilCard`, `OilPaintRestore`, `WiggleMatchSearch`, `PourOpenMenu`, `OctoDoneChecklist`, `AsciiNowPlaying`, `DogEarPeelCard` and `ColorFigureGumball`. There's also a SwiftUI-free `…Core` product for each
+(e.g. `ShutterRevealCore`), plus `WhimsyGallery`, a demo list of all twenty-eight.
 
 ```swift
 import WhimsyGallery
@@ -813,6 +814,72 @@ DogEarPeelCard()   // a Halloween invitation with a note hidden underneath, and 
 - **Reduce Motion:** the spring is critically damped (no wobble), and a peel-off fades the card out over 0.35 s instead of sweeping and flying it. Dragging stays direct.
 - **Core:** `DogEarLayout` (card shape, corner, reach), `DogEarRules`, `DogEarShading`, `DogEarContent`, `DogEarModel` (state machine, events, frame) and `DogEarAnnouncement` are plain Swift and tested.
 
+### 🍬 ColorFigureGumball
+
+![ColorFigureGumball](docs/gumball.gif)
+
+```swift
+import ColorFigureGumball
+
+ColorFigureGumball()   // a hand-inked gumball machine: turn it, feed it a coin, look inside
+```
+
+- **What it does:** drag the machine and it turns a full 360° with inertia, then settles onto a quarter turn.
+  Tap **Insert coin**: the coin slides to the slot and drops, the mechanism unlocks, and you drag (or tap)
+  the crank. After one full turn a gumball goes down the chute and rolls out of the flap. **See-through** fades
+  the case to a faint outline and shows the coin mech, the pocket wheel, the gear shaft, the chute and the flap spring.
+  **Labels** name eight parts and light each one while it works. Five swatches recolour the body (tomato, mustard,
+  mint, cobalt, blush) and a slider sets how shaky the ink is.
+- **Pure-Swift core:** `ColorFigureCore` builds the machine from boxes, cylinders and rods (dozens of solids), projects it with an
+  orthographic camera (yaw any angle, pitch 35.264°, a face is visible when its normal points at the viewer),
+  sorts it back to front with a topological painter's order, and inks it. It imports only Foundation, so it tests on Linux.
+- **Hand-inked look:** every vertex and every edge gets seeded noise (up to 0.6 and 0.8 units at wobble 1), so the same seed
+  always draws the same wobble. Silhouettes are 0.9 units wide, creases 0.5 and hatching 0.2, each varied by up to 25%.
+  Fills are three flat tones chosen by the face normal against a light (0.45, 0.55, 0.70), with hatch lines (±52°) on the
+  shaded side and a cross-hatch in deep shade.
+- **Gumballs:** 34 coloured circles from a seeded SplitMix64 (seed 2718), each at least 1.9 radii from its neighbours,
+  stacked in the globe.
+- **Turntable:** 0.6° per point of drag, coasting with friction 2.6 per second (capped at 720°/s). Within 12° of a rest
+  pose and slow, it eases onto it. Rest poses are the home yaw (−32°) plus quarter turns.
+- **Mechanism:** a small state machine (ready, coin dropping, unlocked, turning, dispensing). The coin slides 0.36 s and falls
+  0.45 s, the pawl releases in 0.15 s, and the crank angle follows the pointer (up to 7 rad/s) and drives the pocket wheel, which
+  advances a quarter turn per full crank turn. The gumball takes 0.9 s down the chute and 0.55 s to roll out, and the flap opens
+  for it. A locked crank gives a little wobble.
+- **Haptics:** a light impact on the coin drop, on each of the 8 crank detents per turn and when the gumball comes out, at most
+  one every 60 ms. The view plays `.sensoryFeedback(.impact(weight: .light, intensity: 0.8))`.
+- **Web port:** `webports/gumball.html` repeats the core with the same constants and a scripted session.
+
+#### Credit and licence
+
+Inspired by [Colorfigures](https://april-zhu.com/colorfigures) by April Zhu (MIT): the idea of everyday objects drawn as
+hand-inked isometric figures with working buttons, drag-to-turn, a See-through switch with labelled internals, Labels, swatches
+and a wobble slider. This is a new Swift implementation: no code, geometry, palette values or assets were copied. The camera
+maths, flat tone bands, depth-sort idea, ghosted shell, label pills and swatch names follow its approach. Because ideas and structure
+are ported, its licence notice is reproduced here:
+
+```
+MIT License
+
+Copyright (c) 2026 April Zhu (Colorfigures: colour, hand-drawn style, 3D props, template, examples)
+Copyright (c) 2026 April Zhu (iso-glow, on which Colorfigures is based)
+Copyright (c) 2026 Tolga Cohce (iso-figure, on which iso-glow is based)
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and
+associated documentation files (the "Software"), to deal in the Software without restriction, including
+without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the
+following conditions:
+
+The above copyright notice and this permission notice shall be included in all copies or substantial
+portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT
+LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN
+NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+```
+
 ---
 
 ## Accessibility
@@ -848,9 +915,10 @@ Every component handles **Reduce Motion**, each in its own way:
 | OctoDoneChecklist | No ink, tentacle, squash or pull: the row ticks, fades and collapses in 0.7 s. Haptics and announcements work as usual. |
 | AsciiNowPlaying | No shimmer, no scramble: a tap resolves instantly with the haptic, and the timeline stops when nothing is changing. Density drag, play and pause work as usual. |
 | DogEarPeelCard | No wobble: the corner closes with a critically damped spring, and a peel-off fades the card out in 0.35 s instead of sweeping and flying it away. Dragging, haptics and the reveal work as usual. |
+| ColorFigureGumball | The coin lands at once, the turntable doesn't coast or settle, see-through switches without a fade, and a dispense takes 0.45 s instead of 1.75 s. Dragging, the crank, labels and haptics work as usual. |
 
 All twenty-one have VoiceOver labels and actions (e.g. pop next bubble, adjustable slider,
-erase, open/close shutter, squint, scatter/regroup, and a like toggle with the toggle trait and a Liked / Not liked value; FlyingButton is a plain button with its title as the label; GrainyRingGallery is adjustable (swipe up/down steps cards, value "Dunes, 1 of 8") with an Open action, and its detail view is modal with a Close button and the escape gesture; LiquidMetalCompass reads e.g. "Compass to Maya: 30° to your right, 1.2 kilometres", and is adjustable by 15° when faking the heading; SweaterRail exposes each garment as a button ("Cobalt Cardigan, $146") that opens its page, which is modal with a Close button and the escape gesture; FontCollection's flip board reads "Fontastic, set in Didot" with a shuffle action, chips carry the selected trait and a font count, each card is a button ("Didot, Display") and the detail view is modal with a Close button and the escape gesture; FollowBlobHero hides the decorative blob and exposes its headline, buttons and palette chips ("Lagoon colours", selected); MoonPhaseScrubber is an adjustable element ("Moon phase, Waxing Crescent, 15 percent illuminated") that steps one named phase per swipe; ClothPoster is a labelled image ("Poster: Soft Goods, Autumn Linen Fair, 24 to 27 October") with a "Ripple" action; TiltPhotoGrid reads its phrases, then "Photo album, 18 portraits", with "Skip intro" and "Replay intro" actions; ScrollSpinWatch is adjustable (swipe up/down steps front, side, back and the spec sheet) and reads the visible text block, with stats as "47 mm, Titanium case" and the watch hidden; BoutiqueBurst reads "Boutique" as a header with an "Open the collection" action, then each figure as a button ("Plum Slip Dress, 315 dollars"), and its detail view is modal with a Close button and the escape gesture; PeelableSticker reads the sticker as "Strawberry sticker" with its peel percentage as the value and a "Peel off" action; FrostCard reads as "GLACIER PASS card" with the frosted percentage as its value and a "Frost over" / "Melt" action; HoloFoilCard reads as "NOVA DRAKE, holographic card", with the band position (left of centre, centred, right of centre) as its value. Swiping up and down sweeps the foil in 5° steps, and a "Flatten" action returns the card to flat; OilPaintRestore reads as "Lakeside, 1962, faded photo", with the percent restored as its value. "Restore all" and "Reset" actions reveal the whole picture or fade it again; WiggleMatchSearch announces the result count as you type ("3 results"). Each row reads as its title with the subtitle as its value, and a "Matched letters" custom content item lists the letters that matched; PourOpenMenu's pill reads \"Sort, Newest\" with an Expanded or Collapsed value, and the options are buttons (the current one with the selected trait) that are hidden while the menu is closed. Picking one announces \"Sorted by Popular\", and the escape gesture closes the menu; OctoDoneChecklist's rows are toggles with the task as the label and Completed or Not completed as the value. Ticking announces "Completed Water the ferns" (and "… not completed" for an undo). Complete all and Reset are buttons with hints, rows that have gone are hidden from VoiceOver, and a sweep announces "Completing 3 tasks"; AsciiNowPlaying reads as one card: the track and artist, then Playing or Paused. The art is an image named ASCII album art with the value 48 columns, medium. It is adjustable, so swipe up or down to step the detail by 8 columns, and it has a Scramble action. Play and Pause is a button, the scrubber reads 1:23 of 3:34, and changes announce "Playing", "Paused" or "Detail 56 columns, fine"; DogEarPeelCard reads as one card: the invitation text, with the value Closed, Peeling 40 percent or Peeled away. It has a Peel action that comes away from rest, so nobody has to drag. Once the card has gone, the note is a separate element that reads its heading, text and address, and the reveal is announced as "Card peeled away" followed by the note. Reset is a button, and a restore announces "Card restored").
+erase, open/close shutter, squint, scatter/regroup, and a like toggle with the toggle trait and a Liked / Not liked value; FlyingButton is a plain button with its title as the label; GrainyRingGallery is adjustable (swipe up/down steps cards, value "Dunes, 1 of 8") with an Open action, and its detail view is modal with a Close button and the escape gesture; LiquidMetalCompass reads e.g. "Compass to Maya: 30° to your right, 1.2 kilometres", and is adjustable by 15° when faking the heading; SweaterRail exposes each garment as a button ("Cobalt Cardigan, $146") that opens its page, which is modal with a Close button and the escape gesture; FontCollection's flip board reads "Fontastic, set in Didot" with a shuffle action, chips carry the selected trait and a font count, each card is a button ("Didot, Display") and the detail view is modal with a Close button and the escape gesture; FollowBlobHero hides the decorative blob and exposes its headline, buttons and palette chips ("Lagoon colours", selected); MoonPhaseScrubber is an adjustable element ("Moon phase, Waxing Crescent, 15 percent illuminated") that steps one named phase per swipe; ClothPoster is a labelled image ("Poster: Soft Goods, Autumn Linen Fair, 24 to 27 October") with a "Ripple" action; TiltPhotoGrid reads its phrases, then "Photo album, 18 portraits", with "Skip intro" and "Replay intro" actions; ScrollSpinWatch is adjustable (swipe up/down steps front, side, back and the spec sheet) and reads the visible text block, with stats as "47 mm, Titanium case" and the watch hidden; BoutiqueBurst reads "Boutique" as a header with an "Open the collection" action, then each figure as a button ("Plum Slip Dress, 315 dollars"), and its detail view is modal with a Close button and the escape gesture; PeelableSticker reads the sticker as "Strawberry sticker" with its peel percentage as the value and a "Peel off" action; FrostCard reads as "GLACIER PASS card" with the frosted percentage as its value and a "Frost over" / "Melt" action; HoloFoilCard reads as "NOVA DRAKE, holographic card", with the band position (left of centre, centred, right of centre) as its value. Swiping up and down sweeps the foil in 5° steps, and a "Flatten" action returns the card to flat; OilPaintRestore reads as "Lakeside, 1962, faded photo", with the percent restored as its value. "Restore all" and "Reset" actions reveal the whole picture or fade it again; WiggleMatchSearch announces the result count as you type ("3 results"). Each row reads as its title with the subtitle as its value, and a "Matched letters" custom content item lists the letters that matched; PourOpenMenu's pill reads \"Sort, Newest\" with an Expanded or Collapsed value, and the options are buttons (the current one with the selected trait) that are hidden while the menu is closed. Picking one announces \"Sorted by Popular\", and the escape gesture closes the menu; OctoDoneChecklist's rows are toggles with the task as the label and Completed or Not completed as the value. Ticking announces "Completed Water the ferns" (and "… not completed" for an undo). Complete all and Reset are buttons with hints, rows that have gone are hidden from VoiceOver, and a sweep announces "Completing 3 tasks"; AsciiNowPlaying reads as one card: the track and artist, then Playing or Paused. The art is an image named ASCII album art with the value 48 columns, medium. It is adjustable, so swipe up or down to step the detail by 8 columns, and it has a Scramble action. Play and Pause is a button, the scrubber reads 1:23 of 3:34, and changes announce "Playing", "Paused" or "Detail 56 columns, fine"; DogEarPeelCard reads as one card: the invitation text, with the value Closed, Peeling 40 percent or Peeled away. It has a Peel action that comes away from rest, so nobody has to drag. Once the card has gone, the note is a separate element that reads its heading, text and address, and the reveal is announced as "Card peeled away" followed by the note. Reset is a button, and a restore announces "Card restored"; ColorFigureGumball reads as one element, "Gumball machine", whose value is the status (such as "Turn the crank"), whether see-through is on and how many gumballs it has dispensed. Insert coin, Turn crank and Toggle see-through are custom actions, so nobody has to drag. The swatches are labelled buttons with the selected one marked, the wobble slider reads as a percentage, and "Coin in. Turn the crank", "Dispensing" and the colour of the gumball that came out are announced).
 
 ## Layout
 
@@ -884,7 +952,8 @@ Sources/
   OctoCore/              OctoDoneChecklist/
   AsciiCore/             AsciiNowPlaying/
   DogEarCore/            DogEarPeelCard/
-  WhimsyGallery/         Demo gallery of all twenty-seven
+  ColorFigureCore/       ColorFigureGumball/
+  WhimsyGallery/         Demo gallery of all twenty-eight
 Tests/                   Swift Testing suites for WhimsyCore and every core
 docs/                    README GIFs
 ```
