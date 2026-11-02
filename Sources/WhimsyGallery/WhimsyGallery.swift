@@ -32,8 +32,9 @@ import AsciiNowPlaying
 import DogEarPeelCard
 import ColorFigureGumball
 import ChannelFlipCard
+import ContourInkLoader
 
-/// A navigation list of all twenty-nine components with a small live demo of each.
+/// A navigation list of all thirty components with a small live demo of each.
 /// Drop `WhimsyGallery()` into a scene to browse them.
 public struct WhimsyGallery: View {
     public init() {}
@@ -65,7 +66,7 @@ public struct WhimsyGallery: View {
 }
 
 enum GalleryItem: String, CaseIterable, Identifiable, Hashable {
-    case popTherapy, magneticBeads, eraserDelete, shutterReveal, aliveEyes, scatterRegroup, solarFlare, flyingButton, ringGallery, liquidCompass, sweaterRail, fontCollection, followBlob, moonPhase, clothPoster, tiltGrid, spinWatch, boutique, peelSticker, frostCard, holoFoilCard, oilPaintRestore, wiggleMatchSearch, pourOpenMenu, octoDoneChecklist, asciiNowPlaying, dogEarPeelCard, colorFigureGumball, channelFlipCard
+    case popTherapy, magneticBeads, eraserDelete, shutterReveal, aliveEyes, scatterRegroup, solarFlare, flyingButton, ringGallery, liquidCompass, sweaterRail, fontCollection, followBlob, moonPhase, clothPoster, tiltGrid, spinWatch, boutique, peelSticker, frostCard, holoFoilCard, oilPaintRestore, wiggleMatchSearch, pourOpenMenu, octoDoneChecklist, asciiNowPlaying, dogEarPeelCard, colorFigureGumball, channelFlipCard, contourInkLoader
     var id: String { rawValue }
 
     var title: String {
@@ -99,6 +100,7 @@ enum GalleryItem: String, CaseIterable, Identifiable, Hashable {
         case .dogEarPeelCard: "Dog-Ear Peel Card"
         case .colorFigureGumball: "Color Figure Gumball"
         case .channelFlipCard: "Channel Flip Card"
+        case .contourInkLoader: "Contour Ink Loader"
         }
     }
 
@@ -133,6 +135,7 @@ enum GalleryItem: String, CaseIterable, Identifiable, Hashable {
         case .dogEarPeelCard: "Peel a card's corner to find the note under it"
         case .colorFigureGumball: "A hand-inked gumball machine you can turn and open"
         case .channelFlipCard: "A photo card that changes picture like a CRT TV changing channel"
+        case .contourInkLoader: "A loader that sketches a topographic map, then sends a red dot up to the peak"
         }
     }
 
@@ -167,6 +170,7 @@ enum GalleryItem: String, CaseIterable, Identifiable, Hashable {
         case .dogEarPeelCard: "doc.richtext"
         case .colorFigureGumball: "circle.hexagongrid.fill"
         case .channelFlipCard: "tv"
+        case .contourInkLoader: "map"
         }
     }
 
@@ -201,6 +205,7 @@ enum GalleryItem: String, CaseIterable, Identifiable, Hashable {
         case .dogEarPeelCard: DogEarPeelCard()
         case .colorFigureGumball: ColorFigureGumball()
         case .channelFlipCard: ChannelFlipCard()
+        case .contourInkLoader: ContourInkLoader()
         }
     }
 }

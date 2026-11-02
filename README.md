@@ -1,6 +1,6 @@
 # whimsy-ui
 
-Twenty-nine small, tactile SwiftUI components, each with a pure-Swift, unit-tested core:
+Thirty small, tactile SwiftUI components, each with a pure-Swift, unit-tested core:
 
 | | Component | What it does |
 |---|---|---|
@@ -33,10 +33,11 @@ Twenty-nine small, tactile SwiftUI components, each with a pure-Swift, unit-test
 | 💌 | **DogEarPeelCard** | A Halloween invitation whose bottom-right corner folds back as you drag, with true paper geometry: the crease is the perpendicular bisector of corner and finger, the lifted part is mirrored across it as a shaded paper back, and a soft shadow falls on the card. Let go early and the corner springs flat with a small bounce. Past 60% the fold sweeps across and the card flies away, revealing a hidden note. Reset puts it back. |
 | 🍬 | **ColorFigureGumball** | A hand-inked isometric gumball machine in generated shapes. Drag it to turn a full 360° with inertia, insert a coin, turn the crank and a gumball drops out of the flap. See-through shows the coin mech, pocket wheel, spring and chute with labelled parts, and swatches and a wobble slider restyle the ink. Inspired by Colorfigures by April Zhu (MIT). |
 | 📺 | **ChannelFlipCard** | A photo card that flips pictures like an old CRT TV changing channel. Tap and the photo tears sideways in horizontal bands over five discrete frames, red and blue split, static crackles and it flashes white at the moment the photo swaps. Swipe for next or previous: a slow swipe is mild and short, a fast flick up to twice as long and much stronger. A green channel number fades in and out. Six generated photos, or pass your own images. |
+| 🗺️ | **ContourInkLoader** | A loader that sketches a topographic map with a pen. Seven wobbly contour rings are drawn one after another on cream paper in sepia ink, every third one thicker, and they never cross. When the last ring closes a red dot climbs a switchback route to the peak and leaves a dashed trail, then the sheet tilts back 25°, fades and the loop starts again. A light haptic ticks as each ring closes. Reduce Motion shows the finished map with the dot at the peak. |
 
 iOS 17+ / macOS 14+, Swift tools 6.0 (Swift 6 language mode).
 
-> **Honest status:** every core target builds, and all 850 tests pass on Linux (Swift 6.4).
+> **Honest status:** every core target builds, and all 984 tests pass on Linux (Swift 6.4).
 > The SwiftUI targets have **not yet been compiled or run on an Apple platform**. On Linux
 > they compile to empty modules (`#if canImport(SwiftUI)`). They were checked with
 > sourcekit-lsp (0 diagnostics), `swiftc -parse` and careful API review, but expect
@@ -64,8 +65,8 @@ targets: [
 ```
 
 Each component is its own product: `PopTherapy`, `MagneticBeadSlider`, `EraserDelete`,
-`ShutterReveal`, `AliveEyes`, `ScatterRegroup`, `SolarFlareLike`, `FlyingButton`, `GrainyRingGallery`, `LiquidMetalCompass`, `SweaterRail`, `FontCollection`, `FollowBlobHero`, `MoonPhaseScrubber`, `ClothPoster`, `TiltPhotoGrid`, `ScrollSpinWatch`, `BoutiqueBurst`, `PeelableSticker`, `FrostCard`, `HoloFoilCard`, `OilPaintRestore`, `WiggleMatchSearch`, `PourOpenMenu`, `OctoDoneChecklist`, `AsciiNowPlaying`, `DogEarPeelCard`, `ColorFigureGumball` and `ChannelFlipCard`. There's also a SwiftUI-free `…Core` product for each
-(e.g. `ShutterRevealCore`), plus `WhimsyGallery`, a demo list of all twenty-nine.
+`ShutterReveal`, `AliveEyes`, `ScatterRegroup`, `SolarFlareLike`, `FlyingButton`, `GrainyRingGallery`, `LiquidMetalCompass`, `SweaterRail`, `FontCollection`, `FollowBlobHero`, `MoonPhaseScrubber`, `ClothPoster`, `TiltPhotoGrid`, `ScrollSpinWatch`, `BoutiqueBurst`, `PeelableSticker`, `FrostCard`, `HoloFoilCard`, `OilPaintRestore`, `WiggleMatchSearch`, `PourOpenMenu`, `OctoDoneChecklist`, `AsciiNowPlaying`, `DogEarPeelCard`, `ColorFigureGumball`, `ChannelFlipCard` and `ContourInkLoader`. There's also a SwiftUI-free `…Core` product for each
+(e.g. `ShutterRevealCore`), plus `WhimsyGallery`, a demo list of all thirty.
 
 ```swift
 import WhimsyGallery
@@ -925,6 +926,45 @@ ChannelFlipCard(images: [Image("a"), Image("b")])   // your own, with optional c
   lines, so it works without any assets. The shader treats `Image` photos the same way.
 - **Web port:** `webports/channelflip.html` repeats the core and the shader per pixel with the same constants and a scripted session.
 
+### 🗺️ ContourInkLoader
+
+![ContourInkLoader](docs/contourink.gif)
+
+```swift
+import ContourInkLoader
+
+ContourInkLoader()                                              // seven rings, sepia ink
+ContourInkLoader(rings: 6, ink: .indigo, isAnimating: loading)  // 3 ... 12 rings, your own ink colour
+```
+
+- **What it does:** a loading indicator that sketches a topographic map. Seven nested, wobbly contour rings are drawn one after
+  another on a cream sheet, as if by a pen with a small nib dot at the drawing tip. When the last ring closes, a small red dot climbs a
+  switchback route from the outer ring to the peak and leaves a dashed red trail. The sheet then tilts back about 25°, fades out and the loop starts again.
+- **Rings:** each ring is a closed path from a circle perturbed by three sine harmonics (2, 3 and 5 lobes, amplitudes 7 %, 4.5 % and 2.5 %
+  of the radius, each scaled by 0.85 to 1.15 and given a seeded phase that drifts a little from ring to ring, so neighbours look related).
+  Radii shrink from 0.43 to about 0.12 of the sheet, and the centres drift toward an off-centre peak like real terrain. Every third ring is an
+  index contour, drawn twice as thick (2.2 pt against 1.1 pt). Each ring starts its stroke at its own angle. The default seed is `0x30C7`.
+- **Rings never intersect:** `ContourMap.make` measures the smallest gap between neighbouring rings (the nearest distance between the two
+  polylines, negative if the inner ring is not entirely inside the outer one). If it is under 0.01 of the sheet it tries the wobble again at
+  0.85, 0.7, 0.55, 0.4, 0.25, 0.1 and finally 0 (plain circles, which always fit). Containment is transitive, so all pairs of rings are disjoint. Tests sweep
+  every count from 3 to 12 over many seeds and assert `minGap > 0`.
+- **Timeline:** a pure function of time. Each ring starts 0.12 s after the one outside it and takes 0.5 s, eased in and out, as `.trim(from: 0, to:)`.
+  Then the dot climbs for 1.2 s (eased), the sheet tilts for 1.2 s (0.8 s of easing to 25°, then rest), fades for 0.6 s and a blank sheet
+  fades back in for 0.35 s. For seven rings one loop is 4.57 s.
+- **Route:** one waypoint on each ring (the angle turns 0.28 rad per ring, with every odd ring shifted a further 0.5 rad for switchbacks and a small seeded
+  jitter), ending at the peak. A Catmull-Rom curve with ten steps per leg is walked by arc length, so the dot moves at an even pace along the path.
+- **Tilt:** `.rotation3DEffect(.degrees(tilt), axis: (x: 1, y: 0, z: 0), perspective: 0.7)`, then `.opacity` for the fade.
+- **Haptic:** `.sensoryFeedback(.impact(weight: .light, intensity: 0.4))` as each ring closes. The core reports events for each frame step,
+  `ringClosed(k)`, `dotArrived` and `looped`, over the half-open interval `(t0, t1]`, so every ring ticks exactly once per loop however the frames
+  fall, even when one step spans several rings or a whole loop. A stalled timeline is capped at 0.25 s per step.
+- **Pure-Swift core:** `ContourInkCore` owns the hashing, ring geometry and sampling, the non-intersection guarantee, the route, the
+  timeline phases, per-ring trims, the pen nib, dot position, tilt, opacity, ripple, the events and the running model. It imports only Foundation
+  (through `WhimsyCore`), so it tests on Linux (134 tests, Swift Testing).
+- **Reduce Motion:** the loader shows a finished, flat map with every ring drawn and the red dot sitting at the peak. Nothing animates, nothing ticks.
+  `isAnimating: false` shows the same picture.
+- **Web port:** `webports/contourink.html` repeats the core with the same constants. A temporary test checked 131 lines of output (geometry, route, frames, events and a
+  1500-step model run) between the Swift core and the port, and they matched exactly.
+
 ---
 
 ## Accessibility
@@ -962,9 +1002,10 @@ Every component handles **Reduce Motion**, each in its own way:
 | DogEarPeelCard | No wobble: the corner closes with a critically damped spring, and a peel-off fades the card out in 0.35 s instead of sweeping and flying it away. Dragging, haptics and the reveal work as usual. |
 | ColorFigureGumball | The coin lands at once, the turntable doesn't coast or settle, see-through switches without a fade, and a dispense takes 0.45 s instead of 1.75 s. Dragging, the crank, labels and haptics work as usual. |
 | ChannelFlipCard | The tears, colour split, flash and static are off: a change is a 0.2 s crossfade whatever the swipe speed. Tapping, swiping, the haptic and the channel number work as usual. |
+| ContourInkLoader | A finished, flat map with every ring drawn and the red dot at the peak. Nothing is drawn, climbed, tilted or faded, and nothing ticks. |
 
 All twenty-one have VoiceOver labels and actions (e.g. pop next bubble, adjustable slider,
-erase, open/close shutter, squint, scatter/regroup, and a like toggle with the toggle trait and a Liked / Not liked value; FlyingButton is a plain button with its title as the label; GrainyRingGallery is adjustable (swipe up/down steps cards, value "Dunes, 1 of 8") with an Open action, and its detail view is modal with a Close button and the escape gesture; LiquidMetalCompass reads e.g. "Compass to Maya: 30° to your right, 1.2 kilometres", and is adjustable by 15° when faking the heading; SweaterRail exposes each garment as a button ("Cobalt Cardigan, $146") that opens its page, which is modal with a Close button and the escape gesture; FontCollection's flip board reads "Fontastic, set in Didot" with a shuffle action, chips carry the selected trait and a font count, each card is a button ("Didot, Display") and the detail view is modal with a Close button and the escape gesture; FollowBlobHero hides the decorative blob and exposes its headline, buttons and palette chips ("Lagoon colours", selected); MoonPhaseScrubber is an adjustable element ("Moon phase, Waxing Crescent, 15 percent illuminated") that steps one named phase per swipe; ClothPoster is a labelled image ("Poster: Soft Goods, Autumn Linen Fair, 24 to 27 October") with a "Ripple" action; TiltPhotoGrid reads its phrases, then "Photo album, 18 portraits", with "Skip intro" and "Replay intro" actions; ScrollSpinWatch is adjustable (swipe up/down steps front, side, back and the spec sheet) and reads the visible text block, with stats as "47 mm, Titanium case" and the watch hidden; BoutiqueBurst reads "Boutique" as a header with an "Open the collection" action, then each figure as a button ("Plum Slip Dress, 315 dollars"), and its detail view is modal with a Close button and the escape gesture; PeelableSticker reads the sticker as "Strawberry sticker" with its peel percentage as the value and a "Peel off" action; FrostCard reads as "GLACIER PASS card" with the frosted percentage as its value and a "Frost over" / "Melt" action; HoloFoilCard reads as "NOVA DRAKE, holographic card", with the band position (left of centre, centred, right of centre) as its value. Swiping up and down sweeps the foil in 5° steps, and a "Flatten" action returns the card to flat; OilPaintRestore reads as "Lakeside, 1962, faded photo", with the percent restored as its value. "Restore all" and "Reset" actions reveal the whole picture or fade it again; WiggleMatchSearch announces the result count as you type ("3 results"). Each row reads as its title with the subtitle as its value, and a "Matched letters" custom content item lists the letters that matched; PourOpenMenu's pill reads \"Sort, Newest\" with an Expanded or Collapsed value, and the options are buttons (the current one with the selected trait) that are hidden while the menu is closed. Picking one announces \"Sorted by Popular\", and the escape gesture closes the menu; OctoDoneChecklist's rows are toggles with the task as the label and Completed or Not completed as the value. Ticking announces "Completed Water the ferns" (and "… not completed" for an undo). Complete all and Reset are buttons with hints, rows that have gone are hidden from VoiceOver, and a sweep announces "Completing 3 tasks"; AsciiNowPlaying reads as one card: the track and artist, then Playing or Paused. The art is an image named ASCII album art with the value 48 columns, medium. It is adjustable, so swipe up or down to step the detail by 8 columns, and it has a Scramble action. Play and Pause is a button, the scrubber reads 1:23 of 3:34, and changes announce "Playing", "Paused" or "Detail 56 columns, fine"; DogEarPeelCard reads as one card: the invitation text, with the value Closed, Peeling 40 percent or Peeled away. It has a Peel action that comes away from rest, so nobody has to drag. Once the card has gone, the note is a separate element that reads its heading, text and address, and the reveal is announced as "Card peeled away" followed by the note. Reset is a button, and a restore announces "Card restored"; ColorFigureGumball reads as one element, "Gumball machine", whose value is the status (such as "Turn the crank"), whether see-through is on and how many gumballs it has dispensed. Insert coin, Turn crank and Toggle see-through are custom actions, so nobody has to drag. The swatches are labelled buttons with the selected one marked, the wobble slider reads as a percentage, and "Coin in. Turn the crank", "Dispensing" and the colour of the gumball that came out are announced; ChannelFlipCard reads as one element, "Channel flip card", whose value is the channel number, the photo's caption and its place (such as "CH 03, Night City, photo 3 of 6"). Adjusting up or down changes photo, Next channel and Previous channel are custom actions, and every change is announced with its channel number and caption).
+erase, open/close shutter, squint, scatter/regroup, and a like toggle with the toggle trait and a Liked / Not liked value; FlyingButton is a plain button with its title as the label; GrainyRingGallery is adjustable (swipe up/down steps cards, value "Dunes, 1 of 8") with an Open action, and its detail view is modal with a Close button and the escape gesture; LiquidMetalCompass reads e.g. "Compass to Maya: 30° to your right, 1.2 kilometres", and is adjustable by 15° when faking the heading; SweaterRail exposes each garment as a button ("Cobalt Cardigan, $146") that opens its page, which is modal with a Close button and the escape gesture; FontCollection's flip board reads "Fontastic, set in Didot" with a shuffle action, chips carry the selected trait and a font count, each card is a button ("Didot, Display") and the detail view is modal with a Close button and the escape gesture; FollowBlobHero hides the decorative blob and exposes its headline, buttons and palette chips ("Lagoon colours", selected); MoonPhaseScrubber is an adjustable element ("Moon phase, Waxing Crescent, 15 percent illuminated") that steps one named phase per swipe; ClothPoster is a labelled image ("Poster: Soft Goods, Autumn Linen Fair, 24 to 27 October") with a "Ripple" action; TiltPhotoGrid reads its phrases, then "Photo album, 18 portraits", with "Skip intro" and "Replay intro" actions; ScrollSpinWatch is adjustable (swipe up/down steps front, side, back and the spec sheet) and reads the visible text block, with stats as "47 mm, Titanium case" and the watch hidden; BoutiqueBurst reads "Boutique" as a header with an "Open the collection" action, then each figure as a button ("Plum Slip Dress, 315 dollars"), and its detail view is modal with a Close button and the escape gesture; PeelableSticker reads the sticker as "Strawberry sticker" with its peel percentage as the value and a "Peel off" action; FrostCard reads as "GLACIER PASS card" with the frosted percentage as its value and a "Frost over" / "Melt" action; HoloFoilCard reads as "NOVA DRAKE, holographic card", with the band position (left of centre, centred, right of centre) as its value. Swiping up and down sweeps the foil in 5° steps, and a "Flatten" action returns the card to flat; OilPaintRestore reads as "Lakeside, 1962, faded photo", with the percent restored as its value. "Restore all" and "Reset" actions reveal the whole picture or fade it again; WiggleMatchSearch announces the result count as you type ("3 results"). Each row reads as its title with the subtitle as its value, and a "Matched letters" custom content item lists the letters that matched; PourOpenMenu's pill reads \"Sort, Newest\" with an Expanded or Collapsed value, and the options are buttons (the current one with the selected trait) that are hidden while the menu is closed. Picking one announces \"Sorted by Popular\", and the escape gesture closes the menu; OctoDoneChecklist's rows are toggles with the task as the label and Completed or Not completed as the value. Ticking announces "Completed Water the ferns" (and "… not completed" for an undo). Complete all and Reset are buttons with hints, rows that have gone are hidden from VoiceOver, and a sweep announces "Completing 3 tasks"; AsciiNowPlaying reads as one card: the track and artist, then Playing or Paused. The art is an image named ASCII album art with the value 48 columns, medium. It is adjustable, so swipe up or down to step the detail by 8 columns, and it has a Scramble action. Play and Pause is a button, the scrubber reads 1:23 of 3:34, and changes announce "Playing", "Paused" or "Detail 56 columns, fine"; DogEarPeelCard reads as one card: the invitation text, with the value Closed, Peeling 40 percent or Peeled away. It has a Peel action that comes away from rest, so nobody has to drag. Once the card has gone, the note is a separate element that reads its heading, text and address, and the reveal is announced as "Card peeled away" followed by the note. Reset is a button, and a restore announces "Card restored"; ColorFigureGumball reads as one element, "Gumball machine", whose value is the status (such as "Turn the crank"), whether see-through is on and how many gumballs it has dispensed. Insert coin, Turn crank and Toggle see-through are custom actions, so nobody has to drag. The swatches are labelled buttons with the selected one marked, the wobble slider reads as a percentage, and "Coin in. Turn the crank", "Dispensing" and the colour of the gumball that came out are announced; ChannelFlipCard reads as one element, "Channel flip card", whose value is the channel number, the photo's caption and its place (such as "CH 03, Night City, photo 3 of 6"). Adjusting up or down changes photo, Next channel and Previous channel are custom actions, and every change is announced with its channel number and caption; ContourInkLoader reads as one element: the label "Loading" with the value "Sketching a topographic map" while `isAnimating` is true (even under Reduce Motion, where the map is still but the work goes on), otherwise just "Topographic map").
 
 ## Layout
 
@@ -1000,7 +1041,8 @@ Sources/
   DogEarCore/            DogEarPeelCard/
   ColorFigureCore/       ColorFigureGumball/
   ChannelFlipCore/       ChannelFlipCard/
-  WhimsyGallery/         Demo gallery of all twenty-nine
+  ContourInkCore/       ContourInkLoader/
+  WhimsyGallery/         Demo gallery of all thirty
 Tests/                   Swift Testing suites for WhimsyCore and every core
 docs/                    README GIFs
 ```

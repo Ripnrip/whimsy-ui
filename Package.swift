@@ -79,6 +79,8 @@ let package = Package(
         .library(name: "ColorFigureCore", targets: ["ColorFigureCore"]),
         .library(name: "ChannelFlipCard", targets: ["ChannelFlipCard"]),
         .library(name: "ChannelFlipCore", targets: ["ChannelFlipCore"]),
+        .library(name: "ContourInkLoader", targets: ["ContourInkLoader"]),
+        .library(name: "ContourInkCore", targets: ["ContourInkCore"]),
         // A demo gallery listing every component.
         .library(name: "WhimsyGallery", targets: ["WhimsyGallery"]),
     ],
@@ -176,9 +178,12 @@ let package = Package(
         .target(name: "ChannelFlipCard", dependencies: ["ChannelFlipCore"],
                 exclude: metalExclude, resources: metalResources),
 
+        .target(name: "ContourInkCore", dependencies: ["WhimsyCore"]),
+        .target(name: "ContourInkLoader", dependencies: ["ContourInkCore"]),
+
         .target(name: "WhimsyGallery", dependencies: [
             "PopTherapy", "MagneticBeadSlider", "EraserDelete", "ShutterReveal", "AliveEyes", "ScatterRegroup", "SolarFlareLike", "FlyingButton",
-            "GrainyRingGallery", "LiquidMetalCompass", "SweaterRail", "FontCollection", "FollowBlobHero", "MoonPhaseScrubber", "ClothPoster", "TiltPhotoGrid", "ScrollSpinWatch", "BoutiqueBurst", "PeelableSticker", "FrostCard", "HoloFoilCard", "OilPaintRestore", "WiggleMatchSearch", "PourOpenMenu", "OctoDoneChecklist", "AsciiNowPlaying", "DogEarPeelCard", "ColorFigureGumball", "ChannelFlipCard",
+            "GrainyRingGallery", "LiquidMetalCompass", "SweaterRail", "FontCollection", "FollowBlobHero", "MoonPhaseScrubber", "ClothPoster", "TiltPhotoGrid", "ScrollSpinWatch", "BoutiqueBurst", "PeelableSticker", "FrostCard", "HoloFoilCard", "OilPaintRestore", "WiggleMatchSearch", "PourOpenMenu", "OctoDoneChecklist", "AsciiNowPlaying", "DogEarPeelCard", "ColorFigureGumball", "ChannelFlipCard", "ContourInkLoader",
         ]),
 
         .testTarget(name: "WhimsyCoreTests", dependencies: ["WhimsyCore"]),
@@ -211,5 +216,6 @@ let package = Package(
         .testTarget(name: "DogEarCoreTests", dependencies: ["DogEarCore"]),
         .testTarget(name: "ColorFigureCoreTests", dependencies: ["ColorFigureCore"]),
         .testTarget(name: "ChannelFlipCoreTests", dependencies: ["ChannelFlipCore"]),
+        .testTarget(name: "ContourInkCoreTests", dependencies: ["ContourInkCore"]),
     ]
 )
