@@ -81,6 +81,8 @@ let package = Package(
         .library(name: "ChannelFlipCore", targets: ["ChannelFlipCore"]),
         .library(name: "ContourInkLoader", targets: ["ContourInkLoader"]),
         .library(name: "ContourInkCore", targets: ["ContourInkCore"]),
+        .library(name: "ShelfPull", targets: ["ShelfPull"]),
+        .library(name: "ShelfPullCore", targets: ["ShelfPullCore"]),
         // A demo gallery listing every component.
         .library(name: "WhimsyGallery", targets: ["WhimsyGallery"]),
     ],
@@ -181,9 +183,12 @@ let package = Package(
         .target(name: "ContourInkCore", dependencies: ["WhimsyCore"]),
         .target(name: "ContourInkLoader", dependencies: ["ContourInkCore"]),
 
+        .target(name: "ShelfPullCore", dependencies: ["WhimsyCore"]),
+        .target(name: "ShelfPull", dependencies: ["ShelfPullCore"]),
+
         .target(name: "WhimsyGallery", dependencies: [
             "PopTherapy", "MagneticBeadSlider", "EraserDelete", "ShutterReveal", "AliveEyes", "ScatterRegroup", "SolarFlareLike", "FlyingButton",
-            "GrainyRingGallery", "LiquidMetalCompass", "SweaterRail", "FontCollection", "FollowBlobHero", "MoonPhaseScrubber", "ClothPoster", "TiltPhotoGrid", "ScrollSpinWatch", "BoutiqueBurst", "PeelableSticker", "FrostCard", "HoloFoilCard", "OilPaintRestore", "WiggleMatchSearch", "PourOpenMenu", "OctoDoneChecklist", "AsciiNowPlaying", "DogEarPeelCard", "ColorFigureGumball", "ChannelFlipCard", "ContourInkLoader",
+            "GrainyRingGallery", "LiquidMetalCompass", "SweaterRail", "FontCollection", "FollowBlobHero", "MoonPhaseScrubber", "ClothPoster", "TiltPhotoGrid", "ScrollSpinWatch", "BoutiqueBurst", "PeelableSticker", "FrostCard", "HoloFoilCard", "OilPaintRestore", "WiggleMatchSearch", "PourOpenMenu", "OctoDoneChecklist", "AsciiNowPlaying", "DogEarPeelCard", "ColorFigureGumball", "ChannelFlipCard", "ContourInkLoader", "ShelfPull",
         ]),
 
         .testTarget(name: "WhimsyCoreTests", dependencies: ["WhimsyCore"]),
@@ -217,5 +222,6 @@ let package = Package(
         .testTarget(name: "ColorFigureCoreTests", dependencies: ["ColorFigureCore"]),
         .testTarget(name: "ChannelFlipCoreTests", dependencies: ["ChannelFlipCore"]),
         .testTarget(name: "ContourInkCoreTests", dependencies: ["ContourInkCore"]),
+        .testTarget(name: "ShelfPullCoreTests", dependencies: ["ShelfPullCore"]),
     ]
 )
