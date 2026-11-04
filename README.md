@@ -1,6 +1,6 @@
 # whimsy-ui
 
-Thirty-one small, tactile SwiftUI components, each with a pure-Swift, unit-tested core:
+Thirty-two small, tactile SwiftUI components, each with a pure-Swift, unit-tested core:
 
 | | Component | What it does |
 |---|---|---|
@@ -35,10 +35,11 @@ Thirty-one small, tactile SwiftUI components, each with a pure-Swift, unit-teste
 | 📺 | **ChannelFlipCard** | A photo card that flips pictures like an old CRT TV changing channel. Tap and the photo tears sideways in horizontal bands over five discrete frames, red and blue split, static crackles and it flashes white at the moment the photo swaps. Swipe for next or previous: a slow swipe is mild and short, a fast flick up to twice as long and much stronger. A green channel number fades in and out. Six generated photos, or pass your own images. |
 | 🗺️ | **ContourInkLoader** | A loader that sketches a topographic map with a pen. Seven wobbly contour rings are drawn one after another on cream paper in sepia ink, every third one thicker, and they never cross. When the last ring closes a red dot climbs a switchback route to the peak and leaves a dashed trail, then the sheet tilts back 25°, fades and the loop starts again. A light haptic ticks as each ring closes. Reduce Motion shows the finished map with the dot at the peak. |
 | 📚 | **ShelfPull** | A wooden shelf of seven book spines. Drag one up against a rubber band while its neighbours lean into the gap. Pull past the commit distance, or flick, and it lifts free, turns 90° to show its cover and opens into a card with a small live demo. Tap outside and it turns back and slides home with a soft thunk. Let go early and it springs back. Reduce Motion crossfades to the card without the 3D turn. |
+| ✨ | **StarJar** | A glass jar of about forty stars asleep in a dim heap. Tap it and they brighten, twinkle on their own rhythms and float up to drift like fireflies; drag inside to stir them, with a soft tick when one brushes the glass. While it is awake the page stops scrolling. Tap outside and they settle back down and dim. Reduce Motion gives a steady glow with no wander. |
 
 iOS 17+ / macOS 14+, Swift tools 6.0 (Swift 6 language mode).
 
-> **Honest status:** every core target builds, and all 1121 tests pass on Linux (Swift 6.4).
+> **Honest status:** every core target builds, and all 1203 tests pass on Linux (Swift 6.4).
 > The SwiftUI targets have **not yet been compiled or run on an Apple platform**. On Linux
 > they compile to empty modules (`#if canImport(SwiftUI)`). They were checked with
 > sourcekit-lsp (0 diagnostics), `swiftc -parse` and careful API review, but expect
@@ -66,8 +67,8 @@ targets: [
 ```
 
 Each component is its own product: `PopTherapy`, `MagneticBeadSlider`, `EraserDelete`,
-`ShutterReveal`, `AliveEyes`, `ScatterRegroup`, `SolarFlareLike`, `FlyingButton`, `GrainyRingGallery`, `LiquidMetalCompass`, `SweaterRail`, `FontCollection`, `FollowBlobHero`, `MoonPhaseScrubber`, `ClothPoster`, `TiltPhotoGrid`, `ScrollSpinWatch`, `BoutiqueBurst`, `PeelableSticker`, `FrostCard`, `HoloFoilCard`, `OilPaintRestore`, `WiggleMatchSearch`, `PourOpenMenu`, `OctoDoneChecklist`, `AsciiNowPlaying`, `DogEarPeelCard`, `ColorFigureGumball`, `ChannelFlipCard`, `ContourInkLoader` and `ShelfPull`. There's also a SwiftUI-free `…Core` product for each
-(e.g. `ShutterRevealCore`), plus `WhimsyGallery`, a demo list of all thirty-one.
+`ShutterReveal`, `AliveEyes`, `ScatterRegroup`, `SolarFlareLike`, `FlyingButton`, `GrainyRingGallery`, `LiquidMetalCompass`, `SweaterRail`, `FontCollection`, `FollowBlobHero`, `MoonPhaseScrubber`, `ClothPoster`, `TiltPhotoGrid`, `ScrollSpinWatch`, `BoutiqueBurst`, `PeelableSticker`, `FrostCard`, `HoloFoilCard`, `OilPaintRestore`, `WiggleMatchSearch`, `PourOpenMenu`, `OctoDoneChecklist`, `AsciiNowPlaying`, `DogEarPeelCard`, `ColorFigureGumball`, `ChannelFlipCard`, `ContourInkLoader`, `ShelfPull` and `StarJar`. There's also a SwiftUI-free `…Core` product for each
+(e.g. `ShutterRevealCore`), plus `WhimsyGallery`, a demo list of all thirty-two.
 
 ```swift
 import WhimsyGallery
@@ -1012,6 +1013,49 @@ ShelfPull(books: [                                                // 3 ... 9 boo
 - **Not compiled on Linux:** the SwiftUI view could not be built here (there is no SwiftUI on Linux). It was parse-checked and linted, and the core is tested.
   The direction of `rotation3DEffect` is assumed and has not been seen on a device.
 
+### ✨ StarJar
+
+![StarJar](docs/starjar.gif)
+
+```swift
+import StarJar
+
+ScrollView {
+    StarJar()                                                     // forty sleeping stars
+}
+.starJarScrollLock()                                              // scrolling stops while the jar is awake
+
+StarJar(starCount: 60, tint: .mint, isEngaged: $jarAwake)         // 8 ... 80 stars, your colour, a binding
+```
+
+- **What it does:** a glass jar with a cork, a rim light and a few highlights, holding about forty stars. Asleep, the stars lie dim in a heap
+  at the bottom. Tap the jar and they brighten, twinkle each on its own rhythm and float up to drift like fireflies. Drag a finger inside to stir
+  them. Tap outside the jar, or the Done chip, and over about 1.5 s they sink back to the bottom and dim. A small hint reads "Tap to wake" or
+  "Tap outside to rest".
+- **Scroll lock:** a view can't switch off an ancestor's scrolling by itself, so `StarJar` publishes `StarJarScrollLockKey` and
+  `.starJarScrollLock()` on the ScrollView applies `.scrollDisabled` while the jar is waking, awake or settling. Scrolling comes back once the
+  stars are asleep. `StarJarDemo()` shows it on a page with cards above and below the jar.
+- **Jar:** the inside is the union of two rounded boxes (body and neck), as a signed distance; the cork closes the neck. Each star is pushed
+  back out along the outward normal (central differences of the distance) and its outward speed is reflected with restitution 0.5 and friction 0.92.
+- **Stars:** seeded (radius, twinkle frequency and phases, four wander frequencies and phases). Gravity `260 × (1 − w²)` at wake level `w`,
+  drag that eases from 2.5/s asleep to 1/s awake, firefly wander from summed sines (80 pt/s² at full wake), a soft pull toward the middle of
+  the body, and soft separation between stars with contact damping so a heap comes to rest. Fixed 1/120 s substeps; the remainder carries over.
+- **Twinkle:** `brightness = level × (1 − amp + amp × (0.5 + 0.35 sin a + 0.15 sin(2.3a + φ₂)))`, `a = 2π f t + φ`. Asleep the level is 0.16 with a faint
+  shimmer; awake it is 1 with amplitude 0.5. Drawn with `TimelineView(.animation)` and `Canvas`, paused once the heap is still.
+- **Stir:** a swirl round the finger plus a pull toward the finger's own velocity, both fading as `exp(−d²/70²)`.
+- **Haptics:** the core emits `brush(star:speed:)` when a star hits the glass faster than 70 pt/s, at most one per 80 ms and only while the jar is
+  more than 30 % awake, and the view plays a soft tick (`.impact(flexibility: .soft, intensity: 0.5)`).
+- **Phases:** `asleep`, `waking` (0.6 s), `awake`, `settling` (1.5 s); a wake during a settle (or a settle during a wake) starts from the current level.
+  Events `waking`, `awake`, `settling` and `asleep` keep an `isEngaged` binding in step.
+- **Pure-Swift core:** `StarJarCore` owns the jar geometry and containment, the seeded simulation, the twinkle, the phase machine, the scroll-lock flag,
+  the stir field and the rate-limited brush events. Its `sin`, `cos` and `exp` are plain polynomials so other platforms can replay a jar exactly. It imports only
+  Foundation (through `WhimsyCore`), so it tests on Linux (82 tests, Swift Testing).
+- **Reduce Motion:** no wake kick, no wander and no stirring; on wake the stars glow at a steady 0.72 without twinkling, and the transitions are shorter.
+- **Web port:** `webports/starjar.html` repeats the core with the same constants. A temporary test checked 548 lines of output (maths, the distance field,
+  seeded stars, twinkle, stir, three scripted sessions and six random sessions) between the Swift core and the port, and they matched exactly.
+- **Not compiled on Linux:** the SwiftUI view could not be built here (there is no SwiftUI on Linux). It was parse-checked and linted, and the core is tested.
+  The gestures and the haptic have not been tried on a device.
+
 ---
 
 ## Accessibility
@@ -1051,9 +1095,10 @@ Every component handles **Reduce Motion**, each in its own way:
 | ChannelFlipCard | The tears, colour split, flash and static are off: a change is a 0.2 s crossfade whatever the swipe speed. Tapping, swiping, the haptic and the channel number work as usual. |
 | ContourInkLoader | A finished, flat map with every ring drawn and the red dot at the peak. Nothing is drawn, climbed, tilted or faded, and nothing ticks. |
 | ShelfPull | No 3D turn and no sliding: the card fades in over the shelf and fades out to close, the seat is a short event without the neighbours rocking, and the demos hold still. |
+| StarJar | No wake kick, no wander and no stirring: on wake the stars glow at a steady level without twinkling, and waking and settling are shorter. |
 
 All twenty-one have VoiceOver labels and actions (e.g. pop next bubble, adjustable slider,
-erase, open/close shutter, squint, scatter/regroup, and a like toggle with the toggle trait and a Liked / Not liked value; FlyingButton is a plain button with its title as the label; GrainyRingGallery is adjustable (swipe up/down steps cards, value "Dunes, 1 of 8") with an Open action, and its detail view is modal with a Close button and the escape gesture; LiquidMetalCompass reads e.g. "Compass to Maya: 30° to your right, 1.2 kilometres", and is adjustable by 15° when faking the heading; SweaterRail exposes each garment as a button ("Cobalt Cardigan, $146") that opens its page, which is modal with a Close button and the escape gesture; FontCollection's flip board reads "Fontastic, set in Didot" with a shuffle action, chips carry the selected trait and a font count, each card is a button ("Didot, Display") and the detail view is modal with a Close button and the escape gesture; FollowBlobHero hides the decorative blob and exposes its headline, buttons and palette chips ("Lagoon colours", selected); MoonPhaseScrubber is an adjustable element ("Moon phase, Waxing Crescent, 15 percent illuminated") that steps one named phase per swipe; ClothPoster is a labelled image ("Poster: Soft Goods, Autumn Linen Fair, 24 to 27 October") with a "Ripple" action; TiltPhotoGrid reads its phrases, then "Photo album, 18 portraits", with "Skip intro" and "Replay intro" actions; ScrollSpinWatch is adjustable (swipe up/down steps front, side, back and the spec sheet) and reads the visible text block, with stats as "47 mm, Titanium case" and the watch hidden; BoutiqueBurst reads "Boutique" as a header with an "Open the collection" action, then each figure as a button ("Plum Slip Dress, 315 dollars"), and its detail view is modal with a Close button and the escape gesture; PeelableSticker reads the sticker as "Strawberry sticker" with its peel percentage as the value and a "Peel off" action; FrostCard reads as "GLACIER PASS card" with the frosted percentage as its value and a "Frost over" / "Melt" action; HoloFoilCard reads as "NOVA DRAKE, holographic card", with the band position (left of centre, centred, right of centre) as its value. Swiping up and down sweeps the foil in 5° steps, and a "Flatten" action returns the card to flat; OilPaintRestore reads as "Lakeside, 1962, faded photo", with the percent restored as its value. "Restore all" and "Reset" actions reveal the whole picture or fade it again; WiggleMatchSearch announces the result count as you type ("3 results"). Each row reads as its title with the subtitle as its value, and a "Matched letters" custom content item lists the letters that matched; PourOpenMenu's pill reads \"Sort, Newest\" with an Expanded or Collapsed value, and the options are buttons (the current one with the selected trait) that are hidden while the menu is closed. Picking one announces \"Sorted by Popular\", and the escape gesture closes the menu; OctoDoneChecklist's rows are toggles with the task as the label and Completed or Not completed as the value. Ticking announces "Completed Water the ferns" (and "… not completed" for an undo). Complete all and Reset are buttons with hints, rows that have gone are hidden from VoiceOver, and a sweep announces "Completing 3 tasks"; AsciiNowPlaying reads as one card: the track and artist, then Playing or Paused. The art is an image named ASCII album art with the value 48 columns, medium. It is adjustable, so swipe up or down to step the detail by 8 columns, and it has a Scramble action. Play and Pause is a button, the scrubber reads 1:23 of 3:34, and changes announce "Playing", "Paused" or "Detail 56 columns, fine"; DogEarPeelCard reads as one card: the invitation text, with the value Closed, Peeling 40 percent or Peeled away. It has a Peel action that comes away from rest, so nobody has to drag. Once the card has gone, the note is a separate element that reads its heading, text and address, and the reveal is announced as "Card peeled away" followed by the note. Reset is a button, and a restore announces "Card restored"; ColorFigureGumball reads as one element, "Gumball machine", whose value is the status (such as "Turn the crank"), whether see-through is on and how many gumballs it has dispensed. Insert coin, Turn crank and Toggle see-through are custom actions, so nobody has to drag. The swatches are labelled buttons with the selected one marked, the wobble slider reads as a percentage, and "Coin in. Turn the crank", "Dispensing" and the colour of the gumball that came out are announced; ChannelFlipCard reads as one element, "Channel flip card", whose value is the channel number, the photo's caption and its place (such as "CH 03, Night City, photo 3 of 6"). Adjusting up or down changes photo, Next channel and Previous channel are custom actions, and every change is announced with its channel number and caption; ContourInkLoader reads as one element: the label "Loading" with the value "Sketching a topographic map" while `isAnimating` is true (even under Reduce Motion, where the map is still but the work goes on), otherwise just "Topographic map"; ShelfPull reads each spine as a button labelled "Book: title" with an action that opens it without dragging; the open card is a modal with a Close button and an escape action, and opening it is announced).
+erase, open/close shutter, squint, scatter/regroup, and a like toggle with the toggle trait and a Liked / Not liked value; FlyingButton is a plain button with its title as the label; GrainyRingGallery is adjustable (swipe up/down steps cards, value "Dunes, 1 of 8") with an Open action, and its detail view is modal with a Close button and the escape gesture; LiquidMetalCompass reads e.g. "Compass to Maya: 30° to your right, 1.2 kilometres", and is adjustable by 15° when faking the heading; SweaterRail exposes each garment as a button ("Cobalt Cardigan, $146") that opens its page, which is modal with a Close button and the escape gesture; FontCollection's flip board reads "Fontastic, set in Didot" with a shuffle action, chips carry the selected trait and a font count, each card is a button ("Didot, Display") and the detail view is modal with a Close button and the escape gesture; FollowBlobHero hides the decorative blob and exposes its headline, buttons and palette chips ("Lagoon colours", selected); MoonPhaseScrubber is an adjustable element ("Moon phase, Waxing Crescent, 15 percent illuminated") that steps one named phase per swipe; ClothPoster is a labelled image ("Poster: Soft Goods, Autumn Linen Fair, 24 to 27 October") with a "Ripple" action; TiltPhotoGrid reads its phrases, then "Photo album, 18 portraits", with "Skip intro" and "Replay intro" actions; ScrollSpinWatch is adjustable (swipe up/down steps front, side, back and the spec sheet) and reads the visible text block, with stats as "47 mm, Titanium case" and the watch hidden; BoutiqueBurst reads "Boutique" as a header with an "Open the collection" action, then each figure as a button ("Plum Slip Dress, 315 dollars"), and its detail view is modal with a Close button and the escape gesture; PeelableSticker reads the sticker as "Strawberry sticker" with its peel percentage as the value and a "Peel off" action; FrostCard reads as "GLACIER PASS card" with the frosted percentage as its value and a "Frost over" / "Melt" action; HoloFoilCard reads as "NOVA DRAKE, holographic card", with the band position (left of centre, centred, right of centre) as its value. Swiping up and down sweeps the foil in 5° steps, and a "Flatten" action returns the card to flat; OilPaintRestore reads as "Lakeside, 1962, faded photo", with the percent restored as its value. "Restore all" and "Reset" actions reveal the whole picture or fade it again; WiggleMatchSearch announces the result count as you type ("3 results"). Each row reads as its title with the subtitle as its value, and a "Matched letters" custom content item lists the letters that matched; PourOpenMenu's pill reads \"Sort, Newest\" with an Expanded or Collapsed value, and the options are buttons (the current one with the selected trait) that are hidden while the menu is closed. Picking one announces \"Sorted by Popular\", and the escape gesture closes the menu; OctoDoneChecklist's rows are toggles with the task as the label and Completed or Not completed as the value. Ticking announces "Completed Water the ferns" (and "… not completed" for an undo). Complete all and Reset are buttons with hints, rows that have gone are hidden from VoiceOver, and a sweep announces "Completing 3 tasks"; AsciiNowPlaying reads as one card: the track and artist, then Playing or Paused. The art is an image named ASCII album art with the value 48 columns, medium. It is adjustable, so swipe up or down to step the detail by 8 columns, and it has a Scramble action. Play and Pause is a button, the scrubber reads 1:23 of 3:34, and changes announce "Playing", "Paused" or "Detail 56 columns, fine"; DogEarPeelCard reads as one card: the invitation text, with the value Closed, Peeling 40 percent or Peeled away. It has a Peel action that comes away from rest, so nobody has to drag. Once the card has gone, the note is a separate element that reads its heading, text and address, and the reveal is announced as "Card peeled away" followed by the note. Reset is a button, and a restore announces "Card restored"; ColorFigureGumball reads as one element, "Gumball machine", whose value is the status (such as "Turn the crank"), whether see-through is on and how many gumballs it has dispensed. Insert coin, Turn crank and Toggle see-through are custom actions, so nobody has to drag. The swatches are labelled buttons with the selected one marked, the wobble slider reads as a percentage, and "Coin in. Turn the crank", "Dispensing" and the colour of the gumball that came out are announced; ChannelFlipCard reads as one element, "Channel flip card", whose value is the channel number, the photo's caption and its place (such as "CH 03, Night City, photo 3 of 6"). Adjusting up or down changes photo, Next channel and Previous channel are custom actions, and every change is announced with its channel number and caption; ContourInkLoader reads as one element: the label "Loading" with the value "Sketching a topographic map" while `isAnimating` is true (even under Reduce Motion, where the map is still but the work goes on), otherwise just "Topographic map"; ShelfPull reads each spine as a button labelled "Book: title" with an action that opens it without dragging; the open card is a modal with a Close button and an escape action, and opening it is announced; StarJar reads as a button labelled "Star jar" with the value Awake or Asleep and an action that wakes it or puts it to rest).
 
 ## Layout
 
@@ -1091,7 +1136,8 @@ Sources/
   ChannelFlipCore/       ChannelFlipCard/
   ContourInkCore/       ContourInkLoader/
   ShelfPullCore/        ShelfPull/
-  WhimsyGallery/         Demo gallery of all thirty-one
+  StarJarCore/          StarJar/
+  WhimsyGallery/         Demo gallery of all thirty-two
 Tests/                   Swift Testing suites for WhimsyCore and every core
 docs/                    README GIFs
 ```
