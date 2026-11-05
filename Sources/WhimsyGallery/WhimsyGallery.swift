@@ -35,8 +35,9 @@ import ChannelFlipCard
 import ContourInkLoader
 import ShelfPull
 import StarJar
+import HoldToFanDock
 
-/// A navigation list of all thirty-two components with a small live demo of each.
+/// A navigation list of all thirty-three components with a small live demo of each.
 /// Drop `WhimsyGallery()` into a scene to browse them.
 public struct WhimsyGallery: View {
     public init() {}
@@ -68,7 +69,7 @@ public struct WhimsyGallery: View {
 }
 
 enum GalleryItem: String, CaseIterable, Identifiable, Hashable {
-    case popTherapy, magneticBeads, eraserDelete, shutterReveal, aliveEyes, scatterRegroup, solarFlare, flyingButton, ringGallery, liquidCompass, sweaterRail, fontCollection, followBlob, moonPhase, clothPoster, tiltGrid, spinWatch, boutique, peelSticker, frostCard, holoFoilCard, oilPaintRestore, wiggleMatchSearch, pourOpenMenu, octoDoneChecklist, asciiNowPlaying, dogEarPeelCard, colorFigureGumball, channelFlipCard, contourInkLoader, shelfPull, starJar
+    case popTherapy, magneticBeads, eraserDelete, shutterReveal, aliveEyes, scatterRegroup, solarFlare, flyingButton, ringGallery, liquidCompass, sweaterRail, fontCollection, followBlob, moonPhase, clothPoster, tiltGrid, spinWatch, boutique, peelSticker, frostCard, holoFoilCard, oilPaintRestore, wiggleMatchSearch, pourOpenMenu, octoDoneChecklist, asciiNowPlaying, dogEarPeelCard, colorFigureGumball, channelFlipCard, contourInkLoader, shelfPull, starJar, holdToFanDock
     var id: String { rawValue }
 
     var title: String {
@@ -105,6 +106,7 @@ enum GalleryItem: String, CaseIterable, Identifiable, Hashable {
         case .contourInkLoader: "Contour Ink Loader"
         case .shelfPull: "Shelf Pull"
         case .starJar: "Star Jar"
+        case .holdToFanDock: "Hold-to-Fan Dock"
         }
     }
 
@@ -142,6 +144,7 @@ enum GalleryItem: String, CaseIterable, Identifiable, Hashable {
         case .contourInkLoader: "A loader that sketches a topographic map, then sends a red dot up to the peak"
         case .shelfPull: "Pull a book off the shelf, watch it turn, and read its card"
         case .starJar: "Tap a jar of sleeping stars to wake them, stir them with a finger"
+        case .holdToFanDock: "Press and hold a FAB to fan tabs out along a quarter-circle"
         }
     }
 
@@ -179,6 +182,7 @@ enum GalleryItem: String, CaseIterable, Identifiable, Hashable {
         case .contourInkLoader: "map"
         case .shelfPull: "books.vertical"
         case .starJar: "sparkles"
+        case .holdToFanDock: "plus.circle.fill"
         }
     }
 
@@ -216,6 +220,7 @@ enum GalleryItem: String, CaseIterable, Identifiable, Hashable {
         case .contourInkLoader: ContourInkLoader()
         case .shelfPull: ShelfPull()
         case .starJar: StarJarDemo()
+        case .holdToFanDock: HoldToFanDockDemo()
         }
     }
 }
