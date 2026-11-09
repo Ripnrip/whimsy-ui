@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Crumple to delete</title>
+  <style>
+    body { margin: 0; background: #1b1916; color: #f4efe6; font: 15px/1.4 system-ui, sans-serif; }
+    main { max-width: 420px; margin: 32px auto; padding: 0 16px; }
+    canvas { width: 100%; background: #24211c; border-radius: 16px; touch-action: none; }
+    p { color: #c9c0b2; }
+    button { margin-top: 12px; font: inherit; padding: 8px 14px; }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>Crumple to delete</h1>
+    <p>Drag the card toward the trash. Let go early and it flattens. This page uses the same mesh constants as the Swift core.</p>
+    <canvas id="stage" width="320" height="230"></canvas>
+    <button id="undo" type="button">Undo</button>
+  </main>
+  <script src="crumple-core.js"></script>
+  <script>
+    const C = globalThis.Crumple;
+    const canvas = document.getElementById("stage");
+    const ctx = canvas.getContext("2d");
+    const card = C.rect(24, 46, 200, 140);
+    const bin = C.rect(248, 78, 56, 64);
+    const model = C.createModel(card, bin);
+    let shape = 0;
+    let flying = null;
+
+    function drawFacet(facet, verts, alpha) {
+      ctx.beginPath();
+      ctx.moveTo(verts[facet.i0].x, verts[facet.i0].y);
+      ctx.lineTo(verts[facet.i1].x, verts[facet.i1].y);
+      ctx.lineTo(verts[facet.i2].x, verts[facet.i2].y);
+      ctx.closePath();
+      const [r, g, b] = facet.color;
+      ctx.fillStyle = `rgba(${r * 255}, ${g * 255}, ${b * 255}, ${alpha})`;
+      ctx.fill();
+    }
+
+    function frame() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.fillStyle = "#3a3834";
+      ctx.fillRect(bin.x, bin.y, bin.width, bin.height);
+      const showMesh = shape > 0.02 && !flying && !model.state.reduceMotion;
+      if (!showMesh) {
+        ctx.globalAlpha = 1 - shape;
+        ctx.fillStyle = "#faf6e8";
+        ctx.fillRect(card.x, card.y, card.width, card.height);
+        ctx.globalAlpha = 1;
+      } else {
+        const sampled = C.sample(card, Math.min(shape, 1.08));
+        sampled.facets.forEach((facet) => drawFacet(facet, sampled.vertices, Math.min(1, shape * 1.4)));
+      }
+      if (flying) {
+        ctx.fillStyle = "#d9c7a2";
+        ctx.beginPath();
+        ctx.arc(flying.x, flying.y, 18, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+
+    canvas.addEventListener("pointerdown", (event) => {
+      const point = C.v2(event.offsetX, event.offsetY);
+      model.begin(point);
+    });
+    canvas.addEventListener("pointermove", (event) => {
+      if (model.state.phase !== "dragging") return;
+      model.drag(C.v2(event.offsetX, event.offsetY));
+      shape = model.state.shape;
+      frame();
+    });
+    canvas.addEventListener("pointerup", () => {
+      const committed = model.end();
+      if (!committed) {
+        shape = 0;
+        flying = null;
+        model.state.phase = "idle";
+        model.state.pull = C.v2(0, 0);
+        model.state.shape = 0;
+        frame();
+        return;
+      }
+      const start = performance.now();
+      function tick(now) {
+        const t = Math.min(1, (now - start) / (C.RULES.tossDuration * 1000));
+        shape = t < 0.3 ? 1 + 0.08 * Math.sin((t / 0.3) * Math.PI) : 1;
+        const u = t;
+        const a = card.center;
+        const b = bin.center;
+        const seg = C.sub2(b, a);
+        const len = Math.hypot(seg.x, seg.y) || 1;
+        const n = { x: -seg.y / len, y: seg.x / len };
+        const control = { x: a.x + seg.x * 0.5 + n.x * len * C.RULES.tossControl, y: a.y + seg.y * 0.5 + n.y * len * C.RULES.tossControl };
+        const p0 = { x: a.x + (control.x - a.x) * u, y: a.y + (control.y - a.y) * u };
+        const p1 = { x: control.x + (b.x - control.x) * u, y: control.y + (b.y - control.y) * u };
+        flying = { x: p0.x + (p1.x - p0.x) * u, y: p0.y + (p1.y - p0.y) * u };
+        frame();
+        if (t < 1) requestAnimationFrame(tick);
+      }
+      requestAnimationFrame(tick);
+    });
+    document.getElementById("undo").addEventListener("click", () => {
+      shape = 0;
+      flying = null;
+      model.state.phase = "idle";
+      model.state.pull = C.v2(0, 0);
+      model.state.shape = 0;
+      model.state.log = [];
+      frame();
+    });
+    frame();
+  </script>
+</body>
+</html>

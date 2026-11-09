@@ -87,6 +87,8 @@ let package = Package(
         .library(name: "StarJarCore", targets: ["StarJarCore"]),
         .library(name: "HoldToFanDock", targets: ["HoldToFanDock"]),
         .library(name: "HoldToFanCore", targets: ["HoldToFanCore"]),
+        .library(name: "CrumpleToDelete", targets: ["CrumpleToDelete"]),
+        .library(name: "CrumpleCore", targets: ["CrumpleCore"]),
         // A demo gallery listing every component.
         .library(name: "WhimsyGallery", targets: ["WhimsyGallery"]),
     ],
@@ -196,9 +198,12 @@ let package = Package(
         .target(name: "HoldToFanCore", dependencies: ["WhimsyCore"]),
         .target(name: "HoldToFanDock", dependencies: ["HoldToFanCore"]),
 
+        .target(name: "CrumpleCore", dependencies: ["WhimsyCore"]),
+        .target(name: "CrumpleToDelete", dependencies: ["CrumpleCore"]),
+
         .target(name: "WhimsyGallery", dependencies: [
             "PopTherapy", "MagneticBeadSlider", "EraserDelete", "ShutterReveal", "AliveEyes", "ScatterRegroup", "SolarFlareLike", "FlyingButton",
-            "GrainyRingGallery", "LiquidMetalCompass", "SweaterRail", "FontCollection", "FollowBlobHero", "MoonPhaseScrubber", "ClothPoster", "TiltPhotoGrid", "ScrollSpinWatch", "BoutiqueBurst", "PeelableSticker", "FrostCard", "HoloFoilCard", "OilPaintRestore", "WiggleMatchSearch", "PourOpenMenu", "OctoDoneChecklist", "AsciiNowPlaying", "DogEarPeelCard", "ColorFigureGumball", "ChannelFlipCard", "ContourInkLoader", "ShelfPull", "StarJar", "HoldToFanDock",
+            "GrainyRingGallery", "LiquidMetalCompass", "SweaterRail", "FontCollection", "FollowBlobHero", "MoonPhaseScrubber", "ClothPoster", "TiltPhotoGrid", "ScrollSpinWatch", "BoutiqueBurst", "PeelableSticker", "FrostCard", "HoloFoilCard", "OilPaintRestore", "WiggleMatchSearch", "PourOpenMenu", "OctoDoneChecklist", "AsciiNowPlaying", "DogEarPeelCard", "ColorFigureGumball", "ChannelFlipCard", "ContourInkLoader", "ShelfPull", "StarJar", "HoldToFanDock", "CrumpleToDelete",
         ]),
 
         .testTarget(name: "WhimsyCoreTests", dependencies: ["WhimsyCore"]),
@@ -235,5 +240,6 @@ let package = Package(
         .testTarget(name: "ShelfPullCoreTests", dependencies: ["ShelfPullCore"]),
         .testTarget(name: "StarJarCoreTests", dependencies: ["StarJarCore"]),
         .testTarget(name: "HoldToFanCoreTests", dependencies: ["HoldToFanCore"]),
+        .testTarget(name: "CrumpleCoreTests", dependencies: ["CrumpleCore"]),
     ]
 )
