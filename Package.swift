@@ -1,7 +1,7 @@
 // swift-tools-version: 6.0
 import PackageDescription
 
-// The Metal shaders (PopTherapy, GrainyRingGallery, LiquidMetalCompass, ClothPoster, HoloFoilCard, OilPaintRestore, ChannelFlipCard) are compiled by Xcode into each module's
+// The Metal shaders (PopTherapy, GrainyRingGallery, LiquidMetalCompass, ClothPoster, HoloFoilCard, OilPaintRestore, ChannelFlipCard, RippleToHide) are compiled by Xcode into each module's
 // default.metallib. SwiftPM on Linux/Windows has no Metal compiler, so the resources are
 // skipped there (the SwiftUI targets compile to empty modules on those platforms anyway).
 #if os(Linux) || os(Windows)
@@ -87,6 +87,8 @@ let package = Package(
         .library(name: "StarJarCore", targets: ["StarJarCore"]),
         .library(name: "HoldToFanDock", targets: ["HoldToFanDock"]),
         .library(name: "HoldToFanCore", targets: ["HoldToFanCore"]),
+        .library(name: "RippleToHide", targets: ["RippleToHide"]),
+        .library(name: "RippleToHideCore", targets: ["RippleToHideCore"]),
         // A demo gallery listing every component.
         .library(name: "WhimsyGallery", targets: ["WhimsyGallery"]),
     ],
@@ -196,9 +198,13 @@ let package = Package(
         .target(name: "HoldToFanCore", dependencies: ["WhimsyCore"]),
         .target(name: "HoldToFanDock", dependencies: ["HoldToFanCore"]),
 
+        .target(name: "RippleToHideCore", dependencies: ["WhimsyCore"]),
+        .target(name: "RippleToHide", dependencies: ["RippleToHideCore"],
+                exclude: metalExclude, resources: metalResources),
+
         .target(name: "WhimsyGallery", dependencies: [
             "PopTherapy", "MagneticBeadSlider", "EraserDelete", "ShutterReveal", "AliveEyes", "ScatterRegroup", "SolarFlareLike", "FlyingButton",
-            "GrainyRingGallery", "LiquidMetalCompass", "SweaterRail", "FontCollection", "FollowBlobHero", "MoonPhaseScrubber", "ClothPoster", "TiltPhotoGrid", "ScrollSpinWatch", "BoutiqueBurst", "PeelableSticker", "FrostCard", "HoloFoilCard", "OilPaintRestore", "WiggleMatchSearch", "PourOpenMenu", "OctoDoneChecklist", "AsciiNowPlaying", "DogEarPeelCard", "ColorFigureGumball", "ChannelFlipCard", "ContourInkLoader", "ShelfPull", "StarJar", "HoldToFanDock",
+            "GrainyRingGallery", "LiquidMetalCompass", "SweaterRail", "FontCollection", "FollowBlobHero", "MoonPhaseScrubber", "ClothPoster", "TiltPhotoGrid", "ScrollSpinWatch", "BoutiqueBurst", "PeelableSticker", "FrostCard", "HoloFoilCard", "OilPaintRestore", "WiggleMatchSearch", "PourOpenMenu", "OctoDoneChecklist", "AsciiNowPlaying", "DogEarPeelCard", "ColorFigureGumball", "ChannelFlipCard", "ContourInkLoader", "ShelfPull", "StarJar", "HoldToFanDock", "RippleToHide",
         ]),
 
         .testTarget(name: "WhimsyCoreTests", dependencies: ["WhimsyCore"]),
@@ -235,5 +241,6 @@ let package = Package(
         .testTarget(name: "ShelfPullCoreTests", dependencies: ["ShelfPullCore"]),
         .testTarget(name: "StarJarCoreTests", dependencies: ["StarJarCore"]),
         .testTarget(name: "HoldToFanCoreTests", dependencies: ["HoldToFanCore"]),
+        .testTarget(name: "RippleToHideCoreTests", dependencies: ["RippleToHideCore"]),
     ]
 )
