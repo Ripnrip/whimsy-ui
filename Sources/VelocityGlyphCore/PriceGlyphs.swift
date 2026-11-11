@@ -182,9 +182,13 @@ public struct PriceSpan: Equatable, Sendable {
 
 /// Half-away-from-zero rounding that is a few arithmetic operations, so JS can copy it.
 enum GlyphRound {
+    /// Widest grid: `domain - (-domain)` with step 1. A step index can be `2 * domain`, so the
+    /// clamp is the index, not the price. Clamping to `domain` maps a price of 123 on that grid to 0.
+    static let maxIndex = PriceSpan.domain * 2
+
     static func halfAwayFromZero(_ x: Double) -> Int {
         guard x.isFinite else { return 0 }
-        let clamped = min(max(x, -1_000_000_000), 1_000_000_000)
+        let clamped = min(max(x, -Double(Self.maxIndex)), Double(Self.maxIndex))
         if clamped >= 0 { return Int(clamped + 0.5) }
         return -Int(-clamped + 0.5)
     }

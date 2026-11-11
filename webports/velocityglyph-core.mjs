@@ -122,7 +122,9 @@ export function blurForSpeed(speed) {
 
 function halfAway(x) {
   if (!Number.isFinite(x)) return 0;
-  const clamped = clamp(x, -TUNING.domain, TUNING.domain);
+  // Step index, not price. The full domain is 2 * domain wide at step 1.
+  const maxIndex = TUNING.domain * 2;
+  const clamped = clamp(x, -maxIndex, maxIndex);
   if (clamped >= 0) return Math.trunc(clamped + 0.5);
   return -Math.trunc(-clamped + 0.5);
 }

@@ -107,6 +107,18 @@ import Testing
         let point = PriceSpan(range: 15...15, step: 5)
         #expect(point.count == 1 && point.snap(100) == 15 && point.fraction(for: 15) == 0)
     }
+
+    @Test func fullDomainPreservesStepIndices() {
+        let span = PriceSpan(range: -PriceSpan.domain...PriceSpan.domain, step: 1)
+        #expect(span.snap(123) == 123)
+        #expect(span.snap(-456) == -456)
+        #expect(span.snap(0) == 0)
+        #expect(span.value(atFraction: 0) == -PriceSpan.domain)
+        #expect(span.value(atFraction: 1) == PriceSpan.domain)
+        let model = VelocityGlyphModel(value: 123, range: -PriceSpan.domain...PriceSpan.domain, step: 1)
+        #expect(model.value == 123)
+        #expect(model.formattedPrice == "$123")
+    }
 }
 
 @Suite("Scatter math") struct ScatterMathTests {

@@ -41,7 +41,7 @@ Thirty-four small, tactile SwiftUI components, each with a pure-Swift, unit-test
 
 iOS 17+ / macOS 14+, Swift tools 6.0 (Swift 6 language mode).
 
-> **Honest status:** every core target builds, and all 1263 tests pass on Linux (Swift 6.4.2).
+> **Honest status:** every core target builds, and all 1264 tests pass on Linux (Swift 6.4.2).
 > The SwiftUI targets have **not yet been compiled or run on an Apple platform**. On Linux
 > they compile to empty modules (`#if canImport(SwiftUI)`). They were checked with
 > sourcekit-lsp (0 diagnostics), `swiftc -parse` and careful API review, but expect
@@ -1111,7 +1111,7 @@ VelocityGlyphScatter(value: $price, range: 20...200, step: 5, title: "Fare")
 - **Grid:** legal values are `lower + n·step`, not past `upper`. Halfway cases round the step index away from zero, so the web port and Swift agree (banker's rounding would not). Dragging across several steps emits one `step` event per grid value entered, including the one you land on, and never a second event for a step you are already on.
 - **Glyphs:** the text is a fixed `$` format, not `NumberFormatter` (`"$180"`, `"$1,000"`, `"-$12"`). Digits are identified by place (0 is the ones), so `$99` and `$100` keep the same tens and ones springs and a new hundreds glyph appears on the baseline. Commas are identified by their thousands group.
 - **Speed:** thumb velocity is an exponential smoother, `1 - exp(-dt / 0.09)`, with the same Taylor `exp` the star jar uses. Offset, lean and blur scale with `|speed| / 480` and stop growing past that. Peaks are 18 pt, 6° and 1.8 pt of blur. Each glyph's seed keeps a magnitude of at least 0.45, so none of them sit out the scatter. The return spring is k = 240, ζ = 0.55.
-- **Pure-Swift core:** `VelocityGlyphCore` owns the grid, the glyph split, the smoother, the seeded scatter and the springs. It imports only Foundation (through `WhimsyCore`), so it tests on Linux (29 tests, Swift Testing).
+- **Pure-Swift core:** `VelocityGlyphCore` owns the grid, the glyph split, the smoother, the seeded scatter and the springs. It imports only Foundation (through `WhimsyCore`), so it tests on Linux (30 tests, Swift Testing).
 - **Reduce Motion:** no offset, no lean and no blur. The price still snaps, and the step events still fire.
 - **VoiceOver:** one adjustable element labelled with the title (default "Price"). The value is the formatted price, such as `"$180"`. Swiping up or down moves one step.
 - **Web port:** `webports/velocityglyph.html` repeats the core with the same constants. `webports/verify-velocityglyph.mjs` replays the golden trace in `Tests/VelocityGlyphCoreTests/Fixtures/golden-trace.txt` and checks it against this core.
