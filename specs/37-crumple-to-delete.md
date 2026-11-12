@@ -32,4 +32,4 @@ Reduce Motion fades and shrinks instead of drawing the mesh, and it does not tos
 
 ## Verification
 
-Linux runs `CrumpleCoreTests` and `node webports/parity.mjs`. `swiftc -parse` of the view file on Linux does not see the SwiftUI body. No Apple build or device run was done for this component.
+Linux runs `CrumpleCoreTests` and `node webports/crumple-parity.mjs`. `swiftc -parse` of the view file on Linux does not see the SwiftUI body. No Apple build or device run was done for this component.

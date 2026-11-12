@@ -124,7 +124,7 @@ The gallery's delete interactions erase, peel, or fade. None of them crumples a 
 - KTD3. Finger-up reads the current progress and the zone latch. Progress at or above 0.8 commits. The zone latch sets when the card center enters the bin rect and clears when the center leaves that rect. There is no second progress threshold at 0.77 and no outset. Crossing the bin does not snap while the finger is down, because that would make R1 false for any drag that touched the bin.
 - KTD4. The core appends each crease id once per gesture and keeps that log. The view plays at most one light impact per 0.12 s by coalescing playback. It does not delete log entries to keep the gap. Cloth and DogEar drop ticks that arrive inside the interval. That drop would fail R6.
 - KTD5. Mesh opacity is progress and the wrapped view's opacity is 1 minus progress. Reduce Motion does not draw the mesh. The gallery shows a demo type that owns the sample card, the bin, and the undo control. The reusable view takes the caller's content and reports deletion. It does not remove that content.
-- KTD6. Constants and the golden trace live in the core and in `webports/crumple-golden.json`. JavaScript copies the mesh and the gesture rules and must use the SplitMix64 `uniform` formula, not `double(in:)`. `webports/parity.mjs` fails if JavaScript drifts from the golden file. The Swift parity test fails if the core drifts from the same file. Commit `docs/crumple.gif` for the README. Also copy the GIF and a stills contact sheet to the agent artifacts directory. Do not restore older ports.
+- KTD6. Constants and the golden trace live in the core and in `webports/crumple-golden.json`. JavaScript copies the mesh and the gesture rules and must use the SplitMix64 `uniform` formula, not `double(in:)`. `webports/crumple-parity.mjs` fails if JavaScript drifts from the golden file. The Swift parity test fails if the core drifts from the same file. Commit `docs/crumple.gif` for the README. Also copy the GIF and a stills contact sheet to the agent artifacts directory. Do not restore older ports.
 - KTD7. README gains the component section, the table row, the accessibility row, and the layout count moves from thirty-three to thirty-seven. The Accessibility sentence that says "All twenty-one" becomes "All thirty-seven" so it matches the table. Add `specs/37-crumple-to-delete.md` because R9 asks for a spec even though main has none. Do not add `tools/`.
 
 ### High-Level Technical Design
@@ -195,7 +195,7 @@ U1, then U2. U3 and U5 can proceed once U2 exists. U4 waits until the view exist
 
 - Four branches will claim component 34. Merging any of pull requests 1, 2, or 3 first conflicts in `Package.swift`, `WhimsyGallery.swift`, and the README counts. This branch does not renumber ahead of that. Integration on main assigned component 37.
 - Linux compiles the view target as an empty module. `swiftc -parse` on Linux does not read the SwiftUI body, because `canImport(SwiftUI)` is false. That parse is not an Apple build and not a typecheck.
-- The golden file can drift if someone edits the mesh and updates only one side. Both the Swift parity test and `parity.mjs` read it.
+- The golden file can drift if someone edits the mesh and updates only one side. Both the Swift parity test and `crumple-parity.mjs` read it.
 - Haptic hardware and VoiceOver cannot be exercised here. The core log and the view's coalescing rule are what this environment can prove.
 
 ## Output Structure
@@ -216,8 +216,8 @@ webports/
   crumple-core.js
   crumple.html
   crumple-golden.json
-  parity.mjs
-  capture.mjs
+  crumple-parity.mjs
+  crumple-capture.mjs
 specs/37-crumple-to-delete.md
 docs/crumple.gif
 ```
@@ -302,15 +302,15 @@ docs/crumple.gif
 - **Goal:** Show the same crumple in HTML and prove the JavaScript copy matches the Swift core.
 - **Requirements:** R4, R10
 - **Dependencies:** U2
-- **Files:** `webports/crumple-core.js`, `webports/crumple.html`, `webports/crumple-golden.json`, `webports/parity.mjs`, `webports/capture.mjs`, `Tests/CrumpleCoreTests/ParityTests.swift`
-- **Approach:** Generate the golden JSON from the Swift core for a fixed card, bin, seed 34, progress samples 0, 0.5, and 1, and for one scripted gesture that creases, releases past 0.8, and arrives. `ParityTests` reloads that file and compares. The JavaScript core repeats the rules and the SplitMix64 uniform helper. `parity.mjs` compares JavaScript to the same file. `capture.mjs` draws the full-motion path to `docs/crumple.gif` and a contact sheet of stills at progress 0, 0.4, 0.8, the tossed ball, the ball in the bin, and one Reduce Motion commit frame. Copy the GIF, and write the contact sheet, to the agent artifacts directory. Use a raster tool already available in the environment. Do not add a Swift package dependency for it.
-- **Patterns to follow:** KTD6. The open pull requests disagree on `parity.mjs` versus `parity.js`. Use `parity.mjs`.
+- **Files:** `webports/crumple-core.js`, `webports/crumple.html`, `webports/crumple-golden.json`, `webports/crumple-parity.mjs`, `webports/crumple-capture.mjs`, `Tests/CrumpleCoreTests/ParityTests.swift`
+- **Approach:** Generate the golden JSON from the Swift core for a fixed card, bin, seed 34, progress samples 0, 0.5, and 1, and for one scripted gesture that creases, releases past 0.8, and arrives. `ParityTests` reloads that file and compares. The JavaScript core repeats the rules and the SplitMix64 uniform helper. `crumple-parity.mjs` compares JavaScript to the same file. `crumple-capture.mjs` draws the full-motion path to `docs/crumple.gif` and a contact sheet of stills at progress 0, 0.4, 0.8, the tossed ball, the ball in the bin, and one Reduce Motion commit frame. Copy the GIF, and write the contact sheet, to the agent artifacts directory. Use a raster tool already available in the environment. Do not add a Swift package dependency for it.
+- **Patterns to follow:** KTD6. The open pull requests disagree on `parity.mjs` versus `parity.js`. This port is `webports/crumple-parity.mjs`.
 - **Test scenarios:**
   - The golden mesh at progress 0, 0.5, and 1 matches `CrumpleMesh` for seed 34 and the fixed rect.
   - The golden gesture lists the same crease ids, one commit, one arrival, and one lid bump as the model.
-  - Changing a copied constant in JavaScript without updating the golden file fails `parity.mjs`.
+  - Changing a copied constant in JavaScript without updating the golden file fails `crumple-parity.mjs`.
   - The contact sheet contains the six labeled stills, and the GIF shows the drag, the snap, the arc, and the lid bump.
-- **Verification:** `ParityTests` and `parity.mjs` succeed. `docs/crumple.gif` is committed and copied to the agent artifacts directory. The contact sheet is written only to that artifacts directory.
+- **Verification:** `ParityTests` and `crumple-parity.mjs` succeed. `docs/crumple.gif` is committed and copied to the agent artifacts directory. The contact sheet is written only to that artifacts directory.
 
 ## Verification Contract
 
@@ -319,9 +319,9 @@ docs/crumple.gif
 | Core tests | `swift test --filter CrumpleCoreTests` | U1, U2, and the Swift side of U5 on Linux | SwiftUI, haptics, VoiceOver, Reduce Motion's environment |
 | Full suite | `swift test` | The new tests and the existing cores still pass | The view body |
 | View syntax | `swiftc -parse` on `Sources/CrumpleToDelete/CrumpleToDelete.swift` | The file is syntactically acceptable to the preprocessor on this host | The SwiftUI branch, which Linux strips before parsing. Not a typecheck and not a runtime |
-| JS parity | `node webports/parity.mjs` | The HTML core matches `webports/crumple-golden.json` | Pixel identity with an Apple Canvas |
+| JS parity | `node webports/crumple-parity.mjs` | The HTML core matches `webports/crumple-golden.json` | Pixel identity with an Apple Canvas |
 | Apple build | not run | Nothing | iOS and macOS compile and the drag on a device |
-| Previews | `node webports/capture.mjs` | GIF and contact sheet exist | That the GIF is a screen recording |
+| Previews | `node webports/crumple-capture.mjs` | GIF and contact sheet exist | That the GIF is a screen recording |
 
 Report the first four rows as Linux results. Report the Apple row as not run.
 

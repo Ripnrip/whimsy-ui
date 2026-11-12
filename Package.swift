@@ -1,7 +1,7 @@
 // swift-tools-version: 6.0
 import PackageDescription
 
-// The Metal shaders (PopTherapy, GrainyRingGallery, LiquidMetalCompass, ClothPoster, HoloFoilCard, OilPaintRestore, ChannelFlipCard) are compiled by Xcode into each module's
+// The Metal shaders (PopTherapy, GrainyRingGallery, LiquidMetalCompass, ClothPoster, HoloFoilCard, OilPaintRestore, ChannelFlipCard, RippleToHide) are compiled by Xcode into each module's
 // default.metallib. SwiftPM on Linux/Windows has no Metal compiler, so the resources are
 // skipped there (the SwiftUI targets compile to empty modules on those platforms anyway).
 #if os(Linux) || os(Windows)
@@ -95,6 +95,8 @@ let package = Package(
         .library(name: "RubberBandCore", targets: ["RubberBandCore"]),
         .library(name: "CrumpleToDelete", targets: ["CrumpleToDelete"]),
         .library(name: "CrumpleCore", targets: ["CrumpleCore"]),
+        .library(name: "RippleToHide", targets: ["RippleToHide"]),
+        .library(name: "RippleToHideCore", targets: ["RippleToHideCore"]),
         // A demo gallery listing every component.
         .library(name: "WhimsyGallery", targets: ["WhimsyGallery"]),
     ],
@@ -216,9 +218,13 @@ let package = Package(
         .target(name: "CrumpleCore", dependencies: ["WhimsyCore"]),
         .target(name: "CrumpleToDelete", dependencies: ["CrumpleCore"]),
 
+        .target(name: "RippleToHideCore", dependencies: ["WhimsyCore"]),
+        .target(name: "RippleToHide", dependencies: ["RippleToHideCore"],
+                exclude: metalExclude, resources: metalResources),
+
         .target(name: "WhimsyGallery", dependencies: [
             "PopTherapy", "MagneticBeadSlider", "EraserDelete", "ShutterReveal", "AliveEyes", "ScatterRegroup", "SolarFlareLike", "FlyingButton",
-            "GrainyRingGallery", "LiquidMetalCompass", "SweaterRail", "FontCollection", "FollowBlobHero", "MoonPhaseScrubber", "ClothPoster", "TiltPhotoGrid", "ScrollSpinWatch", "BoutiqueBurst", "PeelableSticker", "FrostCard", "HoloFoilCard", "OilPaintRestore", "WiggleMatchSearch", "PourOpenMenu", "OctoDoneChecklist", "AsciiNowPlaying", "DogEarPeelCard", "ColorFigureGumball", "ChannelFlipCard", "ContourInkLoader", "ShelfPull", "StarJar", "HoldToFanDock", "TiltScatterRestore", "NeighborBouncePicker", "RubberBandCardHand", "CrumpleToDelete",
+            "GrainyRingGallery", "LiquidMetalCompass", "SweaterRail", "FontCollection", "FollowBlobHero", "MoonPhaseScrubber", "ClothPoster", "TiltPhotoGrid", "ScrollSpinWatch", "BoutiqueBurst", "PeelableSticker", "FrostCard", "HoloFoilCard", "OilPaintRestore", "WiggleMatchSearch", "PourOpenMenu", "OctoDoneChecklist", "AsciiNowPlaying", "DogEarPeelCard", "ColorFigureGumball", "ChannelFlipCard", "ContourInkLoader", "ShelfPull", "StarJar", "HoldToFanDock", "TiltScatterRestore", "NeighborBouncePicker", "RubberBandCardHand", "CrumpleToDelete", "RippleToHide",
         ]),
 
         .testTarget(name: "WhimsyCoreTests", dependencies: ["WhimsyCore"]),
@@ -259,5 +265,6 @@ let package = Package(
         .testTarget(name: "NeighborBounceCoreTests", dependencies: ["NeighborBounceCore"]),
         .testTarget(name: "RubberBandCoreTests", dependencies: ["RubberBandCore"]),
         .testTarget(name: "CrumpleCoreTests", dependencies: ["CrumpleCore"]),
+        .testTarget(name: "RippleToHideCoreTests", dependencies: ["RippleToHideCore"]),
     ]
 )
