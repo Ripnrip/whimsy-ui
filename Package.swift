@@ -97,6 +97,8 @@ let package = Package(
         .library(name: "CrumpleCore", targets: ["CrumpleCore"]),
         .library(name: "RippleToHide", targets: ["RippleToHide"]),
         .library(name: "RippleToHideCore", targets: ["RippleToHideCore"]),
+        .library(name: "VelocityGlyphScatter", targets: ["VelocityGlyphScatter"]),
+        .library(name: "VelocityGlyphCore", targets: ["VelocityGlyphCore"]),
         // A demo gallery listing every component.
         .library(name: "WhimsyGallery", targets: ["WhimsyGallery"]),
     ],
@@ -222,9 +224,12 @@ let package = Package(
         .target(name: "RippleToHide", dependencies: ["RippleToHideCore"],
                 exclude: metalExclude, resources: metalResources),
 
+        .target(name: "VelocityGlyphCore", dependencies: ["WhimsyCore"]),
+        .target(name: "VelocityGlyphScatter", dependencies: ["VelocityGlyphCore"]),
+
         .target(name: "WhimsyGallery", dependencies: [
             "PopTherapy", "MagneticBeadSlider", "EraserDelete", "ShutterReveal", "AliveEyes", "ScatterRegroup", "SolarFlareLike", "FlyingButton",
-            "GrainyRingGallery", "LiquidMetalCompass", "SweaterRail", "FontCollection", "FollowBlobHero", "MoonPhaseScrubber", "ClothPoster", "TiltPhotoGrid", "ScrollSpinWatch", "BoutiqueBurst", "PeelableSticker", "FrostCard", "HoloFoilCard", "OilPaintRestore", "WiggleMatchSearch", "PourOpenMenu", "OctoDoneChecklist", "AsciiNowPlaying", "DogEarPeelCard", "ColorFigureGumball", "ChannelFlipCard", "ContourInkLoader", "ShelfPull", "StarJar", "HoldToFanDock", "TiltScatterRestore", "NeighborBouncePicker", "RubberBandCardHand", "CrumpleToDelete", "RippleToHide",
+            "GrainyRingGallery", "LiquidMetalCompass", "SweaterRail", "FontCollection", "FollowBlobHero", "MoonPhaseScrubber", "ClothPoster", "TiltPhotoGrid", "ScrollSpinWatch", "BoutiqueBurst", "PeelableSticker", "FrostCard", "HoloFoilCard", "OilPaintRestore", "WiggleMatchSearch", "PourOpenMenu", "OctoDoneChecklist", "AsciiNowPlaying", "DogEarPeelCard", "ColorFigureGumball", "ChannelFlipCard", "ContourInkLoader", "ShelfPull", "StarJar", "HoldToFanDock", "TiltScatterRestore", "NeighborBouncePicker", "RubberBandCardHand", "CrumpleToDelete", "RippleToHide", "VelocityGlyphScatter",
         ]),
 
         .testTarget(name: "WhimsyCoreTests", dependencies: ["WhimsyCore"]),
@@ -266,5 +271,6 @@ let package = Package(
         .testTarget(name: "RubberBandCoreTests", dependencies: ["RubberBandCore"]),
         .testTarget(name: "CrumpleCoreTests", dependencies: ["CrumpleCore"]),
         .testTarget(name: "RippleToHideCoreTests", dependencies: ["RippleToHideCore"]),
+        .testTarget(name: "VelocityGlyphCoreTests", dependencies: ["VelocityGlyphCore"]),
     ]
 )
