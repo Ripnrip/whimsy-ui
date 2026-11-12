@@ -1,6 +1,6 @@
-# 34 — NeighborBouncePicker tools
+# 35 — NeighborBouncePicker tools
 
-Numbered against `main` (33 components, HoldToFanDock last). Do not treat the unmerged TiltScatterRestore pull request as already landed.
+Component 35 on main, after TiltScatterRestore (34). HoldToFanDock is 33.
 
 ## Core tests (Linux)
 
@@ -13,7 +13,7 @@ The parity test writes `/tmp/neighborbounce-swift-trace.txt`.
 ## Bit-identical preview
 
 ```sh
-node webports/parity.mjs /tmp/neighborbounce-swift-trace.txt
+node webports/neighborbounce-parity.mjs /tmp/neighborbounce-swift-trace.txt
 ```
 
 `webports/neighborbounce-core.js` repeats the layout, the kick, the 1/240 s integrator and the scripted session. `webports/neighborbounce.html` draws that model. Open it to tap, or `?t=1.2` to render one instant.
@@ -21,7 +21,7 @@ node webports/parity.mjs /tmp/neighborbounce-swift-trace.txt
 ## Capture
 
 ```sh
-node webports/capture.mjs
+node webports/neighborbounce-capture.mjs
 ```
 
 Writes `docs/neighborbounce.gif` plus stills. Copy the gif and the contact sheet to the artifacts directory for delivery.

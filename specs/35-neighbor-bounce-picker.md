@@ -1,6 +1,6 @@
-# 34 — NeighborBouncePicker
+# 35 — NeighborBouncePicker
 
-Numbered against `main`, where HoldToFanDock is the 33rd component. The open TiltScatterRestore pull request is not on `main` and is not part of this spec.
+Component 35 on main, after TiltScatterRestore (34). HoldToFanDock is 33.
 
 A segmented control of 5, 6 or 7 ticks. Selecting one kicks every other tick upward and outward. The kick is delayed by distance and multiplied by 5/8 at each step. Landing plays a light haptic, and a second landing inside the gap is dropped. A new selection does not rewrite positions or velocities.
 
@@ -54,4 +54,4 @@ The control is a group, “Neighbor bounce picker”, value `spokenSelection` (�
 
 ## Verification
 
-`NeighborBounceCoreTests` on Linux. `webports/parity.mjs` compares `NeighborBounceTrace.parityLines()` to the JavaScript port. The SwiftUI file is behind `#if canImport(SwiftUI)` and is not executed on Linux.
+`NeighborBounceCoreTests` on Linux. `webports/neighborbounce-parity.mjs` compares `NeighborBounceTrace.parityLines()` to the JavaScript port. The SwiftUI file is behind `#if canImport(SwiftUI)` and is not executed on Linux.

@@ -87,6 +87,8 @@ let package = Package(
         .library(name: "StarJarCore", targets: ["StarJarCore"]),
         .library(name: "HoldToFanDock", targets: ["HoldToFanDock"]),
         .library(name: "HoldToFanCore", targets: ["HoldToFanCore"]),
+        .library(name: "TiltScatterRestore", targets: ["TiltScatterRestore"]),
+        .library(name: "TiltScatterCore", targets: ["TiltScatterCore"]),
         .library(name: "NeighborBouncePicker", targets: ["NeighborBouncePicker"]),
         .library(name: "NeighborBounceCore", targets: ["NeighborBounceCore"]),
         // A demo gallery listing every component.
@@ -198,12 +200,15 @@ let package = Package(
         .target(name: "HoldToFanCore", dependencies: ["WhimsyCore"]),
         .target(name: "HoldToFanDock", dependencies: ["HoldToFanCore"]),
 
+        .target(name: "TiltScatterCore", dependencies: ["WhimsyCore"]),
+        .target(name: "TiltScatterRestore", dependencies: ["TiltScatterCore"]),
+
         .target(name: "NeighborBounceCore", dependencies: ["WhimsyCore"]),
         .target(name: "NeighborBouncePicker", dependencies: ["NeighborBounceCore"]),
 
         .target(name: "WhimsyGallery", dependencies: [
             "PopTherapy", "MagneticBeadSlider", "EraserDelete", "ShutterReveal", "AliveEyes", "ScatterRegroup", "SolarFlareLike", "FlyingButton",
-            "GrainyRingGallery", "LiquidMetalCompass", "SweaterRail", "FontCollection", "FollowBlobHero", "MoonPhaseScrubber", "ClothPoster", "TiltPhotoGrid", "ScrollSpinWatch", "BoutiqueBurst", "PeelableSticker", "FrostCard", "HoloFoilCard", "OilPaintRestore", "WiggleMatchSearch", "PourOpenMenu", "OctoDoneChecklist", "AsciiNowPlaying", "DogEarPeelCard", "ColorFigureGumball", "ChannelFlipCard", "ContourInkLoader",             "ShelfPull", "StarJar", "HoldToFanDock", "NeighborBouncePicker",
+            "GrainyRingGallery", "LiquidMetalCompass", "SweaterRail", "FontCollection", "FollowBlobHero", "MoonPhaseScrubber", "ClothPoster", "TiltPhotoGrid", "ScrollSpinWatch", "BoutiqueBurst", "PeelableSticker", "FrostCard", "HoloFoilCard", "OilPaintRestore", "WiggleMatchSearch", "PourOpenMenu", "OctoDoneChecklist", "AsciiNowPlaying", "DogEarPeelCard", "ColorFigureGumball", "ChannelFlipCard", "ContourInkLoader", "ShelfPull", "StarJar", "HoldToFanDock", "TiltScatterRestore", "NeighborBouncePicker",
         ]),
 
         .testTarget(name: "WhimsyCoreTests", dependencies: ["WhimsyCore"]),
@@ -240,6 +245,7 @@ let package = Package(
         .testTarget(name: "ShelfPullCoreTests", dependencies: ["ShelfPullCore"]),
         .testTarget(name: "StarJarCoreTests", dependencies: ["StarJarCore"]),
         .testTarget(name: "HoldToFanCoreTests", dependencies: ["HoldToFanCore"]),
+        .testTarget(name: "TiltScatterCoreTests", dependencies: ["TiltScatterCore"]),
         .testTarget(name: "NeighborBounceCoreTests", dependencies: ["NeighborBounceCore"]),
     ]
 )
