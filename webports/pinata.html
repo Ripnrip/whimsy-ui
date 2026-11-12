@@ -87,7 +87,9 @@ function drawBody(c, model, center, angle, clip, opacity) {
   c.save();
   c.globalAlpha = opacity;
   c.translate(center.x, center.y);
-  c.rotate(angle);
+  // Canvas rotates clockwise for a positive angle. The pendulum frame is the other way,
+  // so the painted crown stays on the ribbon endpoint from pendulum.world.
+  c.rotate(-angle);
   c.beginPath();
   if (clip === "left") c.rect(-220, -220, 220, 440);
   else if (clip === "right") c.rect(0, -220, 220, 440);

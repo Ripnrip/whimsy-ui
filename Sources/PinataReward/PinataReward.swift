@@ -161,7 +161,9 @@ public struct PinataReward: View {
         ctx.drawLayer { layer in
             layer.opacity = opacity
             layer.translateBy(x: center.x, y: center.y)
-            layer.rotate(by: .radians(angle))
+            // SwiftUI rotates clockwise for a positive angle. The pendulum frame is the other way:
+            // local (x, y) maps to (x cos + y sin, −x sin + y cos), so the crown stays on the ribbon.
+            layer.rotate(by: .radians(-angle))
             switch clip {
             case .both: break
             case .left:
