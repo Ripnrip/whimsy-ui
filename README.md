@@ -1,6 +1,6 @@
 # whimsy-ui
 
-Thirty-four small, tactile SwiftUI components, each with a pure-Swift, unit-tested core:
+Thirty-eight small, tactile SwiftUI components, each with a pure-Swift, unit-tested core:
 
 | | Component | What it does |
 |---|---|---|
@@ -37,11 +37,15 @@ Thirty-four small, tactile SwiftUI components, each with a pure-Swift, unit-test
 | 📚 | **ShelfPull** | A wooden shelf of seven book spines. Drag one up against a rubber band while its neighbours lean into the gap. Pull past the commit distance, or flick, and it lifts free, turns 90° to show its cover and opens into a card with a small live demo. Tap outside and it turns back and slides home with a soft thunk. Let go early and it springs back. Reduce Motion crossfades to the card without the 3D turn. |
 | ✨ | **StarJar** | A glass jar of about forty stars asleep in a dim heap. Tap it and they brighten, twinkle on their own rhythms and float up to drift like fireflies; drag inside to stir them, with a soft tick when one brushes the glass. While it is awake the page stops scrolling. Tap outside and they settle back down and dim. Reduce Motion gives a steady glow with no wander. |
 | 🎯 | **HoldToFanDock** | A floating action button that fans four tabs out along a quarter-circle when you press and hold. Drag toward a tab to highlight it, lift to select, or drag off the arc to cancel. A short tap never arms. Reduce Motion snaps open and closed. |
+| 📜 | **TiltScatterRestore** | Completing a row fades its title into letter chips that tumble under gravity. Tip the phone, or drag the tray, and they slide. Restore springs every chip back into its own letter. Reduce Motion keeps the chips seated in the word. |
+| 🎛️ | **NeighborBouncePicker** | A segmented control of five to seven ticks. Choosing one launches its neighbours up and outward in a spring wave, staggered by distance and quieter the further they sit, with a light haptic as they land. Rapid taps keep the springs where they are. Reduce Motion snaps the pill and leaves the ticks seated. |
+| 🃏 | **RubberBandCardHand** | Five generated cards fanned along the bottom. Slide across them and the nearest one lifts about 20 points, with a light haptic on each newly lifted card. Drag one up through a rubber band, or flick it, and it springs to centre and turns over. Let go early and it returns to the hand. |
+| 🗑️ | **CrumpleToDelete** | Drag a card toward the trash and it crumples into forty shaded triangles. Let go past 80%, or inside the bin, and it snaps into a ball and arcs in. Let go early and it springs flat. |
 | 🌊 | **RippleToHide** | A balance card. Tap the amount and a ripple hides it: the digits become dots halfway through the wave, and a soft haptic ticks as the front passes. Tap again and the ripple runs backward. Reduce Motion crossfades. |
 
 iOS 17+ / macOS 14+, Swift tools 6.0 (Swift 6 language mode).
 
-> **Honest status:** every core target builds, and all 1263 tests pass on Linux (Swift 6.4.1).
+> **Honest status:** every core target builds, and all 1399 tests pass on Linux (Swift 6.4.2).
 > The SwiftUI targets have **not yet been compiled or run on an Apple platform**. On Linux
 > they compile to empty modules (`#if canImport(SwiftUI)`). They were checked with
 > sourcekit-lsp (0 diagnostics), `swiftc -parse` and careful API review, but expect
@@ -69,8 +73,8 @@ targets: [
 ```
 
 Each component is its own product: `PopTherapy`, `MagneticBeadSlider`, `EraserDelete`,
-`ShutterReveal`, `AliveEyes`, `ScatterRegroup`, `SolarFlareLike`, `FlyingButton`, `GrainyRingGallery`, `LiquidMetalCompass`, `SweaterRail`, `FontCollection`, `FollowBlobHero`, `MoonPhaseScrubber`, `ClothPoster`, `TiltPhotoGrid`, `ScrollSpinWatch`, `BoutiqueBurst`, `PeelableSticker`, `FrostCard`, `HoloFoilCard`, `OilPaintRestore`, `WiggleMatchSearch`, `PourOpenMenu`, `OctoDoneChecklist`, `AsciiNowPlaying`, `DogEarPeelCard`, `ColorFigureGumball`, `ChannelFlipCard`, `ContourInkLoader`, `ShelfPull`, `StarJar`, `HoldToFanDock` and `RippleToHide`. There's also a SwiftUI-free `…Core` product for each
-(e.g. `ShutterRevealCore`), plus `WhimsyGallery`, a demo list of all thirty-four.
+`ShutterReveal`, `AliveEyes`, `ScatterRegroup`, `SolarFlareLike`, `FlyingButton`, `GrainyRingGallery`, `LiquidMetalCompass`, `SweaterRail`, `FontCollection`, `FollowBlobHero`, `MoonPhaseScrubber`, `ClothPoster`, `TiltPhotoGrid`, `ScrollSpinWatch`, `BoutiqueBurst`, `PeelableSticker`, `FrostCard`, `HoloFoilCard`, `OilPaintRestore`, `WiggleMatchSearch`, `PourOpenMenu`, `OctoDoneChecklist`, `AsciiNowPlaying`, `DogEarPeelCard`, `ColorFigureGumball`, `ChannelFlipCard`, `ContourInkLoader`, `ShelfPull`, `StarJar`, `HoldToFanDock`, `TiltScatterRestore`, `NeighborBouncePicker`, `RubberBandCardHand`, `CrumpleToDelete` and `RippleToHide`. There's also a SwiftUI-free `…Core` product for each
+(e.g. `ShutterRevealCore`), plus `WhimsyGallery`, a demo list of all thirty-eight.
 
 ```swift
 import WhimsyGallery
@@ -1095,6 +1099,109 @@ HoldToFanDock(items: [                                            // 3 ... 5 tab
 - **Not compiled on Linux:** the SwiftUI view could not be built here (there is no SwiftUI on Linux). It was parse-checked and linted, and the core is tested.
   The gestures and the haptics have not been tried on a device.
 
+### 📜 TiltScatterRestore
+
+![TiltScatterRestore](docs/tiltscatter.gif)
+
+```swift
+import TiltScatterRestore
+
+TiltScatterRestore()                                              // five paper tasks
+TiltScatterRestore(tasks: [
+    TiltScatterTask(id: "fern", title: "Water the fern"),
+    TiltScatterTask(id: "ink", title: "Buy walnut ink"),
+])
+```
+
+- **What it does:** a paper to-do list. Complete a row and its title fades into one chip per letter. The chips hop off the line and tumble into the tray under gravity. Tip the phone (or drag inside the tray) and the pile slides to the low side. Restore springs every chip back onto its own glyph, then snaps it exactly home and the title returns. Tapping a row again restores just that line.
+- **Gravity:** at tilt `(0, 0)` the acceleration is `(0, sin(0.70) × 1500)` points/s², straight down the screen. `tilt.x` rolls it (positive slides letters right). `tilt.y` pitches it (positive, tipped back, can send letters up the screen). Device pitch above the reading pose strengthens the downward pull. `sin` is a fixed Taylor polynomial so the web preview matches the core bit for bit.
+- **Chips:** spaces are gaps. A line wider than the row is scaled to fit. Chips pass through their own word until they have dropped 26 pt, then disks of radius 7.5 collide, bounce with restitution 0.22, and sleep once they are supported and nearly still. A sideways pull stronger than 120 pt/s² wakes the pile.
+- **Restore:** a damped spring (k = 220, ζ = 0.78, and a stiffer angular spring) pulls each chip to the home stored on that chip. Within 0.4 pt and 0.02 rad it snaps exactly: position, angle and velocity are the home values, not a nearby chip's.
+- **Phases:** `idle`, `dissolving` (0.42 s), `tumbling`, `restoring`, and `pinned` for Reduce Motion. Events: `completed`, `scattered`, `restoreBegan`, `seated`, and haptics for the complete, the first landing in a tumble, and Restore.
+- **Pure-Swift core:** `TiltScatterCore` owns the glyph metrics, the gravity map, the state machine and the fixed 1/120 s integrator. It imports only Foundation (through `WhimsyCore`), so it tests on Linux (44 tests, Swift Testing).
+- **Reduce Motion:** no kick, no fall and no spring. The title fades into chips that stay seated on the letters, and Restore puts the title back at once.
+- **Web port:** `webports/tiltscatter.html` repeats the core with the same constants. A parity check compared 108 lines of the reference session (glyph homes, kicks, tumbles, tilt and the restore spring) between the Swift core and the port, and they matched bit for bit.
+- **Not compiled on Linux:** the SwiftUI view could not be built here (there is no SwiftUI or CoreMotion on Linux). It was parse-checked, and the core is tested. The gesture, the haptics and device motion have not been tried on a phone.
+
+### 🎛️ NeighborBouncePicker
+
+![NeighborBouncePicker](docs/neighborbounce.gif)
+
+```swift
+import NeighborBouncePicker
+
+@State private var choice = 2
+NeighborBouncePicker(selection: $choice)                         // Ink, Sage, Clay, Gold, Plum, Tide
+NeighborBouncePicker(selection: $choice, ticks: [                // 5…7 ticks; extras dropped, a short list padded
+    NeighborTick(id: "s", title: "S", red: 0.35, green: 0.52, blue: 0.40),
+    NeighborTick(id: "m", title: "M", red: 0.72, green: 0.40, blue: 0.30),
+    NeighborTick(id: "l", title: "L", red: 0.78, green: 0.58, blue: 0.22),
+    NeighborTick(id: "xl", title: "XL", red: 0.48, green: 0.28, blue: 0.48),
+    NeighborTick(id: "xxl", title: "XXL", red: 0.22, green: 0.42, blue: 0.55),
+])
+NeighborBouncePickerDemo()
+```
+
+- **What it does:** a row of round ticks on a soft track, with a coloured pill under the selection. Tap one, or drag along the row, and every other tick is kicked up and outward. The kick waits `distance × 50 ms` and each step of distance multiplies the speed by 5/8, so the neighbours nearest the choice hop highest and the far ones only shrug. A light haptic ticks as a tick lands, and a second landing inside 75 ms is swallowed. Tapping the selected tick plays the wave again.
+- **Continuity:** `select` never writes a position or a velocity. It throws away kicks that have not fired and schedules a new wave from the current time. A rapid series of choices keeps the springs in flight; they do not snap back to the track between taps. The pill is its own spring and only changes target.
+- **Landing:** a tick is airborne once it has been kicked. It lands when it falls back through 4 pt above rest, still moving down faster than 48 pt/s. That is one landing per kick. The core, not the view, enforces the gap, so the preview and the tests see the same ticks.
+- **Counts:** 5, 6 or 7. Anything else is clamped. An empty list is the six demo ticks. `NeighborTick.fitted` is the rule the view uses.
+- **Pure-Swift core:** `NeighborBounceCore` owns the layout, the 3-4-5 kick, the staggered impulses, the offset and scale springs, the pill, and the landing gate. It steps at 1/240 s (a long frame is clamped to 24 steps) and imports only Foundation (through `WhimsyCore`), so it tests on Linux (30 tests, Swift Testing).
+- **Reduce Motion:** no kicks and no springs. The pill and the selected scale snap, every offset is zero, and a selection haptic replaces the landing ticks. Turning Reduce Motion on in the middle of a wave seats the row immediately.
+- **VoiceOver:** the row is a group labelled "Neighbor bounce picker". Each tick is a button with its title, a Selected or Not selected value, and a hint that the neighbours will bounce. Activating one selects it. A change is announced as "Gold, selected".
+- **Web port:** `webports/neighborbounce.html` repeats the core with the same constants. A parity check compared 172 lines (layout, kicks, the fitted row, and a scripted session with a rapid re-selection and Reduce Motion) between the Swift core and the port, and they matched bit for bit.
+- **Not compiled on Linux:** the SwiftUI view could not be built here (there is no SwiftUI on Linux). It was syntax-parsed, and the core is tested. The gesture, the haptic and VoiceOver have not been tried on a device.
+
+### 🃏 RubberBandCardHand
+
+![RubberBandCardHand](docs/rubberband.gif)
+
+```swift
+import RubberBandCardHand
+
+RubberBandCardHand()                                          // the five built-in cards
+RubberBandCardHand(cards: [
+    RubberBandCard(title: "Lumen", kicker: "FIELD NOTES", detail: "After the lamps go out."),
+    RubberBandCard(title: "Terrace", kicker: "AFTERNOON", detail: "Steps that keep the heat."),
+    RubberBandCard(title: "Citrus", kicker: "MARKET", detail: "Three fruits and a leaf."),
+    RubberBandCard(title: "Night Train", kicker: "PLATFORM 4", detail: "Windows with the lamp on."),
+    RubberBandCard(title: "Botanic", kicker: "GLASSHOUSE", detail: "A plant remembered by a stencil."),
+]) { card in open(card) }                                     // your words; the pictures stay the five designs
+```
+
+- **What it does:** five cards sit in an arc along the bottom, the middle one highest. Slide a finger across the hand and the nearest card lifts 20 points, with a light haptic each time the lift moves to a card it was not on before. Drag that card upward and it follows through a rubber band. Past the line, or with a fast flick, it springs to the centre and turns over in 3D to a short detail. Let go early and it springs back into its slot. Drag the open card down past a line, tap outside it, or press Done, and it turns back and lands in the hand.
+- **Arc:** the pivot sits below the canvas. Card *i* is at angle `-π/2 + (i − 2) / 2 · 0.42`, so the fan spans 0.84 radians and card 2 is upright. Cards are 108 × 158. The outer bottoms (before rotation) sit 52 points above the canvas bottom, which leaves the rotated corners on screen.
+- **Rubber band:** a raw finger offset of `x` points shows as `x · 0.55 / (1 + |x| / 300)`. The slope starts at 0.55 and falls off, and the curve never quite reaches 165 points. The same curve resists a downward pull on the open card. Release uses the finger's speed over the last tenth of a second: at least 56 points of resisted rise commits, or 900 points per second upward after 22 points of travel. A finger that has stopped does not count as a flick.
+- **Flight:** a `WhimsySpring` carries the card to centre (stiffness 190, damping 0.76) while a critically damped spring turns `flip` from 0 to 1. The view maps that to a 180° `rotation3DEffect` on the vertical axis and swaps in the detail at halfway, pre-rotated so the type reads the right way. Reduce Motion snaps to the detail and back, with no flight and no 3D turn.
+- **Pictures:** each slot has its own generated marks (ellipses, round rects, capsules) and a paper colour. No images. Passing your own cards replaces the words for those slots and keeps the picture.
+- **Pure-Swift core:** `RubberBandCore` owns the arc, the resistance and its slope, the velocity window, the hover hysteresis, the grab, and the phase machine (`resting`, `browsing`, `dragging`, `presenting`, `presented`, `dismissing`, `returning`). It imports only Foundation (through `WhimsyCore`), so it tests on Linux (36 tests, Swift Testing).
+- **Reduce Motion:** lifts snap, and opening or closing skips the spring and the 3D turn. The detail replaces the picture in place. Haptics and the VoiceOver actions still fire.
+- **Web port:** `webports/rubberband.html` (core in `webports/rubber-core.js`) repeats the core with the same constants. A trace of 411 lines — layout, the resistance curve, every mark, and a scripted session — matched the Swift core exactly.
+- **Not compiled on Linux:** the SwiftUI view could not be built here (there is no SwiftUI on Linux). It was parse-checked, and the core is tested. The gestures, the 3D flip and the haptics have not been tried on a device. The GIF is the HTML canvas port, not a device recording.
+
+### 🗑️ CrumpleToDelete
+
+![CrumpleToDelete](docs/crumple.gif)
+
+```swift
+import CrumpleToDelete
+
+CrumpleToDeleteDemo()
+CrumpleToDelete {
+    Text("Grocery list")
+} onDeleted: {
+    // once, when the ball lands
+}
+```
+
+- **What it does:** drag the card toward the trash. Forty triangles fold in, shaded from a fixed light. Let go at progress 0.8 or later, or while the card's center is inside the bin, and it snaps into a ball, bounces, and arcs into the bin. The lid bumps when it lands. Let go earlier and the card springs flat. Undo on the demo puts it back.
+- **Picture:** the view you pass is the flat face. The triangles are generated paper, not a snapshot of that view. They crossfade as the drag deepens.
+- **Core:** `CrumpleCore` (`CrumpleRules`, `CrumpleMesh`, `CrumpleModel`). It imports only Foundation through `WhimsyCore`. Crease events are one per shared edge per gesture. The view coalesces the light haptic to one tick per 0.12 s and does not drop those events.
+- **Reduce Motion:** no mesh, no arc, and no lid bump. The card fades and shrinks, and a commit takes 0.35 s.
+- **VoiceOver:** the card has a Delete action, so nobody has to drag.
+- **Web port:** `webports/crumple.html` and `webports/crumple-core.js` repeat the mesh with the same constants. `node webports/crumple-parity.mjs` checks them against `webports/crumple-golden.json`, and a Swift test reads that same file.
+- **Not compiled on Linux:** `canImport(SwiftUI)` is false here, so the view body is not typechecked and `swiftc -parse` does not read it. The core tests run. Nothing was built or run on iOS or macOS.
+
 ### 🌊 RippleToHide
 
 ![RippleToHide](docs/ripple.gif)
@@ -1113,7 +1220,7 @@ RippleToHide(isHidden: $hidden, accessibilityLabel: "Everyday checking balance",
 RippleToHideDemo()
 ```
 
-- **What it does:** a balance you can hide. Tap it and a ripple runs out from the finger. Halfway through, the digits swap for bullets. A soft haptic ticks once as the wavefront passes the far side of the view. Tap again and the same wave runs backward, the digits return halfway, and it settles shown. A tap during a trip does nothing. This is the thirty-fourth component on current main, where HoldToFanDock is 33.
+- **What it does:** a balance you can hide. Tap it and a ripple runs out from the finger. Halfway through, the digits swap for bullets. A soft haptic ticks once as the wavefront passes the far side of the view. Tap again and the same wave runs backward, the digits return halfway, and it settles shown. A tap during a trip does nothing. This is the thirty-eighth component. HoldToFanDock is 33.
 - **Wave:** `sin(k·d − ω·t) · gate · exp(−t / 0.48) · exp(−d / 150)`, with `k = 2π/44`, `ω = k·240`, and a front that travels at 240 pt/s and softens over the last 20 pt. The shader returns `position − normalize(position − tap) · displacement · amplitude`. Amplitude is 14 pt. The trip lasts 0.90 s. Revealing passes `0.90 − elapsed`, so the front comes back toward the tap.
 - **Mask:** each ASCII digit becomes `•`. Currency marks and separators stay, so `"$4,820.16"` becomes `"$•,•••.••"`.
 - **Haptic:** one soft impact when the front crosses the pass radius. That radius is the distance from the tap to the farthest corner of the view, capped at 92% of the 216 pt reach, so a corner tap still crosses it. Reduce Motion does not tick.
@@ -1121,7 +1228,7 @@ RippleToHideDemo()
 - **Pure-Swift core:** `RippleToHideCore` owns the wave (the same expression as `rippleToHide` in the Metal file), the mask, and the timing / swap / haptic machine. It imports only Foundation (through `WhimsyCore`), so it tests on Linux (29 tests, Swift Testing). `webports/ripple-golden.json` is the trace the Swift tests match against the JS port.
 - **Reduce Motion:** no distortion. The two faces crossfade across 0.28 s, and the binding still flips at halfway.
 - **VoiceOver:** one toggle labelled with the accessibility label (default "Balance"). The value is "Hidden" or the amount. Double-tap toggles, and the actions rotor has "Hide balance" or "Show balance".
-- **Web port:** `webports/ripple.html` draws the card on a canvas and distorts it per pixel with `webports/ripple-core.js`, which repeats the core constants. `node webports/parity.mjs` rewrites the golden trace. The GIF is that port, not a device recording. Inter stands in for the rounded system font.
+- **Web port:** `webports/ripple.html` draws the card on a canvas and distorts it per pixel with `webports/ripple-core.js`, which repeats the core constants. `node webports/ripple-parity.mjs` rewrites the golden trace. The GIF is that port, not a device recording. Inter stands in for the rounded system font.
 - **Not compiled on Apple:** the SwiftUI view and the Metal shader were not built or run here. On Linux the view target is an empty module (`#if canImport(SwiftUI)`). `swiftc -parse` accepted the view and the gallery file; that checks syntax, not SwiftUI or Metal types. The 1263 passing tests are the Linux core suite.
 
 ---
@@ -1165,10 +1272,14 @@ Every component handles **Reduce Motion**, each in its own way:
 | ShelfPull | No 3D turn and no sliding: the card fades in over the shelf and fades out to close, the seat is a short event without the neighbours rocking, and the demos hold still. |
 | StarJar | No wake kick, no wander and no stirring: on wake the stars glow at a steady level without twinkling, and waking and settling are shorter. |
 | HoldToFanDock | No springs and no stagger: the fan snaps open the moment it arms and snaps shut on select or cancel. |
+| TiltScatterRestore | No kick, tumble or spring: the title fades into letter chips that stay seated on the word, and Restore puts the title back at once. |
+| NeighborBouncePicker | No wave and no springs: the pill snaps to the new tick and the others stay seated. A selection haptic replaces the landing ticks. |
+| RubberBandCardHand | Lifts snap, and the card opens and closes in place with no flight and no 3D turn. Dragging still uses the rubber band. |
+| CrumpleToDelete | No triangles, no arc and no lid bump. The card fades and shrinks with the drag, and a commit fades out in 0.35 s. |
 | RippleToHide | No ripple and no haptic: the amount crossfades to dots (and back) over 0.28 s. The halfway swap, the toggle and the mask work as usual. |
 
-All thirty-four have VoiceOver labels and actions (e.g. pop next bubble, adjustable slider,
-erase, open/close shutter, squint, scatter/regroup, and a like toggle with the toggle trait and a Liked / Not liked value; FlyingButton is a plain button with its title as the label; GrainyRingGallery is adjustable (swipe up/down steps cards, value "Dunes, 1 of 8") with an Open action, and its detail view is modal with a Close button and the escape gesture; LiquidMetalCompass reads e.g. "Compass to Maya: 30° to your right, 1.2 kilometres", and is adjustable by 15° when faking the heading; SweaterRail exposes each garment as a button ("Cobalt Cardigan, $146") that opens its page, which is modal with a Close button and the escape gesture; FontCollection's flip board reads "Fontastic, set in Didot" with a shuffle action, chips carry the selected trait and a font count, each card is a button ("Didot, Display") and the detail view is modal with a Close button and the escape gesture; FollowBlobHero hides the decorative blob and exposes its headline, buttons and palette chips ("Lagoon colours", selected); MoonPhaseScrubber is an adjustable element ("Moon phase, Waxing Crescent, 15 percent illuminated") that steps one named phase per swipe; ClothPoster is a labelled image ("Poster: Soft Goods, Autumn Linen Fair, 24 to 27 October") with a "Ripple" action; TiltPhotoGrid reads its phrases, then "Photo album, 18 portraits", with "Skip intro" and "Replay intro" actions; ScrollSpinWatch is adjustable (swipe up/down steps front, side, back and the spec sheet) and reads the visible text block, with stats as "47 mm, Titanium case" and the watch hidden; BoutiqueBurst reads "Boutique" as a header with an "Open the collection" action, then each figure as a button ("Plum Slip Dress, 315 dollars"), and its detail view is modal with a Close button and the escape gesture; PeelableSticker reads the sticker as "Strawberry sticker" with its peel percentage as the value and a "Peel off" action; FrostCard reads as "GLACIER PASS card" with the frosted percentage as its value and a "Frost over" / "Melt" action; HoloFoilCard reads as "NOVA DRAKE, holographic card", with the band position (left of centre, centred, right of centre) as its value. Swiping up and down sweeps the foil in 5° steps, and a "Flatten" action returns the card to flat; OilPaintRestore reads as "Lakeside, 1962, faded photo", with the percent restored as its value. "Restore all" and "Reset" actions reveal the whole picture or fade it again; WiggleMatchSearch announces the result count as you type ("3 results"). Each row reads as its title with the subtitle as its value, and a "Matched letters" custom content item lists the letters that matched; PourOpenMenu's pill reads \"Sort, Newest\" with an Expanded or Collapsed value, and the options are buttons (the current one with the selected trait) that are hidden while the menu is closed. Picking one announces \"Sorted by Popular\", and the escape gesture closes the menu; OctoDoneChecklist's rows are toggles with the task as the label and Completed or Not completed as the value. Ticking announces "Completed Water the ferns" (and "… not completed" for an undo). Complete all and Reset are buttons with hints, rows that have gone are hidden from VoiceOver, and a sweep announces "Completing 3 tasks"; AsciiNowPlaying reads as one card: the track and artist, then Playing or Paused. The art is an image named ASCII album art with the value 48 columns, medium. It is adjustable, so swipe up or down to step the detail by 8 columns, and it has a Scramble action. Play and Pause is a button, the scrubber reads 1:23 of 3:34, and changes announce "Playing", "Paused" or "Detail 56 columns, fine"; DogEarPeelCard reads as one card: the invitation text, with the value Closed, Peeling 40 percent or Peeled away. It has a Peel action that comes away from rest, so nobody has to drag. Once the card has gone, the note is a separate element that reads its heading, text and address, and the reveal is announced as "Card peeled away" followed by the note. Reset is a button, and a restore announces "Card restored"; ColorFigureGumball reads as one element, "Gumball machine", whose value is the status (such as "Turn the crank"), whether see-through is on and how many gumballs it has dispensed. Insert coin, Turn crank and Toggle see-through are custom actions, so nobody has to drag. The swatches are labelled buttons with the selected one marked, the wobble slider reads as a percentage, and "Coin in. Turn the crank", "Dispensing" and the colour of the gumball that came out are announced; ChannelFlipCard reads as one element, "Channel flip card", whose value is the channel number, the photo's caption and its place (such as "CH 03, Night City, photo 3 of 6"). Adjusting up or down changes photo, Next channel and Previous channel are custom actions, and every change is announced with its channel number and caption; ContourInkLoader reads as one element: the label "Loading" with the value "Sketching a topographic map" while `isAnimating` is true (even under Reduce Motion, where the map is still but the work goes on), otherwise just "Topographic map"; ShelfPull reads each spine as a button labelled "Book: title" with an action that opens it without dragging; the open card is a modal with a Close button and an escape action, and opening it is announced; StarJar reads as a button labelled "Star jar" with the value Awake or Asleep and an action that wakes it or puts it to rest; HoldToFanDock reads as a button labelled "Open menu" with a hint to press and hold, and each visible tab keeps its own label; RippleToHide is a toggle labelled "Balance" (or the label you pass), with the value Hidden or the amount, and "Hide balance" / "Show balance" actions).
+All thirty-eight have VoiceOver labels and actions (e.g. pop next bubble, adjustable slider,
+erase, open/close shutter, squint, scatter/regroup, and a like toggle with the toggle trait and a Liked / Not liked value; FlyingButton is a plain button with its title as the label; GrainyRingGallery is adjustable (swipe up/down steps cards, value "Dunes, 1 of 8") with an Open action, and its detail view is modal with a Close button and the escape gesture; LiquidMetalCompass reads e.g. "Compass to Maya: 30° to your right, 1.2 kilometres", and is adjustable by 15° when faking the heading; SweaterRail exposes each garment as a button ("Cobalt Cardigan, $146") that opens its page, which is modal with a Close button and the escape gesture; FontCollection's flip board reads "Fontastic, set in Didot" with a shuffle action, chips carry the selected trait and a font count, each card is a button ("Didot, Display") and the detail view is modal with a Close button and the escape gesture; FollowBlobHero hides the decorative blob and exposes its headline, buttons and palette chips ("Lagoon colours", selected); MoonPhaseScrubber is an adjustable element ("Moon phase, Waxing Crescent, 15 percent illuminated") that steps one named phase per swipe; ClothPoster is a labelled image ("Poster: Soft Goods, Autumn Linen Fair, 24 to 27 October") with a "Ripple" action; TiltPhotoGrid reads its phrases, then "Photo album, 18 portraits", with "Skip intro" and "Replay intro" actions; ScrollSpinWatch is adjustable (swipe up/down steps front, side, back and the spec sheet) and reads the visible text block, with stats as "47 mm, Titanium case" and the watch hidden; BoutiqueBurst reads "Boutique" as a header with an "Open the collection" action, then each figure as a button ("Plum Slip Dress, 315 dollars"), and its detail view is modal with a Close button and the escape gesture; PeelableSticker reads the sticker as "Strawberry sticker" with its peel percentage as the value and a "Peel off" action; FrostCard reads as "GLACIER PASS card" with the frosted percentage as its value and a "Frost over" / "Melt" action; HoloFoilCard reads as "NOVA DRAKE, holographic card", with the band position (left of centre, centred, right of centre) as its value. Swiping up and down sweeps the foil in 5° steps, and a "Flatten" action returns the card to flat; OilPaintRestore reads as "Lakeside, 1962, faded photo", with the percent restored as its value. "Restore all" and "Reset" actions reveal the whole picture or fade it again; WiggleMatchSearch announces the result count as you type ("3 results"). Each row reads as its title with the subtitle as its value, and a "Matched letters" custom content item lists the letters that matched; PourOpenMenu's pill reads \"Sort, Newest\" with an Expanded or Collapsed value, and the options are buttons (the current one with the selected trait) that are hidden while the menu is closed. Picking one announces \"Sorted by Popular\", and the escape gesture closes the menu; OctoDoneChecklist's rows are toggles with the task as the label and Completed or Not completed as the value. Ticking announces "Completed Water the ferns" (and "… not completed" for an undo). Complete all and Reset are buttons with hints, rows that have gone are hidden from VoiceOver, and a sweep announces "Completing 3 tasks"; AsciiNowPlaying reads as one card: the track and artist, then Playing or Paused. The art is an image named ASCII album art with the value 48 columns, medium. It is adjustable, so swipe up or down to step the detail by 8 columns, and it has a Scramble action. Play and Pause is a button, the scrubber reads 1:23 of 3:34, and changes announce "Playing", "Paused" or "Detail 56 columns, fine"; DogEarPeelCard reads as one card: the invitation text, with the value Closed, Peeling 40 percent or Peeled away. It has a Peel action that comes away from rest, so nobody has to drag. Once the card has gone, the note is a separate element that reads its heading, text and address, and the reveal is announced as "Card peeled away" followed by the note. Reset is a button, and a restore announces "Card restored"; ColorFigureGumball reads as one element, "Gumball machine", whose value is the status (such as "Turn the crank"), whether see-through is on and how many gumballs it has dispensed. Insert coin, Turn crank and Toggle see-through are custom actions, so nobody has to drag. The swatches are labelled buttons with the selected one marked, the wobble slider reads as a percentage, and "Coin in. Turn the crank", "Dispensing" and the colour of the gumball that came out are announced; ChannelFlipCard reads as one element, "Channel flip card", whose value is the channel number, the photo's caption and its place (such as "CH 03, Night City, photo 3 of 6"). Adjusting up or down changes photo, Next channel and Previous channel are custom actions, and every change is announced with its channel number and caption; ContourInkLoader reads as one element: the label "Loading" with the value "Sketching a topographic map" while `isAnimating` is true (even under Reduce Motion, where the map is still but the work goes on), otherwise just "Topographic map"; ShelfPull reads each spine as a button labelled "Book: title" with an action that opens it without dragging; the open card is a modal with a Close button and an escape action, and opening it is announced; StarJar reads as a button labelled "Star jar" with the value Awake or Asleep and an action that wakes it or puts it to rest; HoldToFanDock reads as a button labelled "Open menu" with a hint to press and hold, and each visible tab keeps its own label; TiltScatterRestore's rows are toggles labelled with the task and a value of Not completed, Completing, Completed, letters scattered, Restoring or Completed. Restore is a button, and the tray tilt is adjustable — swipe up tips right, swipe down tips left — with a Level the tray action. Completing announces "Completed Water the fern. Letters scattered", and a restore announces "Restored Water the fern"; NeighborBouncePicker is a group labelled "Neighbor bounce picker" whose value is the current tick ("Gold, selected"). Each tick is a button with a Selected or Not selected value, and choosing one is announced; RubberBandCardHand reads each card as a button, "Lumen, card 1 of 5", with the value Lifted or In the hand and an Open action, so nobody has to drag. The open card is modal, its detail is the value, Done and the escape action put it back, and opening and returning are announced; CrumpleToDelete reads as "Card" with the value Ready or Deleted, a Delete action, and Undo restores it; RippleToHide is a toggle labelled "Balance" (or the label you pass), with the value Hidden or the amount, and "Hide balance" / "Show balance" actions).
 
 ## Layout
 
@@ -1208,8 +1319,12 @@ Sources/
   ShelfPullCore/        ShelfPull/
   StarJarCore/          StarJar/
   HoldToFanCore/        HoldToFanDock/
+  TiltScatterCore/      TiltScatterRestore/
+  NeighborBounceCore/   NeighborBouncePicker/
+  RubberBandCore/       RubberBandCardHand/
+  CrumpleCore/          CrumpleToDelete/
   RippleToHideCore/     RippleToHide/        (+ Resources/RippleToHide.metal)
-  WhimsyGallery/         Demo gallery of all thirty-four
+  WhimsyGallery/         Demo gallery of all thirty-eight
 Tests/                   Swift Testing suites for WhimsyCore and every core
 docs/                    README GIFs
 ```

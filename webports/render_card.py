@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Rasterise the balance card the GIF distorts. The ripple itself is applied in capture.mjs."""
+"""Rasterise the balance card the GIF distorts. The ripple itself is applied in ripple-capture.mjs."""
 
 import json
 import sys

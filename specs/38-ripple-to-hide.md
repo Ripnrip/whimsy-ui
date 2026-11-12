@@ -1,6 +1,6 @@
-# 34 — RippleToHide
+# 38 — RippleToHide
 
-Numbered from current main, where HoldToFanDock is 33. Open pull requests 1, 2, 3, and 4 also use 34 and are not included here.
+Component 38 on main, after TiltScatterRestore (34), NeighborBouncePicker (35), RubberBandCardHand (36), and CrumpleToDelete (37). HoldToFanDock is 33.
 
 ## API
 
@@ -31,4 +31,4 @@ Reduce Motion crossfades the two faces over 0.28 s and does not distort or tick.
 
 ## Verification
 
-Linux runs `RippleToHideCoreTests` (29 tests) as part of `swift test` (1263 tests, Swift 6.4.1) and `node webports/parity.mjs`. `swiftc -parse` of the view and the gallery file succeeded. That parse does not typecheck SwiftUI, and the Metal file was not compiled. No Apple build or device run was done for this component. The GIF and the contact sheet are the canvas port (`webports/capture.mjs`), using the JS core for every sample coordinate.
+Linux runs `RippleToHideCoreTests` (29 tests) as part of `swift test` (1263 tests, Swift 6.4.1) and `node webports/ripple-parity.mjs`. `swiftc -parse` of the view and the gallery file succeeded. That parse does not typecheck SwiftUI, and the Metal file was not compiled. No Apple build or device run was done for this component. The GIF and the contact sheet are the canvas port (`webports/ripple-capture.mjs`), using the JS core for every sample coordinate.
