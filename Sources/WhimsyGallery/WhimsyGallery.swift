@@ -36,8 +36,9 @@ import ContourInkLoader
 import ShelfPull
 import StarJar
 import HoldToFanDock
+import PinataReward
 
-/// A navigation list of all thirty-three components with a small live demo of each.
+/// A navigation list of all thirty-four components with a small live demo of each.
 /// Drop `WhimsyGallery()` into a scene to browse them.
 public struct WhimsyGallery: View {
     public init() {}
@@ -69,7 +70,7 @@ public struct WhimsyGallery: View {
 }
 
 enum GalleryItem: String, CaseIterable, Identifiable, Hashable {
-    case popTherapy, magneticBeads, eraserDelete, shutterReveal, aliveEyes, scatterRegroup, solarFlare, flyingButton, ringGallery, liquidCompass, sweaterRail, fontCollection, followBlob, moonPhase, clothPoster, tiltGrid, spinWatch, boutique, peelSticker, frostCard, holoFoilCard, oilPaintRestore, wiggleMatchSearch, pourOpenMenu, octoDoneChecklist, asciiNowPlaying, dogEarPeelCard, colorFigureGumball, channelFlipCard, contourInkLoader, shelfPull, starJar, holdToFanDock
+    case popTherapy, magneticBeads, eraserDelete, shutterReveal, aliveEyes, scatterRegroup, solarFlare, flyingButton, ringGallery, liquidCompass, sweaterRail, fontCollection, followBlob, moonPhase, clothPoster, tiltGrid, spinWatch, boutique, peelSticker, frostCard, holoFoilCard, oilPaintRestore, wiggleMatchSearch, pourOpenMenu, octoDoneChecklist, asciiNowPlaying, dogEarPeelCard, colorFigureGumball, channelFlipCard, contourInkLoader, shelfPull, starJar, holdToFanDock, pinataReward
     var id: String { rawValue }
 
     var title: String {
@@ -107,6 +108,7 @@ enum GalleryItem: String, CaseIterable, Identifiable, Hashable {
         case .shelfPull: "Shelf Pull"
         case .starJar: "Star Jar"
         case .holdToFanDock: "Hold-to-Fan Dock"
+        case .pinataReward: "Piñata Reward"
         }
     }
 
@@ -145,6 +147,7 @@ enum GalleryItem: String, CaseIterable, Identifiable, Hashable {
         case .shelfPull: "Pull a book off the shelf, watch it turn, and read its card"
         case .starJar: "Tap a jar of sleeping stars to wake them, stir them with a finger"
         case .holdToFanDock: "Press and hold a FAB to fan tabs out along a quarter-circle"
+        case .pinataReward: "Tap a hanging piñata until it splits and pays out"
         }
     }
 
@@ -183,6 +186,7 @@ enum GalleryItem: String, CaseIterable, Identifiable, Hashable {
         case .shelfPull: "books.vertical"
         case .starJar: "sparkles"
         case .holdToFanDock: "plus.circle.fill"
+        case .pinataReward: "gift.fill"
         }
     }
 
@@ -221,6 +225,7 @@ enum GalleryItem: String, CaseIterable, Identifiable, Hashable {
         case .shelfPull: ShelfPull()
         case .starJar: StarJarDemo()
         case .holdToFanDock: HoldToFanDockDemo()
+        case .pinataReward: PinataRewardDemo()
         }
     }
 }

@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Piñata Reward</title>
+<style>
+  html, body { margin: 0; height: 100%; background: #140818; }
+  body { display: flex; align-items: center; justify-content: center; }
+  canvas { display: block; border-radius: 28px; }
+  #sheet { display: none; border-radius: 0; }
+</style>
+</head>
+<body>
+<canvas id="stage" width="640" height="960" style="width:320px;height:480px"></canvas>
+<canvas id="sheet" width="10" height="10"></canvas>
+<script type="module">
+import { TUNING, demoAt, DEMO_STILLS, DEMO_DURATION, PinataModel } from "./pinata-core.mjs";
+
+const W = TUNING.canvasWidth;
+const H = TUNING.canvasHeight;
+const CANDY = ["#ff5c8f", "#ffd15c", "#7ddecc", "#8c7bff", "#ff8a4c", "#f5f5ff"];
+const stage = document.querySelector("#stage");
+const sheet = document.querySelector("#sheet");
+const ctx = stage.getContext("2d");
+const sheetCtx = sheet.getContext("2d");
+
+function roundRect(c, x, y, w, h, r) {
+  c.beginPath();
+  c.moveTo(x + r, y);
+  c.arcTo(x + w, y, x + w, y + h, r);
+  c.arcTo(x + w, y + h, x, y + h, r);
+  c.arcTo(x, y + h, x, y, r);
+  c.arcTo(x, y, x + w, y, r);
+  c.closePath();
+}
+
+function drawBackdrop(c) {
+  const g = c.createLinearGradient(0, 0, 0, H);
+  g.addColorStop(0, "#1e1038");
+  g.addColorStop(0.55, "#5c1e52");
+  g.addColorStop(1, "#c46a48");
+  c.fillStyle = g;
+  roundRect(c, 0, 0, W, H, 28);
+  c.fill();
+  c.fillStyle = "rgba(255,255,255,0.75)";
+  [[40, 36], [78, 70], [250, 48], [286, 90], [210, 28], [120, 54]].forEach(([x, y]) => {
+    c.beginPath();
+    c.arc(x, y, 1.6, 0, Math.PI * 2);
+    c.fill();
+  });
+}
+
+function drawPeg(c, model) {
+  c.beginPath();
+  c.arc(TUNING.anchorX, TUNING.anchorY, 7, 0, Math.PI * 2);
+  c.fillStyle = "#734828";
+  c.fill();
+  c.strokeStyle = "#dc3d52";
+  c.lineWidth = 3;
+  c.lineCap = "round";
+  c.beginPath();
+  c.moveTo(TUNING.anchorX, TUNING.anchorY);
+  if (model.phase === "intact") {
+    const crown = model.pendulum.world({ x: 0, y: -TUNING.bodyRadiusY });
+    c.lineTo(crown.x, crown.y);
+  } else {
+    c.lineTo(TUNING.anchorX, TUNING.anchorY + 16);
+  }
+  c.stroke();
+}
+
+function drawGlow(c, model) {
+  if (model.glow <= 0.02 || model.phase !== "intact") return;
+  const center = model.bodyCenter;
+  const r = 96;
+  const g = c.createRadialGradient(center.x, center.y, 8, center.x, center.y, r);
+  g.addColorStop(0, `rgba(255, 230, 140, ${0.85 * model.glow})`);
+  g.addColorStop(1, "rgba(255, 230, 140, 0)");
+  c.fillStyle = g;
+  c.beginPath();
+  c.arc(center.x, center.y, r, 0, Math.PI * 2);
+  c.fill();
+}
+
+function drawBody(c, model, center, angle, clip, opacity) {
+  if (opacity <= 0.01) return;
+  c.save();
+  c.globalAlpha = opacity;
+  c.translate(center.x, center.y);
+  c.rotate(angle);
+  c.beginPath();
+  if (clip === "left") c.rect(-220, -220, 220, 440);
+  else if (clip === "right") c.rect(0, -220, 220, 440);
+  else c.rect(-240, -240, 480, 480);
+  c.clip();
+  const rx = TUNING.bodyRadiusX;
+  const ry = TUNING.bodyRadiusY;
+  c.save();
+  c.beginPath();
+  c.ellipse(0, 0, rx, ry, 0, 0, Math.PI * 2);
+  c.clip();
+  c.fillStyle = "#ed4a73";
+  c.fillRect(-rx, -ry, rx * 2, ry * 2);
+  c.fillStyle = "#fac748";
+  c.fillRect(-rx, -18, rx * 2, 22);
+  c.fillStyle = "#47bfbd";
+  c.fillRect(-rx, 16, rx * 2, 18);
+  c.restore();
+  c.beginPath();
+  c.ellipse(0, 0, rx, ry, 0, 0, Math.PI * 2);
+  c.strokeStyle = "rgba(115, 20, 46, 0.45)";
+  c.lineWidth = 1.5;
+  c.stroke();
+  for (let i = 0; i < 14; i += 1) {
+    const t = (i + 0.5) / 14;
+    const a = Math.PI * (0.15 + 0.7 * t);
+    const x = rx * 0.92 * Math.cos(a);
+    const y = ry * 0.55 + 10;
+    c.fillStyle = i % 3 === 0 ? "#fac748" : (i % 3 === 1 ? "#47bfbd" : "#ed4a73");
+    roundRect(c, x - 4, y, 8, 18, 2);
+    c.fill();
+  }
+  c.fillStyle = "#fff";
+  c.beginPath(); c.ellipse(-18, -27, 8, 9, 0, 0, Math.PI * 2); c.fill();
+  c.beginPath(); c.ellipse(18, -27, 8, 9, 0, 0, Math.PI * 2); c.fill();
+  c.fillStyle = "#2e1424";
+  c.beginPath(); c.ellipse(-16.5, -26, 3.5, 4, 0, 0, Math.PI * 2); c.fill();
+  c.beginPath(); c.ellipse(17.5, -26, 3.5, 4, 0, 0, Math.PI * 2); c.fill();
+  c.fillStyle = "rgba(255, 140, 158, 0.85)";
+  c.beginPath(); c.ellipse(-28, -8, 6, 4, 0, 0, Math.PI * 2); c.fill();
+  c.beginPath(); c.ellipse(28, -8, 6, 4, 0, 0, Math.PI * 2); c.fill();
+  c.beginPath();
+  c.moveTo(-12, 2);
+  c.quadraticCurveTo(0, 16, 12, 2);
+  c.strokeStyle = "#591422";
+  c.lineWidth = 2.4;
+  c.stroke();
+  c.strokeStyle = "rgba(40, 12, 24, 0.9)";
+  c.lineCap = "round";
+  c.lineJoin = "round";
+  for (const crack of model.cracks) {
+    c.beginPath();
+    c.moveTo(crack.points[0].x, crack.points[0].y);
+    for (let i = 1; i < crack.points.length; i += 1) c.lineTo(crack.points[i].x, crack.points[i].y);
+    c.lineWidth = 1.6 + crack.span / 40;
+    c.stroke();
+  }
+  c.restore();
+}
+
+function drawParticles(c, model) {
+  if (model.reduceMotion) return;
+  for (const p of model.particles) {
+    const life = p.life > 0 ? Math.max(0, 1 - p.age / p.life) : 0;
+    if (life <= 0.02) continue;
+    c.save();
+    c.globalAlpha = life;
+    c.translate(p.position.x, p.position.y);
+    c.rotate(p.rotation);
+    c.fillStyle = CANDY[p.colorIndex % CANDY.length];
+    const s = p.size;
+    if (p.shape === 1) {
+      roundRect(c, -s, -s * 0.62, s * 2, s * 1.24, 2);
+      c.fill();
+    } else if (p.shape === 2) {
+      c.beginPath();
+      c.moveTo(0, -s);
+      c.lineTo(s, s * 0.8);
+      c.lineTo(-s, s * 0.8);
+      c.closePath();
+      c.fill();
+    } else {
+      c.beginPath();
+      c.arc(0, 0, s * 0.7, 0, Math.PI * 2);
+      c.fill();
+    }
+    c.restore();
+  }
+}
+
+function drawToken(c, model, opacity) {
+  if (!model.token.present || opacity <= 0.01) return;
+  const p = model.tokenPosition;
+  const s = 0.4 + 0.6 * Math.min(1, Math.max(0, model.token.scale));
+  c.save();
+  c.globalAlpha = opacity;
+  c.translate(p.x, p.y);
+  c.scale(s, s);
+  c.beginPath();
+  c.arc(0, 0, 22, 0, Math.PI * 2);
+  c.fillStyle = "#fac748";
+  c.fill();
+  c.beginPath();
+  c.arc(0, 0, 16, 0, Math.PI * 2);
+  c.strokeStyle = "#b87a1a";
+  c.lineWidth = 2;
+  c.stroke();
+  c.beginPath();
+  for (let i = 0; i < 10; i += 1) {
+    const a = (i / 10) * Math.PI * 2 - Math.PI / 2;
+    const r = i % 2 === 0 ? 10 : 4.5;
+    const x = Math.cos(a) * r;
+    const y = Math.sin(a) * r;
+    if (i === 0) c.moveTo(x, y);
+    else c.lineTo(x, y);
+  }
+  c.closePath();
+  c.fillStyle = "#8c4714";
+  c.fill();
+  c.restore();
+}
+
+function drawPips(c, model) {
+  const count = model.hitsToBreak;
+  const gap = 14;
+  const origin = W / 2 - gap * (count - 1) / 2;
+  for (let i = 0; i < count; i += 1) {
+    c.beginPath();
+    c.arc(origin + i * gap, 408, 4, 0, Math.PI * 2);
+    c.fillStyle = i < model.hits ? "#fac748" : "rgba(255,255,255,0.28)";
+    c.fill();
+  }
+}
+
+function drawPill(c, model) {
+  const text = model.pillText;
+  const wide = text.length > 16;
+  const w = wide ? 196 : 148;
+  const x = (W - w) / 2;
+  c.fillStyle = model.phase === "intact" ? "rgba(255,255,255,0.92)" : "#fac748";
+  roundRect(c, x, 422, w, 34, 17);
+  c.fill();
+  c.fillStyle = "#381028";
+  c.font = "600 14px Inter, 'DejaVu Sans', sans-serif";
+  c.textAlign = "center";
+  c.textBaseline = "middle";
+  c.fillText(text, W / 2, 439);
+}
+
+function drawScene(c, model) {
+  c.clearRect(0, 0, W, H);
+  drawBackdrop(c);
+  drawPeg(c, model);
+  drawGlow(c, model);
+  if (model.phase === "intact") {
+    drawBody(c, model, model.bodyCenter, model.angle, "both", 1);
+    drawParticles(c, model);
+  } else if (model.reduceMotion) {
+    drawBody(c, model, model.bodyCenter, 0, "both", 1 - model.reveal);
+    drawToken(c, model, model.reveal);
+  } else {
+    for (const half of model.halves) {
+      const opacity = Math.max(0, 1 - half.age / TUNING.halfFade);
+      drawBody(c, model, half.position, half.angle, half.side, opacity);
+    }
+    drawParticles(c, model);
+    drawToken(c, model, Math.min(1, model.token.scale));
+  }
+  drawPips(c, model);
+  drawPill(c, model);
+}
+
+function paintStage(model) {
+  ctx.setTransform(2, 0, 0, 2, 0, 0);
+  drawScene(ctx, model);
+}
+
+function captionFor(t, reduceMotion) {
+  if (reduceMotion) return "Reduce Motion";
+  if (t < 0.45) return "Keep tapping";
+  if (t < 3.18) return "Keep tapping";
+  if (t < 4.5) return "Burst";
+  return "Come back tomorrow";
+}
+
+const params = new URLSearchParams(location.search);
+const driven = params.get("drive") === "1";
+
+if (!driven) {
+  let live = new PinataModel();
+  let last = 0;
+  stage.addEventListener("pointerdown", (event) => {
+    const rect = stage.getBoundingClientRect();
+    const x = ((event.clientX - rect.left) / rect.width) * W;
+    const y = ((event.clientY - rect.top) / rect.height) * H;
+    live.hit({ x, y });
+  });
+  const frame = (now) => {
+    const dt = last ? Math.min(0.05, (now - last) / 1000) : 0;
+    last = now;
+    if (dt > 0) live.step(dt);
+    paintStage(live);
+    requestAnimationFrame(frame);
+  };
+  stage.addEventListener("dblclick", () => { live = new PinataModel(); });
+  requestAnimationFrame(frame);
+}
+
+window.renderAt = (t) => {
+  const model = demoAt(t);
+  paintStage(model);
+  return { hits: model.hits, phase: model.phase, pill: model.pillText, angle: model.angle };
+};
+
+window.renderSheet = () => {
+  const srcW = W;
+  const srcH = H;
+  const panelW = 200;
+  const panelH = Math.round(srcH * (panelW / srcW));
+  const cols = 4;
+  const labelH = 28;
+  const gap = 16;
+  const rows = 2;
+  const width = gap + cols * (panelW + gap);
+  const height = gap + rows * (labelH + panelH + gap);
+  sheet.width = width * 2;
+  sheet.height = height * 2;
+  sheet.style.width = `${width}px`;
+  sheet.style.height = `${height}px`;
+  sheetCtx.setTransform(2, 0, 0, 2, 0, 0);
+  sheetCtx.fillStyle = "#140818";
+  sheetCtx.fillRect(0, 0, width, height);
+  DEMO_STILLS.forEach((still, index) => {
+    const col = index % cols;
+    const row = Math.floor(index / cols);
+    const x = gap + col * (panelW + gap);
+    const y = gap + row * (labelH + panelH + gap);
+    sheetCtx.fillStyle = "#f6e7c8";
+    sheetCtx.font = "600 13px Inter, 'DejaVu Sans', sans-serif";
+    sheetCtx.textAlign = "left";
+    sheetCtx.textBaseline = "middle";
+    sheetCtx.fillText(still.name, x, y + 12);
+    const model = demoAt(still.t, { reduceMotion: !!still.reduceMotion });
+    const snapshot = document.createElement("canvas");
+    snapshot.width = srcW * 2;
+    snapshot.height = srcH * 2;
+    const snap = snapshot.getContext("2d");
+    snap.setTransform(2, 0, 0, 2, 0, 0);
+    drawScene(snap, model);
+    sheetCtx.drawImage(snapshot, x, y + labelH, panelW, panelH);
+  });
+  sheet.style.display = "block";
+  stage.style.display = "none";
+  document.body.style.background = "#140818";
+  return { width, height };
+};
+
+window.__ready = true;
+window.__demoDuration = DEMO_DURATION;
+</script>
+</body>
+</html>
