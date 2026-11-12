@@ -93,6 +93,8 @@ let package = Package(
         .library(name: "NeighborBounceCore", targets: ["NeighborBounceCore"]),
         .library(name: "RubberBandCardHand", targets: ["RubberBandCardHand"]),
         .library(name: "RubberBandCore", targets: ["RubberBandCore"]),
+        .library(name: "CrumpleToDelete", targets: ["CrumpleToDelete"]),
+        .library(name: "CrumpleCore", targets: ["CrumpleCore"]),
         // A demo gallery listing every component.
         .library(name: "WhimsyGallery", targets: ["WhimsyGallery"]),
     ],
@@ -211,9 +213,12 @@ let package = Package(
         .target(name: "RubberBandCore", dependencies: ["WhimsyCore"]),
         .target(name: "RubberBandCardHand", dependencies: ["RubberBandCore"]),
 
+        .target(name: "CrumpleCore", dependencies: ["WhimsyCore"]),
+        .target(name: "CrumpleToDelete", dependencies: ["CrumpleCore"]),
+
         .target(name: "WhimsyGallery", dependencies: [
             "PopTherapy", "MagneticBeadSlider", "EraserDelete", "ShutterReveal", "AliveEyes", "ScatterRegroup", "SolarFlareLike", "FlyingButton",
-            "GrainyRingGallery", "LiquidMetalCompass", "SweaterRail", "FontCollection", "FollowBlobHero", "MoonPhaseScrubber", "ClothPoster", "TiltPhotoGrid", "ScrollSpinWatch", "BoutiqueBurst", "PeelableSticker", "FrostCard", "HoloFoilCard", "OilPaintRestore", "WiggleMatchSearch", "PourOpenMenu", "OctoDoneChecklist", "AsciiNowPlaying", "DogEarPeelCard", "ColorFigureGumball", "ChannelFlipCard", "ContourInkLoader", "ShelfPull", "StarJar", "HoldToFanDock", "TiltScatterRestore", "NeighborBouncePicker", "RubberBandCardHand",
+            "GrainyRingGallery", "LiquidMetalCompass", "SweaterRail", "FontCollection", "FollowBlobHero", "MoonPhaseScrubber", "ClothPoster", "TiltPhotoGrid", "ScrollSpinWatch", "BoutiqueBurst", "PeelableSticker", "FrostCard", "HoloFoilCard", "OilPaintRestore", "WiggleMatchSearch", "PourOpenMenu", "OctoDoneChecklist", "AsciiNowPlaying", "DogEarPeelCard", "ColorFigureGumball", "ChannelFlipCard", "ContourInkLoader", "ShelfPull", "StarJar", "HoldToFanDock", "TiltScatterRestore", "NeighborBouncePicker", "RubberBandCardHand", "CrumpleToDelete",
         ]),
 
         .testTarget(name: "WhimsyCoreTests", dependencies: ["WhimsyCore"]),
@@ -253,5 +258,6 @@ let package = Package(
         .testTarget(name: "TiltScatterCoreTests", dependencies: ["TiltScatterCore"]),
         .testTarget(name: "NeighborBounceCoreTests", dependencies: ["NeighborBounceCore"]),
         .testTarget(name: "RubberBandCoreTests", dependencies: ["RubberBandCore"]),
+        .testTarget(name: "CrumpleCoreTests", dependencies: ["CrumpleCore"]),
     ]
 )
