@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Velocity Glyph Scatter</title>
+<style>
+  html, body { margin: 0; height: 100%; background: #e6d9c8; color: #241c16; }
+  body { display: flex; align-items: center; justify-content: center; font-family: "Noto Serif", "Liberation Serif", Georgia, serif; }
+  canvas { display: block; }
+  #sheet { display: none; }
+</style>
+</head>
+<body>
+<canvas id="stage" width="600" height="1040" style="width:300px;height:520px"></canvas>
+<canvas id="sheet" width="960" height="860"></canvas>
+<script type="module">
+import { VelocityGlyphModel, TUNING, demoAt, DEMO_STILLS } from "./velocityglyph-core.mjs";
+
+const STAGE_W = 300;
+const STAGE_H = 520;
+const INK = "#241c16";
+const ACCENT = "#b33829";
+const PAPER = "#faf6eb";
+const WALL = "#e6d9c8";
+const TRACK = TUNING.trackWidth;
+
+const stage = document.querySelector("#stage");
+const sheet = document.querySelector("#sheet");
+const ctx = stage.getContext("2d");
+const sheetCtx = sheet.getContext("2d");
+
+function roundRect(c, x, y, w, h, r) {
+  c.beginPath();
+  c.moveTo(x + r, y);
+  c.arcTo(x + w, y, x + w, y + h, r);
+  c.arcTo(x + w, y + h, x, y + h, r);
+  c.arcTo(x, y + h, x, y, r);
+  c.arcTo(x, y, x + w, y, r);
+  c.closePath();
+}
+
+function drawCard(c, w, h, model, caption) {
+  c.clearRect(0, 0, w, h);
+  c.fillStyle = WALL;
+  c.fillRect(0, 0, w, h);
+
+  const cardX = 16;
+  const cardY = 28;
+  const cardW = w - 32;
+  const cardH = h - 56;
+  c.save();
+  c.shadowColor = "rgba(36, 28, 22, 0.12)";
+  c.shadowBlur = 18;
+  c.shadowOffsetY = 8;
+  roundRect(c, cardX, cardY, cardW, cardH, 28);
+  c.fillStyle = PAPER;
+  c.fill();
+  c.restore();
+
+  c.fillStyle = "rgba(36, 28, 22, 0.45)";
+  c.font = "700 11px Inter, 'Noto Sans', sans-serif";
+  c.textAlign = "center";
+  c.textBaseline = "middle";
+  c.fillText("SATURDAY MARKET", w / 2, cardY + 36);
+
+  c.fillStyle = INK;
+  c.font = "600 18px 'Noto Serif', Georgia, serif";
+  c.fillText("Linen overshirt", w / 2, cardY + 62);
+
+  const poses = model.poses;
+  c.font = "600 58px 'Noto Serif', Georgia, serif";
+  c.textAlign = "center";
+  c.textBaseline = "middle";
+  const widths = poses.map((pose) => Math.max(c.measureText(pose.character).width, pose.character === "," ? 10 : 0));
+  const gap = 1;
+  const total = widths.reduce((sum, width) => sum + width, 0) + gap * Math.max(0, poses.length - 1);
+  let cursor = (w - total) / 2;
+  const baseline = cardY + 148;
+  poses.forEach((pose, index) => {
+    const glyphW = widths[index];
+    c.save();
+    c.translate(cursor + glyphW / 2, baseline + pose.offsetY);
+    c.rotate((pose.leanDegrees * Math.PI) / 180);
+    c.filter = model.blurRadius > 0.04 ? `blur(${model.blurRadius.toFixed(2)}px)` : "none";
+    c.fillStyle = INK;
+    c.fillText(pose.character, 0, 0);
+    c.restore();
+    cursor += glyphW + gap;
+  });
+
+  const trackX = (w - TRACK) / 2;
+  const trackY = cardY + 248;
+  c.fillStyle = "rgba(36, 28, 22, 0.12)";
+  roundRect(c, trackX, trackY, TRACK, 4, 2);
+  c.fill();
+  const thumb = model.interactionX;
+  c.fillStyle = ACCENT;
+  roundRect(c, trackX, trackY, Math.max(4, thumb), 4, 2);
+  c.fill();
+  c.save();
+  c.shadowColor = "rgba(36, 28, 22, 0.18)";
+  c.shadowBlur = 6;
+  c.shadowOffsetY = 2;
+  c.beginPath();
+  c.arc(trackX + thumb, trackY + 2, 13, 0, Math.PI * 2);
+  c.fillStyle = PAPER;
+  c.fill();
+  c.restore();
+  c.beginPath();
+  c.arc(trackX + thumb, trackY + 2, 13, 0, Math.PI * 2);
+  c.lineWidth = 3;
+  c.strokeStyle = ACCENT;
+  c.stroke();
+
+  c.fillStyle = "rgba(36, 28, 22, 0.45)";
+  c.font = "500 12px Inter, 'Noto Sans', sans-serif";
+  c.textAlign = "left";
+  c.fillText("$40", trackX, trackY + 36);
+  c.textAlign = "right";
+  c.fillText("$600", trackX + TRACK, trackY + 36);
+
+  c.textAlign = "center";
+  c.fillStyle = "rgba(36, 28, 22, 0.55)";
+  c.font = "500 13px Inter, 'Noto Sans', sans-serif";
+  c.fillText(caption, w / 2, h - 22);
+}
+
+function paintStage(model, caption) {
+  ctx.setTransform(2, 0, 0, 2, 0, 0);
+  drawCard(ctx, STAGE_W, STAGE_H, model, caption);
+}
+
+const params = new URLSearchParams(location.search);
+const driven = params.get("drive") === "1";
+
+let live = new VelocityGlyphModel({ value: TUNING.defaultValue });
+let last = 0;
+let pointer = null;
+
+function trackXFromEvent(event) {
+  const rect = stage.getBoundingClientRect();
+  const local = ((event.clientX - rect.left) / rect.width) * STAGE_W;
+  return local - (STAGE_W - TRACK) / 2;
+}
+
+if (!driven) {
+  stage.addEventListener("pointerdown", (event) => {
+    stage.setPointerCapture(event.pointerId);
+    pointer = trackXFromEvent(event);
+    live.beginDrag(pointer);
+  });
+  stage.addEventListener("pointermove", (event) => {
+    if (pointer == null) return;
+    pointer = trackXFromEvent(event);
+    live.updateDrag(pointer);
+  });
+  stage.addEventListener("pointerup", () => {
+    pointer = null;
+    live.endDrag();
+  });
+  stage.addEventListener("pointercancel", () => {
+    pointer = null;
+    live.endDrag();
+  });
+
+  const frame = (now) => {
+    const dt = last ? Math.min(0.05, (now - last) / 1000) : 0;
+    last = now;
+    if (dt > 0) live.step(dt);
+    const caption = live.reduceMotion ? "Reduce Motion" : "Drag the price";
+    paintStage(live, caption);
+    requestAnimationFrame(frame);
+  };
+  requestAnimationFrame(frame);
+}
+
+function captionFor(t, reduceMotion) {
+  if (reduceMotion) return "Reduce Motion";
+  if (t < 0.4) return "At rest";
+  if (t < 1.72) return "Drag the price";
+  if (t < 2.45) return "Springing home";
+  return "Settled";
+}
+
+window.renderAt = (t) => {
+  const model = demoAt(t);
+  paintStage(model, captionFor(t, false));
+  return {
+    value: model.value,
+    blur: model.blurRadius,
+    speed: model.smoothedSpeed,
+    offsets: model.poses.map((pose) => pose.offsetY),
+  };
+};
+
+window.renderSheet = () => {
+  const srcW = STAGE_W;
+  const srcH = STAGE_H;
+  const panelW = 220;
+  const panelH = Math.round(srcH * (panelW / srcW));
+  const cols = 3;
+  const labelH = 26;
+  const gap = 18;
+  const width = gap + cols * (panelW + gap);
+  const height = gap + 2 * (labelH + panelH + gap);
+  sheet.width = width * 2;
+  sheet.height = height * 2;
+  sheet.style.width = `${width}px`;
+  sheet.style.height = `${height}px`;
+  sheetCtx.setTransform(2, 0, 0, 2, 0, 0);
+  sheetCtx.fillStyle = "#1c1714";
+  sheetCtx.fillRect(0, 0, width, height);
+  DEMO_STILLS.forEach((still, index) => {
+    const col = index % cols;
+    const row = Math.floor(index / cols);
+    const x = gap + col * (panelW + gap);
+    const y = gap + row * (labelH + panelH + gap);
+    sheetCtx.fillStyle = "#f3eadf";
+    sheetCtx.font = "600 13px Inter, 'Noto Sans', sans-serif";
+    sheetCtx.textAlign = "left";
+    sheetCtx.textBaseline = "middle";
+    sheetCtx.fillText(still.name, x, y + 12);
+    const model = demoAt(still.t, { reduceMotion: !!still.reduceMotion });
+    const snapshot = document.createElement("canvas");
+    snapshot.width = srcW * 2;
+    snapshot.height = srcH * 2;
+    const snap = snapshot.getContext("2d");
+    snap.setTransform(2, 0, 0, 2, 0, 0);
+    drawCard(snap, srcW, srcH, model, still.reduceMotion ? "No scatter, no blur" : captionFor(still.t, false));
+    sheetCtx.drawImage(snapshot, x, y + labelH, panelW, panelH);
+  });
+  sheet.style.display = "block";
+  stage.style.display = "none";
+  return { width, height };
+};
+
+window.__ready = true;
+</script>
+</body>
+</html>

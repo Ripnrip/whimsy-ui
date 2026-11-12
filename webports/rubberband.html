@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Rubber Band Card Hand</title>
+<style>
+  html, body { margin: 0; background: #0e0d12; height: 100%; }
+  body { display: flex; align-items: flex-end; justify-content: center; }
+  canvas { width: 390px; height: 700px; display: block; }
+</style>
+</head>
+<body>
+<canvas id="c" width="780" height="1400"></canvas>
+<script src="rubber-core.js"></script>
+<script>
+const RB = RubberBand;
+const canvas = document.getElementById("c");
+const ctx = canvas.getContext("2d");
+const SCALE = 2;
+
+function rest(i) { return RB.layout.restCenter(i); }
+
+// Replay the SwiftUI demo from t = 0. Deterministic: the same core the tests trace.
+function sample(t) {
+  const m = new RB.Model(false);
+  let finger = null;
+  let now = 0;
+  const end = Math.max(0, t);
+  while (now < end - 1e-9) {
+    const h = Math.min(1 / 60, end - now);
+    const next = now + h;
+    if (now < 0.45 && next >= 0.45) {
+      finger = rest(0);
+      m.pointerDown(finger, 0.45);
+    }
+    if (next > 0.45 && next < 1.65) {
+      const u = (next - 0.45) / 1.2;
+      const a = rest(0), b = rest(4);
+      finger = { x: a.x + (b.x - a.x) * u, y: a.y + (b.y - a.y) * u };
+      m.pointerMoved(finger, next);
+    }
+    if (now < 1.65 && next >= 1.65) {
+      m.pointerUp(finger || rest(4), 1.65);
+      finger = null;
+    }
+    if (now < 2.15 && next >= 2.15) {
+      finger = rest(2);
+      m.pointerDown(finger, 2.15);
+    }
+    if (next > 2.15 && next < 3.2) {
+      const u = Math.min(1, (next - 2.15) / 1.05);
+      const a = rest(2);
+      // Ease the finger so the last stretch is the overpull: the card lags behind.
+      const eased = u < 0.5 ? 2 * u * u : 1 - Math.pow(-2 * u + 2, 2) / 2;
+      finger = { x: a.x + Math.sin(u * Math.PI) * 18, y: a.y - 280 * eased };
+      m.pointerMoved(finger, next);
+    }
+    if (now < 3.2 && next >= 3.2) {
+      m.pointerUp(finger, 3.2);
+      finger = null;
+    }
+    if (now < 4.7 && next >= 4.7) m.dismiss();
+    m.step(h);
+    now = next;
+  }
+  return { model: m, finger: finger };
+}
+
+function rgb(c, a) {
+  const alpha = a == null ? 1 : a;
+  return "rgba(" + Math.round(c.r * 255) + "," + Math.round(c.g * 255) + "," + Math.round(c.b * 255) + "," + alpha + ")";
+}
+
+function roundRect(x, y, w, h, r) {
+  const radius = Math.max(0, Math.min(r, Math.min(w, h) / 2));
+  ctx.beginPath();
+  ctx.moveTo(x + radius, y);
+  ctx.arcTo(x + w, y, x + w, y + h, radius);
+  ctx.arcTo(x + w, y + h, x, y + h, radius);
+  ctx.arcTo(x, y + h, x, y, radius);
+  ctx.arcTo(x, y, x + w, y, radius);
+  ctx.closePath();
+}
+
+function drawMark(mark, w, h) {
+  ctx.save();
+  ctx.globalAlpha = mark.alpha;
+  ctx.fillStyle = rgb(mark.color);
+  if (mark.kind === "ellipse") {
+    ctx.beginPath();
+    ctx.ellipse(mark.cx * w, mark.cy * h, mark.rx * w, mark.ry * h, 0, 0, Math.PI * 2);
+    ctx.fill();
+  } else if (mark.kind === "rect") {
+    const rw = mark.width * w, rh = mark.height * h;
+    const radius = mark.rotation * Math.min(w, h);
+    roundRect(mark.cx * w - rw / 2, mark.cy * h - rh / 2, rw, rh, radius);
+    ctx.fill();
+  } else {
+    ctx.translate(mark.cx * w, mark.cy * h);
+    ctx.rotate(mark.rotation);
+    const rw = mark.width * w, rh = mark.height * h;
+    roundRect(-rw / 2, -rh / 2, rw, rh, Math.min(rw, rh) / 2);
+    ctx.fill();
+  }
+  ctx.restore();
+}
+
+function drawFace(card, w, h) {
+  ctx.fillStyle = rgb(card.paper);
+  roundRect(-w / 2, -h / 2, w, h, RB.layout.cornerRadius);
+  ctx.fill();
+  ctx.save();
+  ctx.translate(-w / 2, -h / 2);
+  card.marks.forEach(function (mark) { drawMark(mark, w, h); });
+  ctx.restore();
+  ctx.fillStyle = rgb(card.ink, 0.62);
+  ctx.font = "600 8px 'Avenir Next', 'Trebuchet MS', sans-serif";
+  ctx.textAlign = "left";
+  ctx.fillText(card.kicker, -w / 2 + 10, h / 2 - 32);
+  ctx.fillStyle = rgb(card.ink);
+  ctx.font = "600 14px Palatino, 'Palatino Linotype', Georgia, serif";
+  ctx.fillText(card.title, -w / 2 + 10, h / 2 - 16);
+  ctx.strokeStyle = rgb(card.ink, 0.18);
+  ctx.lineWidth = 2;
+  roundRect(-w / 2, -h / 2, w, h, RB.layout.cornerRadius);
+  ctx.stroke();
+}
+
+function drawDetail(card, w, h) {
+  ctx.fillStyle = rgb(card.paper);
+  roundRect(-w / 2, -h / 2, w, h, RB.layout.cornerRadius);
+  ctx.fill();
+  ctx.fillStyle = rgb(card.ink, 0.62);
+  ctx.font = "600 8px 'Avenir Next', 'Trebuchet MS', sans-serif";
+  ctx.textAlign = "left";
+  ctx.fillText(card.kicker, -w / 2 + 10, -h / 2 + 22);
+  ctx.fillStyle = rgb(card.ink, 0.12);
+  ctx.beginPath();
+  ctx.arc(w / 2 - 18, -h / 2 + 18, 10, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillStyle = rgb(card.ink);
+  ctx.font = "700 12px 'Avenir Next', sans-serif";
+  ctx.textAlign = "center";
+  ctx.fillText("×", w / 2 - 18, -h / 2 + 22);
+  ctx.textAlign = "left";
+  ctx.font = "600 18px Palatino, Georgia, serif";
+  ctx.fillText(card.title, -w / 2 + 10, -h / 2 + 48);
+  ctx.font = "11px Palatino, Georgia, serif";
+  ctx.fillStyle = rgb(card.ink, 0.78);
+  wrapText(card.detail, -w / 2 + 10, -h / 2 + 68, w - 20, 14);
+  ctx.strokeStyle = rgb(card.ink, 0.18);
+  ctx.lineWidth = 2;
+  roundRect(-w / 2, -h / 2, w, h, RB.layout.cornerRadius);
+  ctx.stroke();
+}
+
+function wrapText(text, x, y, maxW, lineH) {
+  const words = text.split(" ");
+  let line = "";
+  let yy = y;
+  words.forEach(function (word) {
+    const trial = line ? line + " " + word : word;
+    if (ctx.measureText(trial).width > maxW && line) {
+      ctx.fillText(line, x, yy);
+      line = word;
+      yy += lineH;
+    } else line = trial;
+  });
+  if (line) ctx.fillText(line, x, yy);
+}
+
+function drawCard(pose, card) {
+  const w = RB.layout.cardWidth;
+  const h = RB.layout.cardHeight;
+  const flipAngle = pose.flip * Math.PI;
+  const raw = Math.cos(flipAngle);
+  const back = pose.flip >= 0.5;
+  const sx = back ? -raw : raw;
+  ctx.save();
+  ctx.globalAlpha = pose.opacity * (0.18 + 0.28 * Math.min(pose.lift / 80, 1));
+  ctx.translate(pose.center.x, pose.center.y + h * 0.46 * pose.scale);
+  ctx.scale(pose.scale, pose.scale * 0.18);
+  ctx.fillStyle = "#000";
+  ctx.beginPath();
+  ctx.ellipse(0, 0, w * 0.38, h * 0.5, pose.rotation, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.restore();
+  ctx.save();
+  ctx.translate(pose.center.x, pose.center.y);
+  ctx.rotate(pose.rotation);
+  ctx.scale(pose.scale * Math.max(0.02, Math.abs(sx)), pose.scale);
+  if (back) drawDetail(card, w, h);
+  else drawFace(card, w, h);
+  if (pose.opacity < 0.999) {
+    ctx.fillStyle = "rgba(0,0,0," + (1 - pose.opacity) + ")";
+    roundRect(-w / 2, -h / 2, w, h, RB.layout.cornerRadius);
+    ctx.fill();
+  }
+  ctx.restore();
+}
+
+function hintFor(m) {
+  if (m.phase === "presented" || m.phase === "dismissing") return "";
+  if (m.phase === "dragging") return m.isArmed ? "Let go to open" : "Drag up to open";
+  if (m.phase === "browsing") return "Drag a card upward";
+  if (m.phase === "presenting" || m.phase === "returning") return "";
+  return "Slide across the hand";
+}
+
+function render(t) {
+  const shot = sample(t);
+  const m = shot.model;
+  ctx.setTransform(SCALE, 0, 0, SCALE, 0, 0);
+  const g = ctx.createLinearGradient(0, 0, 0, RB.layout.height);
+  g.addColorStop(0, "#0d0d14");
+  g.addColorStop(0.55, "#1c1724");
+  g.addColorStop(1, "#291c1e");
+  ctx.fillStyle = g;
+  ctx.fillRect(0, 0, RB.layout.width, RB.layout.height);
+  if (m.openness() > 0.001) {
+    ctx.fillStyle = "rgba(0,0,0," + (0.45 * m.openness()) + ")";
+    ctx.fillRect(0, 0, RB.layout.width, RB.layout.height);
+  }
+  ctx.fillStyle = "rgba(0,0,0,0.35)";
+  ctx.beginPath();
+  ctx.ellipse(RB.layout.width / 2, RB.layout.height - 28, 160, 18, 0, 0, Math.PI * 2);
+  ctx.fill();
+  const order = [];
+  for (let i = 0; i < 5; i++) order.push(i);
+  order.sort(function (a, b) { return m.pose(a).z - m.pose(b).z; });
+  order.forEach(function (i) { drawCard(m.pose(i), RB.cards[i]); });
+  const hint = hintFor(m);
+  if (hint) {
+    ctx.font = "500 13px 'Avenir Next', 'Trebuchet MS', sans-serif";
+    const tw = ctx.measureText(hint).width;
+    ctx.fillStyle = "rgba(255,255,255,0.08)";
+    roundRect(RB.layout.width / 2 - tw / 2 - 14, 28, tw + 28, 28, 14);
+    ctx.fill();
+    ctx.fillStyle = "rgba(255,255,255,0.72)";
+    ctx.textAlign = "center";
+    ctx.fillText(hint, RB.layout.width / 2, 47);
+    ctx.textAlign = "left";
+  }
+  if (shot.finger) {
+    ctx.beginPath();
+    ctx.fillStyle = "rgba(255,255,255,0.92)";
+    ctx.arc(shot.finger.x, shot.finger.y + 22, 11, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.strokeStyle = "rgba(255,255,255,0.35)";
+    ctx.lineWidth = 8;
+    ctx.arc(shot.finger.x, shot.finger.y + 22, 17, 0, Math.PI * 2);
+    ctx.stroke();
+  }
+  return m;
+}
+
+window.RubberBandPreview = { render: render, sample: sample, duration: 6.4 };
+
+const params = new URLSearchParams(location.search);
+if (params.has("t")) {
+  render(parseFloat(params.get("t")));
+  document.title = "frame";
+} else {
+  const t0 = performance.now();
+  function loop(now) {
+    const t = ((now - t0) / 1000) % 6.4;
+    render(t);
+    requestAnimationFrame(loop);
+  }
+  requestAnimationFrame(loop);
+}
+</script>
+</body>
+</html>
