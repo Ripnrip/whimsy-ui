@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Neighbor Bounce Picker</title>
+<style>
+  html, body { margin: 0; background: #f6f1e8; }
+  body { display: flex; justify-content: center; }
+  canvas { display: block; width: 420px; height: 480px; cursor: pointer; }
+</style>
+</head>
+<body>
+<canvas id="sheet" width="420" height="480"></canvas>
+<script src="neighborbounce-core.js"></script>
+<script>
+const NB = NeighborBounce;
+const canvas = document.getElementById("sheet");
+const ctx = canvas.getContext("2d");
+const ticks = NB.demo;
+const W = 420, H = 480;
+
+const marks = [
+  { t: 0.35, run: (m) => NB.select(m, 3) },
+  { t: 1.15, run: (m) => NB.select(m, 5) },
+  { t: 1.85, run: (m) => NB.select(m, 1) },
+  { t: 2.05, run: (m) => NB.select(m, 4) },
+  { t: 2.85, run: (m) => NB.select(m, 0) },
+  { t: 3.55, run: (m) => NB.select(m, 2) },
+];
+
+function modelAt(seconds) {
+  const m = NB.createModel(6, 0, false);
+  const h = NB.Tuning.substep;
+  const n = Math.max(0, Math.round(seconds / h));
+  let mark = 0;
+  for (let i = 0; i < n; i++) {
+    const now = (i + 1) * h;
+    while (mark < marks.length && marks[mark].t <= now + 1e-9) {
+      marks[mark].run(m);
+      mark += 1;
+    }
+    NB.step(m, h);
+  }
+  return m;
+}
+
+function rgb(c, a = 1) {
+  const r = Math.round(c[0] * 255), g = Math.round(c[1] * 255), b = Math.round(c[2] * 255);
+  return a === 1 ? `rgb(${r},${g},${b})` : `rgba(${r},${g},${b},${a})`;
+}
+
+function roundRect(x, y, w, h, r) {
+  ctx.beginPath();
+  ctx.moveTo(x + r, y);
+  ctx.arcTo(x + w, y, x + w, y + h, r);
+  ctx.arcTo(x + w, y + h, x, y + h, r);
+  ctx.arcTo(x, y + h, x, y, r);
+  ctx.arcTo(x, y, x + w, y, r);
+  ctx.closePath();
+}
+
+function draw(m) {
+  const L = NB.Layout;
+  const P = NB.Palette;
+  ctx.clearRect(0, 0, W, H);
+  ctx.fillStyle = rgb(P.paper);
+  ctx.fillRect(0, 0, W, H);
+
+  const tick = ticks[m.selection];
+  ctx.fillStyle = rgb(P.ink, 0.5);
+  ctx.font = "600 12px 'Liberation Sans', sans-serif";
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  ctx.letterSpacing = "2.4px";
+  ctx.fillText("SEGMENTED", W / 2, 54);
+  ctx.letterSpacing = "0px";
+
+  ctx.fillStyle = rgb([tick.red, tick.green, tick.blue]);
+  ctx.font = "700 64px Georgia, 'Liberation Serif', serif";
+  ctx.fillText(tick.title, W / 2, 118);
+
+  ctx.fillStyle = rgb(P.ink, 0.68);
+  ctx.font = "400 15px 'Liberation Sans', sans-serif";
+  ctx.fillText("Tap a tick. Its neighbours spring up and outward.", W / 2, 168);
+
+  const ox = (W - L.canvasWidth) / 2;
+  const oy = 214;
+  ctx.save();
+  ctx.translate(ox, oy);
+
+  const trackX = (L.canvasWidth - L.trackWidth) / 2;
+  const trackY = L.restY - L.trackHeight / 2;
+  roundRect(trackX, trackY, L.trackWidth, L.trackHeight, L.trackHeight / 2);
+  ctx.fillStyle = rgb(P.track);
+  ctx.fill();
+
+  const ix = m.indicator.value - L.indicatorWidth / 2;
+  const iy = L.restY - L.indicatorHeight / 2;
+  roundRect(ix, iy, L.indicatorWidth, L.indicatorHeight, L.indicatorHeight / 2);
+  ctx.fillStyle = rgb([tick.red, tick.green, tick.blue]);
+  ctx.fill();
+
+  for (let i = 0; i < m.count; i++) {
+    const pose = NB.pose(m, i);
+    const on = m.selection === i;
+    const sw = ticks[i];
+    const shadow = Math.min(1, pose.lift / 48);
+    ctx.save();
+    ctx.translate(pose.center.x, pose.center.y);
+    ctx.scale(pose.scaleX, pose.scaleY);
+    ctx.shadowColor = `rgba(0,0,0,${0.10 + 0.22 * shadow})`;
+    ctx.shadowBlur = 5 + pose.lift * 0.12;
+    ctx.shadowOffsetY = 3 + pose.lift * 0.04;
+    ctx.beginPath();
+    ctx.arc(0, 0, L.tickDiameter / 2, 0, Math.PI * 2);
+    ctx.fillStyle = on ? rgb([sw.red, sw.green, sw.blue]) : rgb(P.tick);
+    ctx.fill();
+    ctx.shadowColor = "transparent";
+    ctx.lineWidth = on ? 1.5 : 2;
+    ctx.strokeStyle = on ? "rgba(255,255,255,0.7)" : rgb([sw.red, sw.green, sw.blue], 0.85);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.arc(0, -10, 3, 0, Math.PI * 2);
+    ctx.fillStyle = on ? "#fff" : rgb([sw.red, sw.green, sw.blue]);
+    ctx.fill();
+    ctx.fillStyle = on ? "#fff" : rgb(P.ink);
+    ctx.font = "600 12px 'Liberation Sans', sans-serif";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillText(sw.title, 0, 6);
+    ctx.restore();
+  }
+  ctx.restore();
+}
+
+let live = NB.createModel(6, 2, false);
+let last = performance.now();
+
+function frame(now) {
+  const dt = Math.min(0.05, (now - last) / 1000);
+  last = now;
+  NB.step(live, dt);
+  draw(live);
+  requestAnimationFrame(frame);
+}
+
+let pointerDown = false;
+function pick(event, allowNudge) {
+  const rect = canvas.getBoundingClientRect();
+  const x = (event.clientX - rect.left) * (canvas.width / rect.width);
+  const ox = (W - NB.Layout.canvasWidth) / 2;
+  const index = NB.indexAtX(x - ox, live.count);
+  if (index !== live.selection || allowNudge) NB.select(live, index);
+}
+canvas.addEventListener("pointerdown", (event) => { pointerDown = true; pick(event, true); });
+canvas.addEventListener("pointermove", (event) => { if (pointerDown) pick(event, false); });
+window.addEventListener("pointerup", () => { pointerDown = false; });
+
+window.renderTime = function (seconds) {
+  draw(modelAt(seconds));
+  return true;
+};
+
+const params = new URLSearchParams(location.search);
+if (params.has("t")) {
+  window.renderTime(Number(params.get("t")) || 0);
+} else {
+  requestAnimationFrame(frame);
+}
+</script>
+</body>
+</html>
