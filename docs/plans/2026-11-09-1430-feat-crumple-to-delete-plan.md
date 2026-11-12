@@ -12,7 +12,7 @@ execution: code
 ## Goal Capsule
 
 - **Objective:** A person can drag a card toward the trash and watch it crumple into a ball that lands in the bin, then undo and try again. Someone using VoiceOver can delete the card without dragging. Someone who prefers less motion still deletes the card, by a fade and shrink.
-- **Means:** A deterministic Swift core and a SwiftUI card, registered as component 34 from current main, with an HTML preview that uses the same constants (KTD1, KTD2, KTD6).
+- **Means:** A deterministic Swift core and a SwiftUI card, registered as component 37 from current main, with an HTML preview that uses the same constants (KTD1, KTD2, KTD6).
 - **Authority:** Requirements win on behavior. Key technical decisions win on mechanism. Assumptions fill the gaps the request left open; the implementer follows them.
 - **Execution:** code. Ship an open pull request. Do not merge it.
 - **Stop:** Do not modify or merge pull requests 1, 2, or 3. Do not add or search for XRayDevice. It has no path in this repository.
@@ -120,12 +120,12 @@ The gallery's delete interactions erase, peel, or fade. None of them crumples a 
 ### Key Technical Decisions
 
 - KTD1. `CrumpleCore` depends only on `WhimsyCore` and holds its own three-component vector. `CrumpleToDelete` is the SwiftUI product. The view file is wrapped in `#if canImport(SwiftUI)`, with no Metal resources. The mesh is 5 by 4 quads, two triangles each, 40 triangles. Tilt amplitude scales with progress. Vertices pull toward the centroid until they lie on a ball whose radius is one sixth of the card's shorter side. Drag progress clamps to 0...1. The commit snap may overshoot that radius briefly, then settle on it, so the bounce is a ball and not a point. Seeded draws use `SeededRandom.uniform`.
-- KTD2. The gallery number is 34. Append `crumpleToDelete` after `holdToFanDock`. Pull requests 1, 2, and 3 also use 34. Keep 34 because R9 says to number from current main, which is the same practice those pull requests used. Do not edit their branches. The collision is a risk, not a reason to skip ahead to 37.
+- KTD2. The gallery number is 37. Append `crumpleToDelete` after RubberBandCardHand. Pull requests 1, 2, and 3 landed first as 34, 35, and 36.
 - KTD3. Finger-up reads the current progress and the zone latch. Progress at or above 0.8 commits. The zone latch sets when the card center enters the bin rect and clears when the center leaves that rect. There is no second progress threshold at 0.77 and no outset. Crossing the bin does not snap while the finger is down, because that would make R1 false for any drag that touched the bin.
 - KTD4. The core appends each crease id once per gesture and keeps that log. The view plays at most one light impact per 0.12 s by coalescing playback. It does not delete log entries to keep the gap. Cloth and DogEar drop ticks that arrive inside the interval. That drop would fail R6.
 - KTD5. Mesh opacity is progress and the wrapped view's opacity is 1 minus progress. Reduce Motion does not draw the mesh. The gallery shows a demo type that owns the sample card, the bin, and the undo control. The reusable view takes the caller's content and reports deletion. It does not remove that content.
 - KTD6. Constants and the golden trace live in the core and in `webports/crumple-golden.json`. JavaScript copies the mesh and the gesture rules and must use the SplitMix64 `uniform` formula, not `double(in:)`. `webports/parity.mjs` fails if JavaScript drifts from the golden file. The Swift parity test fails if the core drifts from the same file. Commit `docs/crumple.gif` for the README. Also copy the GIF and a stills contact sheet to the agent artifacts directory. Do not restore older ports.
-- KTD7. README gains the component section, the table row, the accessibility row, and the layout count moves from thirty-three to thirty-four. The Accessibility sentence that says "All twenty-one" becomes "All thirty-four" so it matches the table. Add `specs/34-crumple-to-delete.md` because R9 asks for a spec even though main has none. Do not add `tools/`.
+- KTD7. README gains the component section, the table row, the accessibility row, and the layout count moves from thirty-three to thirty-seven. The Accessibility sentence that says "All twenty-one" becomes "All thirty-seven" so it matches the table. Add `specs/37-crumple-to-delete.md` because R9 asks for a spec even though main has none. Do not add `tools/`.
 
 ### High-Level Technical Design
 
@@ -193,7 +193,7 @@ U1, then U2. U3 and U5 can proceed once U2 exists. U4 waits until the view exist
 
 ### Risks & Dependencies
 
-- Four branches will claim component 34. Merging any of pull requests 1, 2, or 3 first conflicts in `Package.swift`, `WhimsyGallery.swift`, and the README counts. This branch does not renumber ahead of that.
+- Four branches will claim component 34. Merging any of pull requests 1, 2, or 3 first conflicts in `Package.swift`, `WhimsyGallery.swift`, and the README counts. This branch does not renumber ahead of that. Integration on main assigned component 37.
 - Linux compiles the view target as an empty module. `swiftc -parse` on Linux does not read the SwiftUI body, because `canImport(SwiftUI)` is false. That parse is not an Apple build and not a typecheck.
 - The golden file can drift if someone edits the mesh and updates only one side. Both the Swift parity test and `parity.mjs` read it.
 - Haptic hardware and VoiceOver cannot be exercised here. The core log and the view's coalescing rule are what this environment can prove.
@@ -218,7 +218,7 @@ webports/
   crumple-golden.json
   parity.mjs
   capture.mjs
-specs/34-crumple-to-delete.md
+specs/37-crumple-to-delete.md
 docs/crumple.gif
 ```
 
@@ -287,15 +287,15 @@ docs/crumple.gif
 
 ### U4. Gallery, README, and spec
 
-- **Goal:** Register component 34 and document the API, the constants, and the verification limits.
+- **Goal:** Register component 37 and document the API, the constants, and the verification limits.
 - **Requirements:** R9
 - **Dependencies:** U3, U5
-- **Files:** `Sources/WhimsyGallery/WhimsyGallery.swift`, `Package.swift`, `README.md`, `specs/34-crumple-to-delete.md`, `docs/crumple.gif`
-- **Approach:** Import the view product, append the gallery case, and fill title, subtitle, symbol, and demo. Point the demo at `CrumpleToDeleteDemo`. Add the README table row, the section with the GIF, a short usage sample, the behavior bullets, the accessibility row, and the layout line. The spec names the public view, the demo, the core types, and points constant values at `CrumpleRules` rather than copying a second untested table. Move the shared thirty-three counts to thirty-four. Apply KTD2 and KTD7.
+- **Files:** `Sources/WhimsyGallery/WhimsyGallery.swift`, `Package.swift`, `README.md`, `specs/37-crumple-to-delete.md`, `docs/crumple.gif`
+- **Approach:** Import the view product, append the gallery case, and fill title, subtitle, symbol, and demo. Point the demo at `CrumpleToDeleteDemo`. Add the README table row, the section with the GIF, a short usage sample, the behavior bullets, the accessibility row, and the layout line. The spec names the public view, the demo, the core types, and points constant values at `CrumpleRules` rather than copying a second untested table. Move the shared thirty-three counts to thirty-seven. Apply KTD2 and KTD7.
 - **Patterns to follow:** the HoldToFanDock section of `README.md` and the `holdToFanDock` switches in `Sources/WhimsyGallery/WhimsyGallery.swift`
 - **Test scenarios:**
   - Test expectation: none. `WhimsyGallery.swift` is inside `#if canImport(SwiftUI)`, so a Linux `swift build` still succeeds when a gallery switch lacks `crumpleToDelete`. Append the case in all four switches anyway. Registration stays unproven on Linux, the same limit as the Apple-build row.
-- **Verification:** The gallery target builds. The README section, accessibility row, and spec agree on the commit rule in R2 and on the number 34.
+- **Verification:** The gallery target builds. The README section, accessibility row, and spec agree on the commit rule in R2 and on the number 37.
 
 ### U5. HTML parity, GIF, and contact sheet
 

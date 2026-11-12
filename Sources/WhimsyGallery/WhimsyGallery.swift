@@ -36,9 +36,12 @@ import ContourInkLoader
 import ShelfPull
 import StarJar
 import HoldToFanDock
+import TiltScatterRestore
+import NeighborBouncePicker
+import RubberBandCardHand
 import CrumpleToDelete
 
-/// A navigation list of all thirty-four components with a small live demo of each.
+/// A navigation list of all thirty-seven components with a small live demo of each.
 /// Drop `WhimsyGallery()` into a scene to browse them.
 public struct WhimsyGallery: View {
     public init() {}
@@ -70,7 +73,7 @@ public struct WhimsyGallery: View {
 }
 
 enum GalleryItem: String, CaseIterable, Identifiable, Hashable {
-    case popTherapy, magneticBeads, eraserDelete, shutterReveal, aliveEyes, scatterRegroup, solarFlare, flyingButton, ringGallery, liquidCompass, sweaterRail, fontCollection, followBlob, moonPhase, clothPoster, tiltGrid, spinWatch, boutique, peelSticker, frostCard, holoFoilCard, oilPaintRestore, wiggleMatchSearch, pourOpenMenu, octoDoneChecklist, asciiNowPlaying, dogEarPeelCard, colorFigureGumball, channelFlipCard, contourInkLoader, shelfPull, starJar, holdToFanDock, crumpleToDelete
+    case popTherapy, magneticBeads, eraserDelete, shutterReveal, aliveEyes, scatterRegroup, solarFlare, flyingButton, ringGallery, liquidCompass, sweaterRail, fontCollection, followBlob, moonPhase, clothPoster, tiltGrid, spinWatch, boutique, peelSticker, frostCard, holoFoilCard, oilPaintRestore, wiggleMatchSearch, pourOpenMenu, octoDoneChecklist, asciiNowPlaying, dogEarPeelCard, colorFigureGumball, channelFlipCard, contourInkLoader, shelfPull, starJar, holdToFanDock, tiltScatterRestore, neighborBouncePicker, rubberBandCardHand, crumpleToDelete
     var id: String { rawValue }
 
     var title: String {
@@ -108,6 +111,9 @@ enum GalleryItem: String, CaseIterable, Identifiable, Hashable {
         case .shelfPull: "Shelf Pull"
         case .starJar: "Star Jar"
         case .holdToFanDock: "Hold-to-Fan Dock"
+        case .tiltScatterRestore: "Tilt Scatter Restore"
+        case .neighborBouncePicker: "Neighbor Bounce Picker"
+        case .rubberBandCardHand: "Rubber Band Card Hand"
         case .crumpleToDelete: "Crumple to Delete"
         }
     }
@@ -147,6 +153,9 @@ enum GalleryItem: String, CaseIterable, Identifiable, Hashable {
         case .shelfPull: "Pull a book off the shelf, watch it turn, and read its card"
         case .starJar: "Tap a jar of sleeping stars to wake them, stir them with a finger"
         case .holdToFanDock: "Press and hold a FAB to fan tabs out along a quarter-circle"
+        case .tiltScatterRestore: "Completed letters tumble with the tilt, then spring home"
+        case .neighborBouncePicker: "A segmented control whose neighbours hop in a spring wave"
+        case .rubberBandCardHand: "Slide a fan of cards; drag one up and it flips open"
         case .crumpleToDelete: "Drag a card into the trash and watch it crumple"
         }
     }
@@ -186,6 +195,9 @@ enum GalleryItem: String, CaseIterable, Identifiable, Hashable {
         case .shelfPull: "books.vertical"
         case .starJar: "sparkles"
         case .holdToFanDock: "plus.circle.fill"
+        case .tiltScatterRestore: "gyroscope"
+        case .neighborBouncePicker: "circle.circle.fill"
+        case .rubberBandCardHand: "rectangle.stack.fill"
         case .crumpleToDelete: "trash"
         }
     }
@@ -225,6 +237,9 @@ enum GalleryItem: String, CaseIterable, Identifiable, Hashable {
         case .shelfPull: ShelfPull()
         case .starJar: StarJarDemo()
         case .holdToFanDock: HoldToFanDockDemo()
+        case .tiltScatterRestore: TiltScatterRestoreDemo()
+        case .neighborBouncePicker: NeighborBouncePickerDemo()
+        case .rubberBandCardHand: RubberBandCardHand()
         case .crumpleToDelete: CrumpleToDeleteDemo()
         }
     }

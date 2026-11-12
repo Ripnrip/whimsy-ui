@@ -1,6 +1,6 @@
-# 34 — CrumpleToDelete
+# 37 — CrumpleToDelete
 
-Numbered from current main, where HoldToFanDock is 33. Open pull requests 1, 2, and 3 also use 34 and are not included here.
+Component 37 on main, after TiltScatterRestore (34), NeighborBouncePicker (35), and RubberBandCardHand (36). HoldToFanDock is 33.
 
 ## API
 
