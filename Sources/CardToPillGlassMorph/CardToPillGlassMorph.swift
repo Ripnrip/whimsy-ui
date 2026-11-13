@@ -63,6 +63,7 @@ public struct CardToPillGlassMorph: View {
         .accessibilityValue(model.accessibilityValue)
         .accessibilityHint(model.phase == .card ? "Double tap to pay" : "Payment in progress")
         .accessibilityAddTraits(.isButton)
+        .accessibilityAction { beginPay() }
         .accessibilityAction(named: payTitle) { beginPay() }
     }
 

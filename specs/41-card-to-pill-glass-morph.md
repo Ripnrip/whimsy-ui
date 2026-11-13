@@ -28,7 +28,7 @@ A second pay during the trip does nothing. Stepping while the phase is card does
 
 ## Accessibility
 
-Reduce Motion does not spring and does not flip. Progress moves in a straight line, and the view crossfades the resting card with the resting pill. The hold is still one second. The success haptic still fires once, when the crossfade reaches the pill. VoiceOver sees one button. The label is the wallet name and the amount. The value is Ready, Paying, Paid or Opening. The Pay action starts a trip. Settling posts the announcement "Payment complete".
+Reduce Motion does not spring and does not flip. Progress moves in a straight line, and the view crossfades the resting card with the resting pill. The hold is still one second. The success haptic still fires once, when the crossfade reaches the pill. VoiceOver sees one button. The label is the wallet name and the amount. The value is Ready, Paying, Paid or Opening. Double tap, or the Pay action, starts a trip. Settling posts the announcement "Payment complete".
 
 ## Verification
 
