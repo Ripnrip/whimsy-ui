@@ -46,9 +46,10 @@ import PinataReward
 import CardToPillGlassMorph
 import OnAirLampToggle
 import ReededGlassSyncHero
+import GlassDropPourMenu
 import RotaryDialPasscode
 
-/// A navigation list of all forty-four components with a small live demo of each.
+/// A navigation list of all forty-five components with a small live demo of each.
 /// Drop `WhimsyGallery()` into a scene to browse them.
 public struct WhimsyGallery: View {
     public init() {}
@@ -80,7 +81,7 @@ public struct WhimsyGallery: View {
 }
 
 enum GalleryItem: String, CaseIterable, Identifiable, Hashable {
-    case popTherapy, magneticBeads, eraserDelete, shutterReveal, aliveEyes, scatterRegroup, solarFlare, flyingButton, ringGallery, liquidCompass, sweaterRail, fontCollection, followBlob, moonPhase, clothPoster, tiltGrid, spinWatch, boutique, peelSticker, frostCard, holoFoilCard, oilPaintRestore, wiggleMatchSearch, pourOpenMenu, octoDoneChecklist, asciiNowPlaying, dogEarPeelCard, colorFigureGumball, channelFlipCard, contourInkLoader, shelfPull, starJar, holdToFanDock, tiltScatterRestore, neighborBouncePicker, rubberBandCardHand, crumpleToDelete, rippleToHide, velocityGlyphScatter, pinataReward, cardToPillGlassMorph, onAirLampToggle, reededGlassSyncHero, rotaryDialPasscode
+    case popTherapy, magneticBeads, eraserDelete, shutterReveal, aliveEyes, scatterRegroup, solarFlare, flyingButton, ringGallery, liquidCompass, sweaterRail, fontCollection, followBlob, moonPhase, clothPoster, tiltGrid, spinWatch, boutique, peelSticker, frostCard, holoFoilCard, oilPaintRestore, wiggleMatchSearch, pourOpenMenu, octoDoneChecklist, asciiNowPlaying, dogEarPeelCard, colorFigureGumball, channelFlipCard, contourInkLoader, shelfPull, starJar, holdToFanDock, tiltScatterRestore, neighborBouncePicker, rubberBandCardHand, crumpleToDelete, rippleToHide, velocityGlyphScatter, pinataReward, cardToPillGlassMorph, onAirLampToggle, reededGlassSyncHero, glassDropPourMenu, rotaryDialPasscode
     var id: String { rawValue }
 
     var title: String {
@@ -128,6 +129,7 @@ enum GalleryItem: String, CaseIterable, Identifiable, Hashable {
         case .cardToPillGlassMorph: "Card to Pill"
         case .onAirLampToggle: "On Air Lamp"
         case .reededGlassSyncHero: "Reeded Glass Sync"
+        case .glassDropPourMenu: "Glass Drop Pour Menu"
         case .rotaryDialPasscode: "Rotary Dial Passcode"
         }
     }
@@ -177,6 +179,7 @@ enum GalleryItem: String, CaseIterable, Identifiable, Hashable {
         case .cardToPillGlassMorph: "Pay, and the glass card springs into a pill"
         case .onAirLampToggle: "A brushed-aluminium lamp that takes the room dark"
         case .reededGlassSyncHero: "An aurora grows through reeded glass until everything is synced"
+        case .glassDropPourMenu: "A glass drop that pours open into a menu"
         case .rotaryDialPasscode: "Dial a four-digit code, or fall back to the keypad"
         }
     }
@@ -226,6 +229,7 @@ enum GalleryItem: String, CaseIterable, Identifiable, Hashable {
         case .cardToPillGlassMorph: "creditcard"
         case .onAirLampToggle: "record.circle"
         case .reededGlassSyncHero: "arrow.triangle.2.circlepath"
+        case .glassDropPourMenu: "drop.circle.fill"
         case .rotaryDialPasscode: "lock.circle"
         }
     }
@@ -275,6 +279,7 @@ enum GalleryItem: String, CaseIterable, Identifiable, Hashable {
         case .cardToPillGlassMorph: CardToPillGlassMorphDemo()
         case .onAirLampToggle: OnAirLampToggleDemo()
         case .reededGlassSyncHero: ReededGlassSyncHeroDemo()
+        case .glassDropPourMenu: GlassDropPourMenuDemo()
         case .rotaryDialPasscode: RotaryDialPasscodeDemo()
         }
     }
