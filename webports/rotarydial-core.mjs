@@ -356,16 +356,20 @@ function ticksBetween(oldIndex, newIndex) {
   return events;
 }
 
-function setRotation(model, next) {
-  if (model.grabbed == null) return [];
-  const limit = travel(model.grabbed);
-  model.rotation = clampRotation(next, limit);
-  model.velocity = 0;
+function noteDetent(model) {
   const index = detentIndex(model.rotation);
   if (index === model.detent) return [];
   const events = ticksBetween(model.detent, index);
   model.detent = index;
   return events;
+}
+
+function setRotation(model, next) {
+  if (model.grabbed == null) return [];
+  const limit = travel(model.grabbed);
+  model.rotation = clampRotation(next, limit);
+  model.velocity = 0;
+  return noteDetent(model);
 }
 
 function appendDigit(model, digit, origin) {
@@ -534,6 +538,8 @@ export function step(model, dt) {
       model.velocity = 0;
       model.phase = "idle";
     }
+    if (model.rotation < 0) model.rotation = 0;
+    events.push(...noteDetent(model));
   } else if (model.phase === "shaking") {
     model.shakeTime += h;
     const duration = model.reduceMotion ? tintDuration : shakeDuration;

@@ -81,6 +81,7 @@ public struct RotaryDialModel: Equatable, Sendable {
     public var entered: [Int] { digits.map(\.digit) }
 
     public var isSettled: Bool {
+        if awaitingVerdict { return false }
         switch phase {
         case .dragging, .springing, .shaking, .morphing:
             return false
@@ -295,6 +296,8 @@ public struct RotaryDialModel: Equatable, Sendable {
                 velocity = 0
                 phase = .idle
             }
+            if rotation < 0 { rotation = 0 }
+            events += noteDetent()
         case .shaking:
             shakeTime += dt
             let duration = reduceMotion ? RotaryDialTuning.tintDuration : RotaryDialTuning.shakeDuration
@@ -342,6 +345,11 @@ public struct RotaryDialModel: Equatable, Sendable {
         let limit = RotaryDialMath.travel(forDisplay: grabbed)
         rotation = RotaryDialMath.clampRotation(next, limit: limit)
         velocity = 0
+        return noteDetent()
+    }
+
+    /// Ticks every hole-step the wheel just reached or left, including the spring home.
+    private mutating func noteDetent() -> [RotaryDialEvent] {
         let index = RotaryDialMath.detentIndex(rotation)
         guard index != detent else { return [] }
         let events = ticks(from: detent, to: index)

@@ -19,7 +19,7 @@ The values live on `RotaryDialTuning` and are copied in `webports/rotarydial-cor
 
 ## Behaviour
 
-A drag grabs one hole. Clockwise motion rotates the whole wheel, clamped so that hole cannot pass the stop. Extra travel past the stop is slack. Each hole-step that reaches or leaves the stop emits a tick. Release on the stop commits that digit and springs the wheel to rest. Release earlier declines it and still springs home. The committed numeral falls from the hole into the next dot.
+A drag grabs one hole. Clockwise motion rotates the whole wheel, clamped so that hole cannot pass the stop. Extra travel past the stop is slack. Each hole-step that reaches or leaves the stop emits a tick, both while the finger is on the wheel and as it springs home. Release on the stop commits that digit and springs the wheel to rest. Release earlier declines it and still springs home. The committed numeral falls from the hole into the next dot.
 
 The fourth digit is compared with `code`. A match morphs the dial into a check badge and then reports unlocked. A miss shakes, clears the dots, and morphs the dial into a keypad. A miss on the keypad shakes in place and stays a keypad. A match on the keypad morphs into the badge.
 
@@ -29,4 +29,4 @@ Reduce Motion snaps the wheel to rest, uses a red tint instead of the shake, and
 
 ## Verification
 
-Linux runs `RotaryDialCoreTests` (27 tests) as part of `swift test`, and `node webports/rotarydial-parity.mjs` (344 lines, exact match). `swiftc -parse` of the view and the gallery file succeeded. A second parse with the SwiftUI condition forced on checks the view syntax only. That parse does not typecheck SwiftUI. No Apple build or device run was done for this component. The SwiftUI code needs an Xcode build and a device check. The GIF and the contact sheet are the canvas port (`webports/rotarydial-capture.mjs`) at 390×844, using the JS core for every sample.
+Linux runs `RotaryDialCoreTests` (29 tests) as part of `swift test`, and `node webports/rotarydial-parity.mjs` (349 lines, exact match). `swiftc -parse` of the view and the gallery file succeeded. A second parse with the SwiftUI condition forced on checks the view syntax only. That parse does not typecheck SwiftUI. No Apple build or device run was done for this component. The SwiftUI code needs an Xcode build and a device check. The GIF and the contact sheet are the canvas port (`webports/rotarydial-capture.mjs`) at 390×844, using the JS core for every sample.

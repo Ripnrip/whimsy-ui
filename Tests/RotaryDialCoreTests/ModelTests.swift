@@ -82,6 +82,40 @@ private func ticks(_ events: [RotaryDialEvent]) -> [Int] {
         #expect(model.isSettled)
     }
 
+    @Test func theReturnSpringTicksEachNumberItLeaves() {
+        var model = RotaryDialModel()
+        _ = model.beginDrag(digit: 5)
+        _ = model.drag(byClockwise: RotaryDialMath.travel(forDisplay: 5))
+        #expect(model.release().contains(.springBack))
+        var heard: [Int] = []
+        for _ in 0..<48 {
+            heard += ticks(model.step(1.0 / 60))
+        }
+        #expect(heard == [5, 4, 3, 2, 1])
+        #expect(model.phase == .idle)
+        #expect(model.rotation == 0)
+    }
+
+    @Test func aPendingVerdictKeepsTheLockAwakeUnderReduceMotion() {
+        var model = RotaryDialModel(code: "5216")
+        for digit in [5, 2, 1] { _ = model.enterDigit(digit) }
+        model.frames(30)
+        _ = model.beginDrag(digit: 6)
+        _ = model.drag(byClockwise: RotaryDialMath.travel(forDisplay: 6))
+        _ = model.release()
+        #expect(model.phase == .springing)
+        model.setReduceMotion(true)
+        #expect(model.phase == .idle)
+        #expect(model.rotation == 0)
+        #expect(model.dotFilled(slot: 3))
+        #expect(!model.isSettled)
+        _ = model.step(1.0 / 60)
+        #expect(model.phase == .morphing)
+        #expect(model.face == .badge)
+        model.frames(24)
+        #expect(model.phase == .unlocked)
+    }
+
     @Test func releasingOnTheStopDropsTheDigit() {
         var model = RotaryDialModel(code: "5216")
         _ = model.beginDrag(digit: 5)
