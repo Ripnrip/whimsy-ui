@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Rotary dial passcode</title>
+<style>
+  html, body { margin: 0; background: #17130f; }
+  canvas { display: block; }
+  #sheet { position: absolute; left: -10000px; top: 0; }
+</style>
+</head>
+<body>
+<canvas id="stage" width="390" height="844"></canvas>
+<canvas id="sheet" width="1170" height="1760"></canvas>
+<script type="module">
+import * as D from "./rotarydial-core.mjs";
+
+const stage = document.getElementById("stage");
+const ctx = stage.getContext("2d");
+const font = 'Georgia, "Liberation Serif", "Nimbus Roman", "Times New Roman", serif';
+
+function rgb(channels, alpha = 1) {
+  const [r, g, b] = channels.map((c) => Math.round(c * 255));
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+}
+
+function mix(a, b, t) {
+  return a.map((channel, i) => channel + (b[i] - channel) * t);
+}
+
+function roundPlate(x, y, w, h, radius) {
+  const r = Math.max(0, Math.min(radius, w / 2, h / 2));
+  ctx.beginPath();
+  ctx.moveTo(x + r, y);
+  ctx.arcTo(x + w, y, x + w, y + h, r);
+  ctx.arcTo(x + w, y + h, x, y + h, r);
+  ctx.arcTo(x, y + h, x, y, r);
+  ctx.arcTo(x, y, x + w, y, r);
+  ctx.closePath();
+}
+
+function draw(model) {
+  const shake = D.modelShake(model);
+  const plate = D.visualPlate(model);
+  ctx.clearRect(0, 0, D.canvasWidth, D.canvasHeight);
+
+  const sky = ctx.createLinearGradient(0, 0, 0, D.canvasHeight);
+  sky.addColorStop(0, rgb(D.palette.lift));
+  sky.addColorStop(1, rgb(D.palette.ground));
+  ctx.fillStyle = sky;
+  ctx.fillRect(0, 0, D.canvasWidth, D.canvasHeight);
+
+  ctx.fillStyle = rgb(D.palette.paper, 0.72);
+  ctx.font = `600 13px ${font}`;
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  ctx.letterSpacing = "3.2px";
+  ctx.fillText("ENTER PASSCODE", D.centerX, 86);
+  ctx.letterSpacing = "0px";
+
+  for (let slot = 0; slot < D.digitCount; slot += 1) {
+    const dot = D.dotCenter(slot);
+    ctx.beginPath();
+    ctx.arc(dot.x, dot.y, D.dotRadius, 0, Math.PI * 2);
+    if (D.dotFilled(model, slot)) {
+      ctx.fillStyle = rgb(D.palette.ink);
+      ctx.fill();
+      ctx.fillStyle = rgb(D.palette.paper);
+      ctx.font = `600 13px ${font}`;
+      ctx.fillText(String(model.digits[slot].digit), dot.x, dot.y + 0.5);
+    } else {
+      ctx.strokeStyle = rgb(D.palette.paper, 0.45);
+      ctx.lineWidth = 1.5;
+      ctx.stroke();
+    }
+  }
+
+  ctx.fillStyle = rgb(D.palette.paper, 0.86);
+  ctx.font = `400 16px ${font}`;
+  ctx.fillText(D.caption(model), D.centerX, D.captionY);
+
+  const fill = mix(D.palette.paper, model.face === "badge" ? D.palette.success : D.palette.paper, model.face === "badge" ? D.easeInOut(model.morph) : 0);
+  const tinted = mix(fill, D.palette.error, D.errorTint(model) * 0.55);
+  ctx.save();
+  ctx.shadowColor = "rgba(0, 0, 0, 0.35)";
+  ctx.shadowBlur = 28;
+  ctx.shadowOffsetY = 16;
+  ctx.fillStyle = rgb(tinted);
+  roundPlate(D.centerX + shake - plate.width / 2, D.centerY - plate.height / 2, plate.width, plate.height, plate.corner);
+  ctx.fill();
+  ctx.restore();
+
+  const dial = D.opacity(model, "dial");
+  if (dial > 0.01) {
+    ctx.save();
+    ctx.globalAlpha = dial;
+    ctx.translate(shake, 0);
+    ctx.beginPath();
+    ctx.arc(D.centerX, D.centerY, D.outerRadius - 8, 0, Math.PI * 2);
+    ctx.strokeStyle = rgb(D.palette.brass, 0.9);
+    ctx.lineWidth = 3;
+    ctx.stroke();
+
+    for (let digit = 0; digit < D.holeCount; digit += 1) {
+      const at = D.holeCenter(digit, model.rotation);
+      ctx.beginPath();
+      ctx.arc(at.x, at.y, D.holeRadius, 0, Math.PI * 2);
+      ctx.fillStyle = rgb(D.palette.hole);
+      ctx.fill();
+      if (model.grabbed === digit) {
+        ctx.beginPath();
+        ctx.arc(at.x, at.y, D.holeRadius + 3, 0, Math.PI * 2);
+        ctx.strokeStyle = rgb(D.palette.brass);
+        ctx.lineWidth = 2;
+        ctx.stroke();
+      }
+      ctx.fillStyle = rgb(D.palette.paper);
+      ctx.font = `600 18px ${font}`;
+      ctx.fillText(String(digit), at.x, at.y + 0.5);
+    }
+
+    const stop = D.pointOnOrbit(D.stopAngle, D.outerRadius - 12);
+    ctx.beginPath();
+    ctx.arc(stop.x, stop.y, 13, 0, Math.PI * 2);
+    ctx.fillStyle = rgb(D.palette.brass);
+    ctx.fill();
+    ctx.lineWidth = 2;
+    ctx.strokeStyle = rgb(D.palette.ink);
+    ctx.stroke();
+
+    ctx.beginPath();
+    ctx.arc(D.centerX, D.centerY, D.hubRadius, 0, Math.PI * 2);
+    ctx.fillStyle = rgb(D.palette.brass);
+    ctx.fill();
+    const mark = D.pointOnOrbit(-Math.PI / 2 + model.rotation, D.hubRadius - 6);
+    const markInner = D.pointOnOrbit(-Math.PI / 2 + model.rotation, D.hubRadius - 14);
+    ctx.beginPath();
+    ctx.moveTo(markInner.x, markInner.y);
+    ctx.lineTo(mark.x, mark.y);
+    ctx.strokeStyle = rgb(D.palette.ink);
+    ctx.lineWidth = 3;
+    ctx.lineCap = "round";
+    ctx.stroke();
+    ctx.restore();
+  }
+
+  for (let slot = 0; slot < model.digits.length; slot += 1) {
+    if (D.dotFilled(model, slot)) continue;
+    const at = D.glyphPoint(model, slot);
+    ctx.beginPath();
+    ctx.arc(at.x, at.y, 18, 0, Math.PI * 2);
+    ctx.fillStyle = rgb(D.palette.paper);
+    ctx.fill();
+    ctx.fillStyle = rgb(D.palette.ink);
+    ctx.font = `600 22px ${font}`;
+    ctx.fillText(String(model.digits[slot].digit), at.x, at.y + 1);
+  }
+
+  const keys = D.opacity(model, "keypad");
+  if (keys > 0.01) {
+    ctx.save();
+    ctx.globalAlpha = keys;
+    for (const key of D.keyOrder) {
+      if (key < 0 && key !== -2) continue;
+      const at = D.keyCenter(key);
+      ctx.beginPath();
+      ctx.arc(at.x, at.y, D.keySize / 2, 0, Math.PI * 2);
+      ctx.fillStyle = rgb(D.palette.ink);
+      ctx.fill();
+      ctx.fillStyle = rgb(D.palette.paper);
+      const label = key === -2 ? "del" : String(key);
+      ctx.font = `${key === -2 ? 16 : 28}px ${font}`;
+      ctx.fillText(label, at.x, at.y + 1);
+    }
+    ctx.restore();
+  }
+
+  const badge = D.opacity(model, "badge");
+  if (badge > 0.01) {
+    ctx.save();
+    ctx.globalAlpha = badge;
+    ctx.strokeStyle = rgb(D.palette.paper);
+    ctx.lineWidth = 8;
+    ctx.lineCap = "round";
+    ctx.lineJoin = "round";
+    ctx.beginPath();
+    ctx.moveTo(D.centerX - 28, D.centerY + 2);
+    ctx.lineTo(D.centerX - 6, D.centerY + 26);
+    ctx.lineTo(D.centerX + 34, D.centerY - 24);
+    ctx.stroke();
+    ctx.restore();
+  }
+}
+
+let model = D.createModel();
+let live = !new URLSearchParams(location.search).has("drive");
+let last = 0;
+const pointers = new Map();
+
+stage.addEventListener("pointerdown", (event) => {
+  if (!live || model.face !== "dial") return;
+  stage.setPointerCapture(event.pointerId);
+  pointers.set(event.pointerId, true);
+  const rect = stage.getBoundingClientRect();
+  D.beginDragAt(model, { x: event.clientX - rect.left, y: event.clientY - rect.top });
+});
+stage.addEventListener("pointermove", (event) => {
+  if (!live || !pointers.has(event.pointerId)) return;
+  const rect = stage.getBoundingClientRect();
+  D.updateDragAt(model, { x: event.clientX - rect.left, y: event.clientY - rect.top });
+});
+function endPointer(event) {
+  if (!pointers.has(event.pointerId)) return;
+  pointers.delete(event.pointerId);
+  D.release(model);
+}
+stage.addEventListener("pointerup", endPointer);
+stage.addEventListener("pointercancel", endPointer);
+
+stage.addEventListener("click", (event) => {
+  if (!live || model.phase !== "keypad") return;
+  const rect = stage.getBoundingClientRect();
+  const point = { x: event.clientX - rect.left, y: event.clientY - rect.top };
+  for (const key of D.keyOrder) {
+    if (key === -1) continue;
+    const at = D.keyCenter(key);
+    const dx = point.x - at.x;
+    const dy = point.y - at.y;
+    if (dx * dx + dy * dy <= (D.keySize / 2) * (D.keySize / 2)) {
+      if (key === -2) D.deleteDigit(model);
+      else D.enterDigit(model, key);
+      return;
+    }
+  }
+});
+
+function tick(now) {
+  if (live) {
+    const dt = last ? Math.min(0.05, (now - last) / 1000) : 0;
+    last = now;
+    if (dt > 0) D.step(model, dt);
+    draw(model);
+  }
+  requestAnimationFrame(tick);
+}
+requestAnimationFrame(tick);
+
+window.renderAt = (time) => {
+  live = false;
+  draw(D.demoAt(time));
+};
+window.renderSheet = () => {
+  const cols = 3;
+  const labelH = 36;
+  const sheet = document.getElementById("sheet");
+  sheet.width = D.canvasWidth * cols;
+  sheet.height = (D.canvasHeight + labelH) * 2;
+  const out = sheet.getContext("2d");
+  out.fillStyle = "#241c16";
+  out.fillRect(0, 0, sheet.width, sheet.height);
+  out.font = `600 16px ${font}`;
+  out.textAlign = "left";
+  out.textBaseline = "middle";
+  D.stillTimes.forEach((still, i) => {
+    const col = i % cols;
+    const row = Math.floor(i / cols);
+    const x = col * D.canvasWidth;
+    const y = row * (D.canvasHeight + labelH);
+    out.fillStyle = "#f4edde";
+    out.fillText(still.label, x + 18, y + labelH / 2);
+    draw(D.demoAt(still.t));
+    out.drawImage(stage, x, y + labelH);
+  });
+  return { width: sheet.width, height: sheet.height };
+};
+window.__demoDuration = D.demoDuration;
+window.__ready = true;
+</script>
+</body>
+</html>
