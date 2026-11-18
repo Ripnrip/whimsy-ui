@@ -232,3 +232,39 @@ public struct OnAirModel: Sendable {
         spring.isSettled(at: destination, tolerance: OnAirTuning.settleTolerance)
     }
 }
+
+/// Keeps the `isOn` binding and the model from drifting when a parent write arrives mid-drag.
+/// The finger keeps the knob. The write is held, then dropped when the gesture ends, and the
+/// binding is republished from whatever the model committed — including a release that commits
+/// the state the model already had, which would otherwise emit no `.committed` event.
+public struct OnAirBindingGate: Equatable, Sendable {
+    public private(set) var value: Bool
+    /// The parent value received while a drag was in progress.
+    public private(set) var held: Bool?
+
+    public init(_ value: Bool) {
+        self.value = value
+    }
+
+    /// Adopts `next` when nothing is dragging. During a drag, remembers it and leaves `value`.
+    /// The Bool is true when the model should follow `value`.
+    @discardableResult
+    public mutating func receive(_ next: Bool, dragging: Bool) -> Bool {
+        if dragging {
+            held = next
+            return false
+        }
+        held = nil
+        let changed = value != next
+        value = next
+        return changed
+    }
+
+    /// The gesture finished. The model's committed state wins.
+    @discardableResult
+    public mutating func finishGesture(modelOn: Bool) -> Bool {
+        held = nil
+        value = modelOn
+        return modelOn
+    }
+}

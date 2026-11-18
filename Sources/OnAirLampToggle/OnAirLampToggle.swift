@@ -23,6 +23,7 @@ import OnAirCore
 public struct OnAirLampToggle: View {
     @Binding private var isOn: Bool
     @State private var model: OnAirModel
+    @State private var gate: OnAirBindingGate
     @State private var lastDate: Date?
     @State private var hapticTick = 0
     @State private var trackingDrag = false
@@ -31,6 +32,7 @@ public struct OnAirLampToggle: View {
     public init(isOn: Binding<Bool>) {
         _isOn = isOn
         _model = State(initialValue: OnAirModel(isOn: isOn.wrappedValue))
+        _gate = State(initialValue: OnAirBindingGate(isOn.wrappedValue))
     }
 
     public var body: some View {
@@ -70,7 +72,10 @@ public struct OnAirLampToggle: View {
         }
         .onChange(of: reduceMotion) { _, on in model.setReduceMotion(on) }
         .onChange(of: isOn) { _, newValue in
-            guard newValue != model.isOn, !model.isDragging else { return }
+            // A parent write during a drag is held. Applying it now would fight the finger,
+            // and dropping it would leave the binding off while the lamp stays on.
+            guard gate.receive(newValue, dragging: model.isDragging) else { return }
+            guard newValue != model.isOn else { return }
             note(model.setOn(newValue))
         }
         .accessibilityElement(children: .ignore)
@@ -106,6 +111,10 @@ public struct OnAirLampToggle: View {
                     note(model.toggle())
                 }
                 trackingDrag = false
+                // Republish even when the release commits the state the model already had,
+                // so a binding flipped during the drag cannot be left behind.
+                let published = gate.finishGesture(modelOn: model.isOn)
+                if isOn != published { isOn = published }
             }
     }
 

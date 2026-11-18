@@ -377,3 +377,40 @@ private var pillMidY: Double { OnAirTuning.pillY + OnAirTuning.pillHeight / 2 }
         #expect(model.throwProgress == 0)
     }
 }
+
+@Suite("Binding") struct OnAirBindingTests {
+    @Test func aWriteWhileIdleIsApplied() {
+        var gate = OnAirBindingGate(true)
+        let applied = gate.receive(false, dragging: false)
+        let again = gate.receive(false, dragging: false)
+        #expect(applied)
+        #expect(!again)
+        #expect(!gate.value)
+        #expect(gate.held == nil)
+    }
+
+    @Test func aWriteDuringADragIsHeldThenTheReleaseRepublishesTheModel() {
+        // Start on, parent sets false while the finger is still in the on half.
+        // Releasing above the threshold leaves the model on, so the binding must
+        // be published true again. setOn(true) would not emit .committed.
+        var gate = OnAirBindingGate(true)
+        let applied = gate.receive(false, dragging: true)
+        #expect(!applied)
+        #expect(gate.value)
+        #expect(gate.held == false)
+        let published = gate.finishGesture(modelOn: true)
+        #expect(published)
+        #expect(gate.value)
+        #expect(gate.held == nil)
+    }
+
+    @Test func aReleaseThatTurnsOffClearsTheHeldOn() {
+        var gate = OnAirBindingGate(false)
+        let applied = gate.receive(true, dragging: true)
+        let published = gate.finishGesture(modelOn: false)
+        #expect(!applied)
+        #expect(!published)
+        #expect(!gate.value)
+        #expect(gate.held == nil)
+    }
+}

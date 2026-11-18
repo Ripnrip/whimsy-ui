@@ -48,7 +48,7 @@ Forty-two small, tactile SwiftUI components, each with a pure-Swift, unit-tested
 
 iOS 17+ / macOS 14+, Swift tools 6.0 (Swift 6 language mode).
 
-> **Honest status:** every core target builds, and all 1481 tests pass on Linux (Swift 6.4.2).
+> **Honest status:** every core target builds, and all 1484 tests pass on Linux (Swift 6.4.2).
 > The SwiftUI targets have **not yet been compiled or run on an Apple platform**. On Linux
 > they compile to empty modules (`#if canImport(SwiftUI)`). They were checked with
 > sourcekit-lsp (0 diagnostics), `swiftc -parse` and careful API review, but expect
@@ -1297,7 +1297,7 @@ OnAirLampToggle(isOn: $isLive)
 - **Throw:** stiffness 260, damping ratio 0.72, integrated with the shared semi-implicit spring (substeps of 1/240 s, a frame capped at 0.1 s). The click is the first time the knob reaches the detent, not a tick on every frame. Dragging grabs only on the pill and follows the finger; letting go below 0.5 throws back.
 - **Dim:** `colorMultiply` on the studio, from white at rest to 0.055 at the end of the throw. The lamp itself is not multiplied, so the red bloom stays the brightest thing in the dark room.
 - **Clock:** elapsed seconds while the switch is committed on, drawn as `mm:ss` and truncated toward zero. `83` is `01:23`. The count freezes during the return throw and clears once the knob has seated off. It stops at `99:59`.
-- **Pure-Swift core:** `OnAirCore` (`OnAirTuning`, `OnAirModel`, `OnAirClock`, `OnAirMath`). It imports only Foundation through `WhimsyCore`, so it tests on Linux (26 tests, Swift Testing).
+- **Pure-Swift core:** `OnAirCore` (`OnAirTuning`, `OnAirModel`, `OnAirClock`, `OnAirMath`, `OnAirBindingGate`). It imports only Foundation through `WhimsyCore`, so it tests on Linux (29 tests, Swift Testing). A parent write during a drag is held, then the binding is republished from the model when the finger lets go, so a same-state release cannot leave the binding behind.
 - **Reduce Motion:** no spring and no breath. The throw is a 0.28 s crossfade, the meter holds still, and the click still fires when the fade ends.
 - **VoiceOver:** one toggle labelled "On air". The value is "Off", or "On air, 01:23" while live. Double tap toggles, so nobody has to drag.
 - **Web port:** `webports/onair.html` draws the studio, and `webports/onair-core.mjs` repeats the core with the same constants. `node webports/onair-parity.mjs` checks it against `Tests/OnAirCoreTests/Fixtures/golden-trace.txt` (287 lines, exact match). The GIF and the stills contact sheet (`docs/onair-stills.png`) are frames of that canvas port at iPhone size (390×844), not a device recording. Georgia stands in for the serif wordmark.
