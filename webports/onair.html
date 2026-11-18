@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>On Air Lamp</title>
+<style>
+  html, body { margin: 0; height: 100%; background: #f6f1e8; }
+  body { display: flex; align-items: center; justify-content: center; }
+  canvas { display: block; }
+  #sheet { display: none; }
+</style>
+</head>
+<body>
+<canvas id="stage" width="780" height="1688" style="width:390px;height:844px"></canvas>
+<canvas id="sheet" width="10" height="10"></canvas>
+<script type="module">
+import { TUNING, demoAt, DEMO_STILLS, DEMO_DURATION, OnAirModel } from "./onair-core.mjs";
+
+const W = TUNING.sceneWidth;
+const H = TUNING.sceneHeight;
+const stage = document.querySelector("#stage");
+const sheet = document.querySelector("#sheet");
+const ctx = stage.getContext("2d");
+const sheetCtx = sheet.getContext("2d");
+
+function roundRect(c, x, y, w, h, r) {
+  c.beginPath();
+  c.moveTo(x + r, y);
+  c.arcTo(x + w, y, x + w, y + h, r);
+  c.arcTo(x + w, y + h, x, y + h, r);
+  c.arcTo(x, y + h, x, y, r);
+  c.arcTo(x, y, x + w, y, r);
+  c.closePath();
+}
+
+function multiply(c, factor) {
+  c.save();
+  c.globalCompositeOperation = "multiply";
+  c.fillStyle = `rgb(${Math.round(factor * 255)}, ${Math.round(factor * 255)}, ${Math.round(factor * 255)})`;
+  c.fillRect(0, 0, W, H);
+  c.restore();
+}
+
+function drawRoom(c) {
+  const wall = c.createLinearGradient(0, 0, 0, H);
+  wall.addColorStop(0, "#f6f1e8");
+  wall.addColorStop(1, "#e6dac8");
+  c.fillStyle = wall;
+  c.fillRect(0, 0, W, H);
+  c.fillStyle = "#dacaB5";
+  c.fillRect(0, 748, W, H - 748);
+
+  roundRect(c, 214, 186, 132, 158, 18);
+  c.fillStyle = "#c4b5a0";
+  c.fill();
+  c.save();
+  roundRect(c, 222, 194, 116, 142, 12);
+  c.clip();
+  const sky = c.createLinearGradient(0, 194, 0, 336);
+  sky.addColorStop(0, "#8eb8d8");
+  sky.addColorStop(1, "#f3d7b0");
+  c.fillStyle = sky;
+  c.fillRect(222, 194, 116, 142);
+  c.fillStyle = "#7f9a78";
+  c.beginPath();
+  c.moveTo(222, 336);
+  c.lineTo(222, 300);
+  c.quadraticCurveTo(280, 274, 338, 308);
+  c.lineTo(338, 336);
+  c.closePath();
+  c.fill();
+  c.restore();
+  c.strokeStyle = "#c4b5a0";
+  c.lineWidth = 4;
+  c.beginPath();
+  c.moveTo(280, 194);
+  c.lineTo(280, 336);
+  c.moveTo(222, 265);
+  c.lineTo(338, 265);
+  c.stroke();
+
+  c.fillStyle = "rgba(107, 130, 88, 0.9)";
+  c.beginPath();
+  c.ellipse(80, 309, 18, 9, 0, 0, Math.PI * 2);
+  c.fill();
+  c.fillStyle = "#587449";
+  c.beginPath();
+  c.ellipse(62, 297, 14, 11, 0, 0, Math.PI * 2);
+  c.fill();
+  c.fillStyle = "#748b5c";
+  c.beginPath();
+  c.ellipse(91, 292, 13, 12, 0, 0, Math.PI * 2);
+  c.fill();
+  c.fillStyle = "#8b4f3c";
+  roundRect(c, 64, 312, 28, 22, 3);
+  c.fill();
+
+  c.strokeStyle = "#3a3632";
+  c.lineWidth = 4;
+  c.lineCap = "round";
+  c.beginPath();
+  c.moveTo(158, 268);
+  c.lineTo(158, 392);
+  c.stroke();
+  c.fillStyle = "#3a3632";
+  c.beginPath();
+  c.ellipse(158, 393, 22, 5, 0, 0, Math.PI * 2);
+  c.fill();
+  roundRect(c, 136, 228, 44, 52, 22);
+  c.fillStyle = "#2a2725";
+  c.fill();
+  const grille = c.createLinearGradient(142, 236, 174, 272);
+  grille.addColorStop(0, "#c9a27a");
+  grille.addColorStop(1, "#7a5d46");
+  roundRect(c, 142, 236, 32, 36, 16);
+  c.fillStyle = grille;
+  c.fill();
+
+  c.fillStyle = "#2a2622";
+  c.font = "500 40px Georgia, 'Times New Roman', serif";
+  c.textAlign = "center";
+  c.textBaseline = "middle";
+  c.fillText(TUNING.wordmark, W / 2, TUNING.wordmarkY);
+  c.fillStyle = "#8a8178";
+  c.font = "600 12px Inter, 'DejaVu Sans', sans-serif";
+  c.letterSpacing = "3px";
+  c.fillText(TUNING.subtitle, W / 2, TUNING.subtitleY);
+  c.letterSpacing = "0px";
+}
+
+function drawLamp(c, model) {
+  const center = model.knob();
+  const glow = model.glowValue();
+  const chrome = model.chrome();
+  if (glow > 0.01) {
+    const radius = 168 + 28 * glow;
+    const bloom = c.createRadialGradient(center.x, center.y, 8, center.x, center.y, radius);
+    bloom.addColorStop(0, `rgba(255, 46, 26, ${0.55 * glow})`);
+    bloom.addColorStop(0.45, `rgba(255, 13, 5, ${0.16 * glow})`);
+    bloom.addColorStop(1, "rgba(255, 0, 0, 0)");
+    c.fillStyle = bloom;
+    c.beginPath();
+    c.arc(center.x, center.y, radius, 0, Math.PI * 2);
+    c.fill();
+  }
+
+  const x = TUNING.pillX;
+  const y = TUNING.pillY;
+  const w = TUNING.pillWidth;
+  const h = TUNING.pillHeight;
+  const shadow = c.createRadialGradient(x + w / 2, y + h, 2, x + w / 2, y + h, 70);
+  shadow.addColorStop(0, "rgba(0,0,0,0.22)");
+  shadow.addColorStop(1, "rgba(0,0,0,0)");
+  c.fillStyle = shadow;
+  c.beginPath();
+  c.ellipse(x + w / 2, y + h - 2, (w - 48) / 2, 11, 0, 0, Math.PI * 2);
+  c.fill();
+
+  const metal = c.createLinearGradient(x, y, x, y + h);
+  metal.addColorStop(0, "#f8f5f1");
+  metal.addColorStop(0.18, "#d9d4cc");
+  metal.addColorStop(0.48, "#b7b1a8");
+  metal.addColorStop(0.74, "#8f897f");
+  metal.addColorStop(1, "#d4cfc7");
+  roundRect(c, x, y, w, h, h / 2);
+  c.fillStyle = metal;
+  c.fill();
+  c.save();
+  roundRect(c, x, y, w, h, h / 2);
+  c.clip();
+  c.strokeStyle = "rgba(255,255,255,0.16)";
+  c.lineWidth = 1;
+  for (let row = 0; row < 16; row += 1) {
+    const gy = y + (row + 0.5) * h / 16;
+    c.beginPath();
+    c.moveTo(x, gy);
+    c.lineTo(x + w, gy);
+    c.stroke();
+  }
+  if (glow > 0.02) {
+    c.fillStyle = `rgba(255, 56, 31, ${0.22 * glow})`;
+    c.fillRect(x, y, w, h);
+  }
+  c.restore();
+  roundRect(c, x, y, w, h, h / 2);
+  c.strokeStyle = "rgba(255,255,255,0.45)";
+  c.lineWidth = 1;
+  c.stroke();
+
+  const channel = c.createLinearGradient(x, y + 8, x, y + h - 8);
+  channel.addColorStop(0, "#5c564f");
+  channel.addColorStop(1, "#252321");
+  roundRect(c, x + 8, y + 8, w - 16, h - 16, (h - 16) / 2);
+  c.fillStyle = channel;
+  c.fill();
+
+  const knob = TUNING.knobDiameter;
+  c.fillStyle = "rgba(0,0,0,0.28)";
+  c.beginPath();
+  c.arc(center.x, center.y + 2, knob / 2, 0, Math.PI * 2);
+  c.fill();
+  const bezel = c.createLinearGradient(center.x - knob / 2, center.y - knob / 2, center.x + knob / 2, center.y + knob / 2);
+  bezel.addColorStop(0, "#f6f2ec");
+  bezel.addColorStop(1, "#7e786f");
+  c.fillStyle = bezel;
+  c.beginPath();
+  c.arc(center.x, center.y, knob / 2, 0, Math.PI * 2);
+  c.fill();
+
+  const lensR = knob / 2 - 5;
+  const smoked = c.createRadialGradient(center.x - 6, center.y - 8, 2, center.x, center.y, lensR);
+  smoked.addColorStop(0, "#5c6268");
+  smoked.addColorStop(1, "#121416");
+  c.fillStyle = smoked;
+  c.beginPath();
+  c.arc(center.x, center.y, lensR, 0, Math.PI * 2);
+  c.fill();
+  if (glow > 0.001) {
+    const red = c.createRadialGradient(center.x, center.y, 1, center.x, center.y, lensR);
+    red.addColorStop(0, `rgba(255, 208, 200, ${glow})`);
+    red.addColorStop(0.45, `rgba(255, 42, 26, ${glow})`);
+    red.addColorStop(1, `rgba(142, 0, 8, ${glow})`);
+    c.fillStyle = red;
+    c.beginPath();
+    c.arc(center.x, center.y, lensR, 0, Math.PI * 2);
+    c.fill();
+  }
+  c.fillStyle = `rgba(255,255,255,${0.42 * (1 - 0.35 * glow)})`;
+  c.beginPath();
+  c.ellipse(center.x - lensR * 0.28, center.y - lensR * 0.46, lensR * 0.28, lensR * 0.16, -0.4, 0, Math.PI * 2);
+  c.fill();
+
+  if (chrome <= 0.01) return;
+  c.save();
+  c.globalAlpha = chrome;
+  c.fillStyle = "#ff3b30";
+  c.beginPath();
+  c.arc(W / 2 - 42, TUNING.onAirY, 4, 0, Math.PI * 2);
+  c.fill();
+  c.font = "600 13px Inter, 'DejaVu Sans', sans-serif";
+  c.textAlign = "center";
+  c.textBaseline = "middle";
+  c.letterSpacing = "3.5px";
+  c.fillText(TUNING.onAirLabel, W / 2 + 8, TUNING.onAirY);
+  c.letterSpacing = "0px";
+  c.fillStyle = "#fff1ec";
+  c.font = "500 32px 'DejaVu Sans Mono', ui-monospace, monospace";
+  c.fillText(model.timerText(), W / 2, TUNING.timerY);
+
+  const levels = model.meter();
+  const barW = TUNING.meterBarWidth;
+  const gap = TUNING.meterGap;
+  const total = levels.length * barW + (levels.length - 1) * gap;
+  let bx = W / 2 - total / 2;
+  const base = TUNING.meterY + TUNING.meterMaxHeight;
+  c.fillStyle = "#ff3b30";
+  levels.forEach((level) => {
+    const barH = Math.max(3, TUNING.meterMaxHeight * level);
+    roundRect(c, bx, base - barH, barW, barH, barW / 2);
+    c.fill();
+    bx += barW + gap;
+  });
+  c.restore();
+}
+
+function drawScene(c, model) {
+  drawRoom(c);
+  multiply(c, model.multiply());
+  drawLamp(c, model);
+}
+
+function paintStage(model) {
+  ctx.setTransform(2, 0, 0, 2, 0, 0);
+  ctx.clearRect(0, 0, W, H);
+  drawScene(ctx, model);
+}
+
+const params = new URLSearchParams(location.search);
+const driven = params.get("drive") === "1";
+
+if (!driven) {
+  let live = new OnAirModel();
+  let last = 0;
+  let dragging = false;
+  const point = (event) => {
+    const rect = stage.getBoundingClientRect();
+    return {
+      x: ((event.clientX - rect.left) / rect.width) * W,
+      y: ((event.clientY - rect.top) / rect.height) * H,
+    };
+  };
+  let originX = 0;
+  stage.addEventListener("pointerdown", (event) => {
+    const p = point(event);
+    originX = event.clientX;
+    dragging = live.beginDrag(p.x, p.y);
+    stage.setPointerCapture(event.pointerId);
+  });
+  stage.addEventListener("pointermove", (event) => {
+    if (!dragging) return;
+    live.updateDrag(point(event).x);
+  });
+  stage.addEventListener("pointerup", (event) => {
+    const rect = stage.getBoundingClientRect();
+    const scale = rect.width / W || 1;
+    const travel = (event.clientX - originX) / scale;
+    if (dragging) live.endDrag(travel);
+    else if (Math.abs(travel) <= TUNING.tapSlop) live.toggle();
+    dragging = false;
+  });
+  const frame = (now) => {
+    const dt = last ? Math.min(0.05, (now - last) / 1000) : 0;
+    last = now;
+    if (dt > 0) live.step(dt);
+    paintStage(live);
+    requestAnimationFrame(frame);
+  };
+  requestAnimationFrame(frame);
+}
+
+window.renderAt = (t) => {
+  const model = demoAt(t);
+  paintStage(model);
+  return { on: model.isOn, timer: model.timerText(), glow: model.glowValue() };
+};
+
+window.renderSheet = () => {
+  const panelW = 180;
+  const panelH = Math.round(H * (panelW / W));
+  const cols = 4;
+  const labelH = 28;
+  const gap = 16;
+  const rows = 2;
+  const width = gap + cols * (panelW + gap);
+  const height = gap + rows * (labelH + panelH + gap);
+  sheet.width = width * 2;
+  sheet.height = height * 2;
+  sheet.style.width = `${width}px`;
+  sheet.style.height = `${height}px`;
+  sheetCtx.setTransform(2, 0, 0, 2, 0, 0);
+  sheetCtx.fillStyle = "#1a1816";
+  sheetCtx.fillRect(0, 0, width, height);
+  DEMO_STILLS.forEach((still, index) => {
+    const col = index % cols;
+    const row = Math.floor(index / cols);
+    const x = gap + col * (panelW + gap);
+    const y = gap + row * (labelH + panelH + gap);
+    sheetCtx.fillStyle = "#f6e7c8";
+    sheetCtx.font = "600 13px Inter, 'DejaVu Sans', sans-serif";
+    sheetCtx.textAlign = "left";
+    sheetCtx.textBaseline = "middle";
+    sheetCtx.fillText(still.name, x, y + 12);
+    const model = demoAt(still.t, { reduceMotion: !!still.reduceMotion });
+    const snapshot = document.createElement("canvas");
+    snapshot.width = W * 2;
+    snapshot.height = H * 2;
+    const snap = snapshot.getContext("2d");
+    snap.setTransform(2, 0, 0, 2, 0, 0);
+    drawScene(snap, model);
+    sheetCtx.drawImage(snapshot, x, y + labelH, panelW, panelH);
+  });
+  sheet.style.display = "block";
+  stage.style.display = "none";
+  document.body.style.background = "#1a1816";
+  return { width, height };
+};
+
+window.__ready = true;
+window.__demoDuration = DEMO_DURATION;
+</script>
+</body>
+</html>

@@ -1,6 +1,6 @@
 # 45 — RotaryDialPasscode
 
-Component 45. Main has forty components, ending at PinataReward. Open work claims 41–43, and 44 is GlassDropPourMenu on a parallel branch. This branch is cut from main, so the gallery here lists forty-one and the new lock is the last of them.
+Component 45, the last in the gallery, after GlassDropPourMenu (44).
 
 ## API
 
