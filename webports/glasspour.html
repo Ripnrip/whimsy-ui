@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Glass Drop Pour Menu</title>
+<style>
+  html, body { margin: 0; height: 100%; background: #16141f; }
+  body { display: flex; align-items: center; justify-content: center; }
+  canvas { display: block; }
+  #sheet { display: none; }
+</style>
+</head>
+<body>
+<canvas id="stage" width="390" height="844"></canvas>
+<canvas id="sheet" width="10" height="10"></canvas>
+<script type="module">
+import {
+  LAYOUT, demoAt, DEMO_STILLS, DEMO_DURATION, layoutHeight,
+} from "./glasspour-core.mjs";
+
+const stage = document.querySelector("#stage");
+const sheet = document.querySelector("#sheet");
+const ctx = stage.getContext("2d");
+const sheetCtx = sheet.getContext("2d");
+const W = LAYOUT.pageWidth;
+const H = LAYOUT.pageHeight;
+const origin = LAYOUT.pageOrigin;
+
+function roundRect(c, x, y, w, h, r) {
+  c.beginPath();
+  c.moveTo(x + r, y);
+  c.arcTo(x + w, y, x + w, y + h, r);
+  c.arcTo(x + w, y + h, x, y + h, r);
+  c.arcTo(x, y + h, x, y, r);
+  c.arcTo(x, y, x + w, y, r);
+  c.closePath();
+}
+
+function stadium(c, x, y, halfWidth, radius) {
+  roundRect(c, x - halfWidth, y - radius, halfWidth * 2, radius * 2, radius);
+}
+
+function drawBackdrop(c) {
+  const sky = c.createLinearGradient(0, 0, 0, H);
+  sky.addColorStop(0, "#ffc3a0");
+  sky.addColorStop(0.18, "#f07a62");
+  sky.addColorStop(0.4, "#a34b78");
+  sky.addColorStop(0.68, "#3c2a58");
+  sky.addColorStop(1, "#14131c");
+  c.fillStyle = sky;
+  c.fillRect(0, 0, W, H);
+  c.fillStyle = "rgba(255,255,255,0.55)";
+  [[48, 36], [86, 70], [310, 48], [344, 92], [220, 28], [150, 58]].forEach(([x, y]) => {
+    c.beginPath();
+    c.arc(x, y, 1.5, 0, Math.PI * 2);
+    c.fill();
+  });
+  const sun = c.createRadialGradient(300, 96, 8, 300, 110, 90);
+  sun.addColorStop(0, "rgba(255,244,220,0.95)");
+  sun.addColorStop(1, "rgba(255,244,220,0)");
+  c.fillStyle = sun;
+  c.beginPath();
+  c.arc(300, 100, 90, 0, Math.PI * 2);
+  c.fill();
+}
+
+function drawCard(c) {
+  c.fillStyle = "#fff";
+  c.font = "700 34px 'DejaVu Sans', sans-serif";
+  c.textAlign = "left";
+  c.textBaseline = "alphabetic";
+  c.fillText("Notes", 24, 72);
+  roundRect(c, 20, 108, 350, 210, 28);
+  c.fillStyle = "rgba(255,255,255,0.16)";
+  c.fill();
+  c.strokeStyle = "rgba(255,255,255,0.38)";
+  c.lineWidth = 1;
+  c.stroke();
+  c.fillStyle = "rgba(255,255,255,0.78)";
+  c.font = "700 11px 'DejaVu Sans', sans-serif";
+  c.fillText("SUNDAY MARKET", 40, 148);
+  c.fillStyle = "#fff";
+  c.font = "600 22px 'DejaVu Sans', sans-serif";
+  const title = "Peaches, cold brew,";
+  c.fillText(title, 40, 186);
+  c.fillText("a table in the shade.", 40, 214);
+  c.fillStyle = "rgba(255,255,255,0.82)";
+  c.font = "400 14px 'DejaVu Sans', sans-serif";
+  c.fillText("Hold the glass drop.", 40, 258);
+}
+
+function drawSymbol(c, symbol) {
+  c.save();
+  c.lineWidth = 1.6;
+  c.lineCap = "round";
+  c.lineJoin = "round";
+  if (symbol === "square.and.arrow.up") {
+    roundRect(c, -7, -3, 14, 12, 2);
+    c.stroke();
+    c.beginPath();
+    c.moveTo(0, -9);
+    c.lineTo(0, 1);
+    c.moveTo(-3.5, -6);
+    c.lineTo(0, -9.5);
+    c.lineTo(3.5, -6);
+    c.stroke();
+  } else if (symbol === "plus.square.on.square") {
+    roundRect(c, -8, -2, 12, 12, 2);
+    c.stroke();
+    roundRect(c, -4, -8, 12, 12, 2);
+    c.stroke();
+  } else if (symbol === "pencil") {
+    c.beginPath();
+    c.moveTo(-6, 7);
+    c.lineTo(6, -6);
+    c.lineTo(8, -4);
+    c.lineTo(-4, 9);
+    c.closePath();
+    c.stroke();
+    c.beginPath();
+    c.moveTo(4.2, -4.2);
+    c.lineTo(6.4, -2);
+    c.stroke();
+  } else {
+    roundRect(c, -5, -3, 10, 11, 1.5);
+    c.stroke();
+    c.beginPath();
+    c.moveTo(-7, -5);
+    c.lineTo(7, -5);
+    c.moveTo(-2, -5);
+    c.lineTo(-2, -8);
+    c.lineTo(2, -8);
+    c.lineTo(2, -5);
+    c.stroke();
+  }
+  c.restore();
+}
+
+let gooBuffer = null;
+function gooCanvas(w, h) {
+  if (!gooBuffer || gooBuffer.width !== w || gooBuffer.height !== h) {
+    gooBuffer = document.createElement("canvas");
+    gooBuffer.width = w;
+    gooBuffer.height = h;
+  }
+  return gooBuffer;
+}
+
+function drawMenu(c, model) {
+  const height = layoutHeight(model.count);
+  const pad = 28;
+  if (model.isExpanded) {
+    c.fillStyle = "rgba(0,0,0,0.22)";
+    c.fillRect(0, 0, W, H);
+  }
+  if (model.usesGoo) {
+    const bw = Math.ceil(LAYOUT.width + pad * 2);
+    const bh = Math.ceil(height + pad * 2);
+    const buffer = gooCanvas(bw, bh);
+    const g = buffer.getContext("2d");
+    g.clearRect(0, 0, bw, bh);
+    g.save();
+    g.filter = `blur(${LAYOUT.gooBlur}px)`;
+    g.fillStyle = "#fff";
+    const drop = {
+      x: LAYOUT.dropCenter.x + pad,
+      y: LAYOUT.dropCenter.y + pad,
+      r: LAYOUT.dropRadius * model.dropScale,
+    };
+    g.beginPath();
+    g.arc(drop.x, drop.y, drop.r, 0, Math.PI * 2);
+    g.fill();
+    for (const row of model.rows) {
+      if (!row.isVisible) continue;
+      const halfW = (LAYOUT.pillWidth / 2) * row.scale;
+      const radius = (LAYOUT.pillHeight / 2) * row.scale;
+      stadium(g, row.center.x + pad, row.center.y + pad, halfW, radius);
+      g.fill();
+    }
+    for (const neck of model.necks) {
+      const polygon = neck.polygon();
+      g.beginPath();
+      polygon.forEach((point, index) => {
+        const x = point.x + pad;
+        const y = point.y + pad;
+        if (index === 0) g.moveTo(x, y);
+        else g.lineTo(x, y);
+      });
+      g.closePath();
+      g.fill();
+    }
+    g.restore();
+    const image = g.getImageData(0, 0, bw, bh);
+    const data = image.data;
+    const threshold = LAYOUT.gooThreshold;
+    for (let i = 0; i < data.length; i += 4) {
+      const alpha = data[i + 3] / 255;
+      let coverage = 0;
+      if (alpha > threshold) coverage = Math.min(1, (alpha - threshold) / 0.16);
+      data[i] = 248;
+      data[i + 1] = 248;
+      data[i + 2] = 252;
+      data[i + 3] = Math.round(coverage * 242);
+    }
+    g.putImageData(image, 0, 0);
+    c.drawImage(buffer, origin.x - pad, origin.y - pad);
+  }
+
+  const dropX = origin.x + LAYOUT.dropCenter.x;
+  const dropY = origin.y + LAYOUT.dropCenter.y;
+  const dropR = LAYOUT.dropRadius * model.dropScale;
+  if (!model.usesGoo) {
+    c.save();
+    c.shadowColor = "rgba(0,0,0,0.22)";
+    c.shadowBlur = 16;
+    c.shadowOffsetY = 8;
+    c.beginPath();
+    c.arc(dropX, dropY, dropR, 0, Math.PI * 2);
+    c.fillStyle = "rgba(255,255,255,0.72)";
+    c.fill();
+    c.restore();
+    c.beginPath();
+    c.arc(dropX, dropY, dropR, 0, Math.PI * 2);
+    c.strokeStyle = "rgba(255,255,255,0.9)";
+    c.lineWidth = 1.4;
+    c.stroke();
+  }
+  const gloss = c.createRadialGradient(dropX - dropR * 0.34, dropY - dropR * 0.38, 1, dropX, dropY, dropR);
+  gloss.addColorStop(0, "rgba(255,255,255,0.95)");
+  gloss.addColorStop(0.45, "rgba(255,255,255,0.18)");
+  gloss.addColorStop(1, "rgba(255,255,255,0)");
+  c.fillStyle = gloss;
+  c.beginPath();
+  c.arc(dropX, dropY, dropR, 0, Math.PI * 2);
+  c.fill();
+
+  for (const row of model.rows) {
+    if (row.opacity < 0.02 && !row.isVisible) continue;
+    const x = origin.x + row.center.x;
+    const y = origin.y + row.center.y;
+    const halfW = (LAYOUT.pillWidth / 2) * row.scale;
+    const radius = (LAYOUT.pillHeight / 2) * row.scale;
+    c.save();
+    c.translate(x, y);
+    c.rotate(row.wobble);
+    c.globalAlpha = model.usesGoo ? Math.min(1, row.opacity) : row.opacity;
+    if (!model.usesGoo && row.isVisible) {
+      c.shadowColor = "rgba(0,0,0,0.18)";
+      c.shadowBlur = 14;
+      c.shadowOffsetY = 6;
+      stadium(c, 0, 0, halfW, radius);
+      c.fillStyle = row.destructive ? "rgba(226, 61, 78, 0.94)" : "rgba(255,255,255,0.78)";
+      c.fill();
+      c.shadowColor = "transparent";
+      stadium(c, 0, 0, halfW, radius);
+      c.strokeStyle = "rgba(255,255,255,0.85)";
+      c.lineWidth = 1.2;
+      c.stroke();
+    } else if (row.destructive && row.pinch > 0.05) {
+      c.globalAlpha = row.opacity * row.pinch * 0.72;
+      stadium(c, 0, 0, halfW, radius);
+      c.fillStyle = "rgba(226, 61, 78, 0.92)";
+      c.fill();
+    }
+    c.restore();
+
+    c.save();
+    c.translate(x, y);
+    c.rotate(row.wobble);
+    c.globalAlpha = row.opacity;
+    const light = row.destructive && (!model.usesGoo || row.pinch > 0.45);
+    c.fillStyle = light ? "#fff" : (row.destructive ? "#8c1020" : "#1c1a22");
+    c.strokeStyle = c.fillStyle;
+    c.translate(-halfW + 28, 0);
+    drawSymbol(c, model.items[row.index].symbol);
+    c.font = "600 16px 'DejaVu Sans', sans-serif";
+    c.textAlign = "left";
+    c.textBaseline = "middle";
+    c.fillText(model.items[row.index].title, 16, 1);
+    c.restore();
+  }
+
+  let caption = "Long-press the drop";
+  if (model.phase === "arming") caption = "Keep holding";
+  else if (model.phase === "opening") caption = model.reduceMotion ? "Fading in" : "Pouring open";
+  else if (model.phase === "open") caption = "Share, Duplicate, Rename, Delete";
+  else if (model.phase === "closing") caption = model.reduceMotion ? "Fading out" : "Back into the drop";
+  c.fillStyle = "rgba(255,255,255,0.9)";
+  c.font = "600 15px 'DejaVu Sans', sans-serif";
+  c.textAlign = "center";
+  c.textBaseline = "middle";
+  c.fillText(caption, W / 2, 790);
+}
+
+function drawScene(c, model) {
+  drawBackdrop(c);
+  drawCard(c);
+  drawMenu(c, model);
+}
+
+function paint(model) {
+  ctx.setTransform(1, 0, 0, 1, 0, 0);
+  ctx.clearRect(0, 0, W, H);
+  drawScene(ctx, model);
+}
+
+const params = new URLSearchParams(location.search);
+const driven = params.get("drive") === "1";
+
+if (!driven) {
+  let live = demoAt(0);
+  let last = 0;
+  let clock = 0;
+  const frame = (now) => {
+    const dt = last ? Math.min(0.05, (now - last) / 1000) : 0;
+    last = now;
+    clock += dt;
+    live = demoAt(clock % (DEMO_DURATION + 0.4));
+    paint(live);
+    requestAnimationFrame(frame);
+  };
+  requestAnimationFrame(frame);
+}
+
+window.renderAt = (t) => {
+  const model = demoAt(t);
+  paint(model);
+  return { phase: model.phase, t };
+};
+
+window.renderSheet = () => {
+  const panelW = 156;
+  const panelH = Math.round(H * (panelW / W));
+  const cols = 4;
+  const labelH = 26;
+  const gap = 14;
+  const rows = 2;
+  const width = gap + cols * (panelW + gap);
+  const height = gap + rows * (labelH + panelH + gap);
+  sheet.width = width;
+  sheet.height = height;
+  sheet.style.width = `${width}px`;
+  sheet.style.height = `${height}px`;
+  sheetCtx.setTransform(1, 0, 0, 1, 0, 0);
+  sheetCtx.fillStyle = "#14131c";
+  sheetCtx.fillRect(0, 0, width, height);
+  DEMO_STILLS.forEach((still, index) => {
+    const col = index % cols;
+    const row = Math.floor(index / cols);
+    const x = gap + col * (panelW + gap);
+    const y = gap + row * (labelH + panelH + gap);
+    sheetCtx.fillStyle = "#f6e7c8";
+    sheetCtx.font = "600 13px 'DejaVu Sans', sans-serif";
+    sheetCtx.textAlign = "left";
+    sheetCtx.textBaseline = "middle";
+    sheetCtx.fillText(still.name, x, y + 12);
+    const model = demoAt(still.t, { reduceMotion: !!still.reduceMotion });
+    const snapshot = document.createElement("canvas");
+    snapshot.width = W;
+    snapshot.height = H;
+    drawScene(snapshot.getContext("2d"), model);
+    sheetCtx.drawImage(snapshot, x, y + labelH, panelW, panelH);
+  });
+  sheet.style.display = "block";
+  stage.style.display = "none";
+  document.body.style.background = "#14131c";
+  return { width, height };
+};
+
+window.__ready = true;
+window.__demoDuration = DEMO_DURATION;
+</script>
+</body>
+</html>
