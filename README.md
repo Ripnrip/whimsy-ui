@@ -48,7 +48,7 @@ Forty-one small, tactile SwiftUI components, each with a pure-Swift, unit-tested
 
 iOS 17+ / macOS 14+, Swift tools 6.0 (Swift 6 language mode).
 
-> **Honest status:** every core target builds, and all 1469 tests pass on Linux (Swift 6.4.2).
+> **Honest status:** every core target builds, and all 1470 tests pass on Linux (Swift 6.4.2).
 > The SwiftUI targets have **not yet been compiled or run on an Apple platform**. On Linux
 > they compile to empty modules (`#if canImport(SwiftUI)`). They were checked with
 > sourcekit-lsp (0 diagnostics), `swiftc -parse` and careful API review, but expect
@@ -1305,7 +1305,7 @@ GlassDropPourMenu(items: [
 `GlassDropPourMenuDemo()` is the gallery page: a Sunday Market note, the drop sitting on the card, and the last choice along the bottom.
 
 - **What it does:** the control starts as one glossy droplet. Press and hold it. After 0.32 s, Share, Duplicate, Rename and Delete pour downward one after another, 0.07 s apart, each on an underdamped spring (k 170, ζ 0.62) so it passes its seat and settles. While they travel, a Canvas blur and an alpha threshold fuse them to the drop with hourglass necks. At rest the necks pinch off and the rows are crisp glass pills with SF Symbols. Tap outside, or tap the drop, and they suck back up, the lowest row first. Tap a row and `onSelect` fires as the menu closes. A short press never opens. Delete is tinted red and takes a small wobble, about 6°, as it lands.
-- **Pure-Swift core:** `GlassPourCore` owns the long-press gate, the stagger, both springs, the neck geometry and the wobble kick. It imports only Foundation (through `WhimsyCore`), so it tests on Linux (14 tests, Swift Testing). The web port copies the same constants.
+- **Pure-Swift core:** `GlassPourCore` owns the long-press gate, the stagger, both springs, the neck geometry and the wobble kick. It imports only Foundation (through `WhimsyCore`), so it tests on Linux (15 tests, Swift Testing). The web port copies the same constants.
 - **Reduce Motion:** no pour and no wobble. The drop does not swell. The rows crossfade in place over 0.24 s, already on their seats, with no necks.
 - **VoiceOver:** the drop is a button labelled "Menu", value Closed or Open, hint "Opens the menu" or "Closes the menu". Activating it opens or closes without a hold. "Menu opened" and "Menu closed" are announced. Each row is a button; Delete's hint is "Deletes". The escape action closes the menu.
 - **Web port:** `webports/glasspour.html` draws the same scene at 390×844, and `webports/glasspour-core.mjs` repeats the core. `webports/glasspour-parity.mjs` checks the scripted trace against `Tests/GlassPourCoreTests/Fixtures/golden-trace.txt`. The GIF and the stills contact sheet (`docs/glasspour-stills.png`) are frames of that canvas port, not a device recording. The canvas draws stand-in icons in place of SF Symbols.

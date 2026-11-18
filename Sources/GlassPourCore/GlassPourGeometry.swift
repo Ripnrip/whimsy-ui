@@ -73,6 +73,26 @@ public enum GlassPourLayout {
         return restCenter(count - 1).y + pillHeight / 2 + bottomMargin
     }
 
+    /// Breathing room kept between the menu and the container edge when it fits.
+    public static let menuEdgeInset = 8.0
+
+    /// Top-left of the menu. Prefers 36% of the way down the container (never more than 360),
+    /// then moves up so the last row stays inside. A menu taller than the container starts at 0;
+    /// the view scrolls it.
+    public static func menuOrigin(containerWidth: Double, containerHeight: Double, menuHeight: Double) -> Vec2 {
+        let x = (containerWidth - width) / 2
+        guard menuHeight <= containerHeight else { return Vec2(x, 0) }
+        let preferred = min(max(containerHeight * 0.36, menuEdgeInset), 360)
+        let maxY = containerHeight - menuEdgeInset - menuHeight
+        let y = maxY >= 0 ? min(preferred, maxY) : max(0, containerHeight - menuHeight)
+        return Vec2(x, y)
+    }
+
+    /// True when the menu cannot sit fully inside the container, so the view must scroll.
+    public static func menuOverflows(containerWidth: Double, containerHeight: Double, menuHeight: Double) -> Bool {
+        menuHeight > containerHeight || width > containerWidth
+    }
+
     public static func dropBlob(scale: Double) -> GlassPourBlob {
         let radius = dropRadius * scale
         return GlassPourBlob(center: dropCenter, halfWidth: radius, radius: radius)

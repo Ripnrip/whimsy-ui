@@ -40,16 +40,28 @@ public struct GlassDropPourMenu: View {
 
     public var body: some View {
         GeometryReader { geo in
-            let origin = menuOrigin(in: geo.size)
             let height = GlassPourLayout.height(count: model.count)
+            let overflows = GlassPourLayout.menuOverflows(
+                containerWidth: geo.size.width, containerHeight: geo.size.height, menuHeight: height)
             ZStack(alignment: .topLeading) {
                 if model.isExpanded {
                     Color.black.opacity(0.22)
                         .ignoresSafeArea()
                         .onTapGesture { send(model.pressOutside()) }
                         .accessibilityHidden(true)
+                        .allowsHitTesting(!overflows)
                 }
-                menu(origin: origin, height: height)
+                if overflows {
+                    scrollingMenu(in: geo.size, height: height)
+                } else {
+                    let origin = GlassPourLayout.menuOrigin(
+                        containerWidth: geo.size.width, containerHeight: geo.size.height, menuHeight: height)
+                    menu(height: height)
+                        .position(
+                            x: origin.x + GlassPourLayout.width / 2,
+                            y: origin.y + height / 2
+                        )
+                }
             }
             .frame(width: geo.size.width, height: geo.size.height)
         }
@@ -62,13 +74,27 @@ public struct GlassDropPourMenu: View {
         }
     }
 
-    private func menuOrigin(in size: CGSize) -> CGPoint {
-        let x = (size.width - GlassPourLayout.width) / 2
-        let y = min(max(size.height * 0.36, 160), 360)
-        return CGPoint(x: x, y: y)
+    /// When the menu is taller or wider than the page, scroll it instead of clipping Delete.
+    private func scrollingMenu(in size: CGSize, height: Double) -> some View {
+        let contentWidth = max(size.width, GlassPourLayout.width + pad * 2)
+        let originX = max(pad, (contentWidth - GlassPourLayout.width) / 2)
+        return ScrollView([.vertical, .horizontal]) {
+            ZStack(alignment: .topLeading) {
+                Color.clear
+                    .frame(width: contentWidth, height: height + pad * 2)
+                    .contentShape(Rectangle())
+                    .onTapGesture {
+                        if model.isExpanded { send(model.pressOutside()) }
+                    }
+                menu(height: height)
+                    .offset(x: originX, y: pad)
+            }
+            .frame(width: contentWidth, height: height + pad * 2, alignment: .topLeading)
+        }
+        .scrollBounceBehavior(.basedOnSize)
     }
 
-    private func menu(origin: CGPoint, height: Double) -> some View {
+    private func menu(height: Double) -> some View {
         TimelineView(.animation(paused: !model.animates)) { timeline in
             ZStack(alignment: .topLeading) {
                 GooLayer(model: model)
@@ -82,7 +108,6 @@ public struct GlassDropPourMenu: View {
                 dropButton
             }
             .frame(width: GlassPourLayout.width, height: height, alignment: .topLeading)
-            .position(x: origin.x + GlassPourLayout.width / 2, y: origin.y + height / 2)
             .onChange(of: timeline.date) { _, now in advance(to: now) }
         }
     }
@@ -122,7 +147,7 @@ public struct GlassDropPourMenu: View {
         .shadow(color: .black.opacity(model.usesGoo ? 0 : 0.22), radius: 14, y: 8)
         .contentShape(Circle())
         .position(x: GlassPourLayout.dropCenter.x, y: GlassPourLayout.dropCenter.y)
-        .gesture(press)
+        .highPriorityGesture(press)
         .accessibilityAddTraits(.isButton)
         .accessibilityLabel(model.dropAccessibilityLabel)
         .accessibilityHint(model.dropAccessibilityHint)

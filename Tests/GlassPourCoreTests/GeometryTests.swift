@@ -20,6 +20,29 @@ private func near(_ a: Double, _ b: Double, _ eps: Double = 1e-9) -> Bool { abs(
         #expect(GlassPourLayout.rowGap > GlassPourLayout.breakGap)
     }
 
+    @Test func originKeepsTheLastRowOnScreen() {
+        let four = GlassPourLayout.height(count: 4)
+        let six = GlassPourLayout.height(count: 6)
+        #expect(four == 340 && six == 468)
+        // A 390-tall page used to pin the menu at y=160, which put Delete past the bottom.
+        let short = GlassPourLayout.menuOrigin(containerWidth: 700, containerHeight: 390, menuHeight: four)
+        #expect(short.y == 42)
+        #expect(short.y + four <= 390 - GlassPourLayout.menuEdgeInset)
+        #expect(!GlassPourLayout.menuOverflows(containerWidth: 700, containerHeight: 390, menuHeight: four))
+        let phone = GlassPourLayout.menuOrigin(containerWidth: 390, containerHeight: 844, menuHeight: four)
+        #expect(near(phone.y, 844 * 0.36) && near(phone.x, 81))
+        #expect(phone.y + four < 844)
+        // Six rows fit a tall phone, and scroll when the container is only 390 tall.
+        let sixOnPhone = GlassPourLayout.menuOrigin(containerWidth: 390, containerHeight: 844, menuHeight: six)
+        #expect(near(sixOnPhone.y, 844 * 0.36))
+        #expect(sixOnPhone.y + six <= 844 - GlassPourLayout.menuEdgeInset)
+        #expect(!GlassPourLayout.menuOverflows(containerWidth: 390, containerHeight: 844, menuHeight: six))
+        #expect(GlassPourLayout.menuOverflows(containerWidth: 390, containerHeight: 390, menuHeight: six))
+        #expect(GlassPourLayout.menuOrigin(containerWidth: 390, containerHeight: 390, menuHeight: six).y == 0)
+        // Narrower than the menu: scroll sideways instead of centering it off the edges.
+        #expect(GlassPourLayout.menuOverflows(containerWidth: 200, containerHeight: 844, menuHeight: four))
+    }
+
     @Test func neckNarrowsAndPinchesOff() {
         #expect(GlassPourLayout.neckWidth(gap: -8) == GlassPourLayout.maxNeck)
         #expect(GlassPourLayout.neckWidth(gap: 0) == GlassPourLayout.maxNeck)
