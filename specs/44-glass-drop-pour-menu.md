@@ -1,6 +1,6 @@
 # 44 — Glass Drop Pour Menu
 
-Component 44. Main has forty components, through PinataReward (40). Open pull requests claim 41, 42 and 43, so this one is numbered 44. This branch adds it as the forty-first entry in the gallery.
+Component 44, between ReededGlassSyncHero (43) and RotaryDialPasscode (45) in the gallery.
 
 Inspired by the glass pour menu at <https://nativecook.dev/blocks/glass-pour-menu/>: one glossy droplet pours open into Share, Duplicate, Rename and Delete.
 
