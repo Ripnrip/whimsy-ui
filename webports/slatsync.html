@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Reeded Glass Sync</title>
+<style>
+  html, body { margin: 0; height: 100%; background: #070616; }
+  body { display: flex; align-items: center; justify-content: center; }
+  canvas { display: block; }
+  #sheet { display: none; }
+</style>
+</head>
+<body>
+<canvas id="stage" width="390" height="844"></canvas>
+<canvas id="sheet" width="10" height="10"></canvas>
+<script type="module">
+import { TUNING, scene, demoProgress, DEMO_DURATION, STILLS } from "./slatsync-core.mjs";
+
+const stage = document.querySelector("#stage");
+const sheet = document.querySelector("#sheet");
+const ctx = stage.getContext("2d");
+const sheetCtx = sheet.getContext("2d");
+
+function rgb(c, a = 1) {
+  const r = Math.round(c.red * 255);
+  const g = Math.round(c.green * 255);
+  const b = Math.round(c.blue * 255);
+  return `rgba(${r}, ${g}, ${b}, ${a})`;
+}
+
+function channel(v) {
+  return Math.round(Math.min(1, Math.max(0, v)) * 255);
+}
+
+function roundRect(c, x, y, w, h, r) {
+  c.beginPath();
+  c.moveTo(x + r, y);
+  c.arcTo(x + w, y, x + w, y + h, r);
+  c.arcTo(x + w, y + h, x, y + h, r);
+  c.arcTo(x, y + h, x, y, r);
+  c.arcTo(x, y, x + w, y, r);
+  c.closePath();
+}
+
+function dots(c, x, y, cols, rows) {
+  c.fillStyle = "rgba(255,255,255,0.28)";
+  for (let row = 0; row < rows; row += 1) {
+    for (let col = 0; col < cols; col += 1) {
+      c.beginPath();
+      c.arc(x + col * 5, y + row * 5, 0.7, 0, Math.PI * 2);
+      c.fill();
+    }
+  }
+}
+
+function brackets(c, x, y, size) {
+  const a = size * 0.38;
+  c.strokeStyle = "rgba(255,255,255,0.55)";
+  c.lineWidth = 1.2;
+  c.beginPath();
+  c.moveTo(x, y + a); c.lineTo(x, y); c.lineTo(x + a, y);
+  c.moveTo(x + size - a, y); c.lineTo(x + size, y); c.lineTo(x + size, y + a);
+  c.moveTo(x + size, y + size - a); c.lineTo(x + size, y + size); c.lineTo(x + size - a, y + size);
+  c.moveTo(x + a, y + size); c.lineTo(x, y + size); c.lineTo(x, y + size - a);
+  c.stroke();
+}
+
+function backdrop(c) {
+  const g = c.createLinearGradient(0, 0, 0, TUNING.canvasHeight);
+  g.addColorStop(0, rgb(TUNING.backgroundTop));
+  g.addColorStop(1, rgb(TUNING.backgroundBottom));
+  c.fillStyle = g;
+  c.fillRect(0, 0, TUNING.canvasWidth, TUNING.canvasHeight);
+  dots(c, 28, 128, 3, 4);
+  dots(c, 332, 640, 3, 4);
+}
+
+function drawSlat(c, band) {
+  const { x, y, width, height, blur, offsetX, tilt, spread, red, green, blue, edge, opacity } = band;
+  const cx = x + width / 2;
+  const cy = y + height / 2;
+  c.save();
+  c.translate(cx, cy);
+  const rad = (tilt * Math.PI) / 180;
+  c.transform(1, 0, 0, Math.cos(rad), 0, Math.sin(rad) * 6);
+  c.translate(-cx, -cy);
+
+  roundRect(c, x, y, width, height, TUNING.cornerRadius);
+  c.fillStyle = "rgba(255,255,255,0.045)";
+  c.fill();
+
+  c.save();
+  roundRect(c, x, y, width, height, TUNING.cornerRadius);
+  c.clip();
+  const glowW = Math.max(width * spread, 0.001);
+  const left = cx + offsetX - glowW / 2;
+  c.filter = `blur(${blur}px)`;
+  c.globalAlpha = opacity;
+  const glow = c.createLinearGradient(left, 0, left + glowW, 0);
+  const hotR = channel(red + 0.35);
+  const hotG = channel(green + 0.18);
+  const hotB = channel(blue + 0.12);
+  const r = channel(red);
+  const gch = channel(green);
+  const b = channel(blue);
+  glow.addColorStop(0, `rgba(${r}, ${gch}, ${b}, 0)`);
+  glow.addColorStop(0.18, `rgba(${r}, ${gch}, ${b}, 0.35)`);
+  glow.addColorStop(0.5, `rgba(${hotR}, ${hotG}, ${hotB}, 0.98)`);
+  glow.addColorStop(0.82, `rgba(${r}, ${gch}, ${b}, 0.35)`);
+  glow.addColorStop(1, `rgba(${r}, ${gch}, ${b}, 0)`);
+  c.fillStyle = glow;
+  c.fillRect(left - blur, y - height, glowW + blur * 2, height * 3);
+  c.filter = "none";
+  c.globalAlpha = 1;
+  const shade = c.createLinearGradient(0, y, 0, y + height);
+  shade.addColorStop(0, "rgba(0,0,0,0)");
+  shade.addColorStop(0.45, "rgba(0,0,0,0)");
+  shade.addColorStop(1, "rgba(4,2,16,0.62)");
+  c.fillStyle = shade;
+  c.fillRect(x, y, width, height);
+  c.restore();
+
+  c.fillStyle = `rgba(255,255,255,${0.16 * edge})`;
+  c.fillRect(x + 8, y, width - 16, TUNING.edgeThickness);
+  const edgeW = Math.max(width * spread, 8);
+  const edgeLeft = cx + offsetX - edgeW / 2;
+  const lip = c.createLinearGradient(edgeLeft, 0, edgeLeft + edgeW, 0);
+  lip.addColorStop(0, "rgba(255,255,255,0)");
+  lip.addColorStop(0.5, `rgba(${hotR}, ${hotG}, ${hotB}, ${0.95 * edge})`);
+  lip.addColorStop(1, "rgba(255,255,255,0)");
+  c.fillStyle = lip;
+  c.fillRect(x, y, width, TUNING.edgeThickness);
+  c.restore();
+}
+
+function plus(c, shot) {
+  const top = shot.bands[0].y;
+  const last = shot.bands[shot.bands.length - 1];
+  const cy = (top + last.y + last.height) / 2;
+  const cx = TUNING.canvasWidth / 2;
+  c.strokeStyle = "rgba(255,255,255,0.92)";
+  c.lineWidth = 1.4;
+  c.lineCap = "round";
+  c.beginPath();
+  c.moveTo(cx - 7, cy);
+  c.lineTo(cx + 7, cy);
+  c.moveTo(cx, cy - 7);
+  c.lineTo(cx, cy + 7);
+  c.stroke();
+}
+
+function readout(c, shot) {
+  c.textAlign = "center";
+  c.fillStyle = "#ffffff";
+  c.font = "500 56px Inter, sans-serif";
+  c.fillText(`${shot.percent}%`, TUNING.canvasWidth / 2, 710);
+  c.font = "600 17px Inter, sans-serif";
+  c.fillStyle = shot.percent >= 100 ? rgb(TUNING.lime) : rgb(TUNING.muted);
+  c.fillText(shot.label, TUNING.canvasWidth / 2, 742);
+  c.font = "400 13px Inter, sans-serif";
+  c.fillStyle = "rgba(196,194,210,0.7)";
+  c.fillText(TUNING.detail, TUNING.canvasWidth / 2, 766);
+}
+
+function header(c) {
+  c.textAlign = "left";
+  c.fillStyle = "#ffffff";
+  c.font = "600 17px Inter, sans-serif";
+  c.fillText(TUNING.title, 28, 84);
+  c.font = "400 13px Inter, sans-serif";
+  c.fillStyle = "rgba(196,194,210,0.85)";
+  c.fillText(TUNING.subtitle, 28, 104);
+  brackets(c, TUNING.canvasWidth - 46, 70, 18);
+}
+
+export function renderScene(c, progress, roll = 0, pitch = 0, reduceMotion = false) {
+  const shot = scene(progress, roll, pitch, reduceMotion);
+  backdrop(c);
+  const mean = shot.bands.reduce((sum, band) => sum + band.spread, 0) / shot.bands.length;
+  const mid = shot.bands[5];
+  const bloom = c.createRadialGradient(TUNING.canvasWidth / 2, mid.y, 10, TUNING.canvasWidth / 2, mid.y, 180);
+  bloom.addColorStop(0, `rgba(${channel(mid.red)}, ${channel(mid.green)}, ${channel(mid.blue)}, ${0.18 * mean * shot.opacity})`);
+  bloom.addColorStop(1, "rgba(0,0,0,0)");
+  c.fillStyle = bloom;
+  c.fillRect(0, 120, TUNING.canvasWidth, 460);
+  shot.bands.forEach((band) => drawSlat(c, band));
+  plus(c, shot);
+  header(c);
+  readout(c, shot);
+}
+
+function tiltAt(time) {
+  return {
+    roll: 0.1 * Math.sin(time * 1.15),
+    pitch: 0.045 * Math.sin(time * 0.8 + 0.4),
+  };
+}
+
+function renderAt(time) {
+  const tilt = tiltAt(time);
+  renderScene(ctx, demoProgress(time), tilt.roll, tilt.pitch, false);
+}
+
+function renderSheet() {
+  const gap = 28;
+  const label = 36;
+  const width = STILLS.length * TUNING.canvasWidth + (STILLS.length + 1) * gap;
+  const height = TUNING.canvasHeight + label + gap * 2;
+  sheet.width = width;
+  sheet.height = height;
+  sheetCtx.fillStyle = "#100c18";
+  sheetCtx.fillRect(0, 0, width, height);
+  STILLS.forEach((progress, index) => {
+    const x = gap + index * (TUNING.canvasWidth + gap);
+    const y = gap;
+    sheetCtx.save();
+    sheetCtx.translate(x, y);
+    renderScene(sheetCtx, progress, 0, 0, false);
+    sheetCtx.restore();
+    sheetCtx.fillStyle = "#ffffff";
+    sheetCtx.font = "600 18px Inter, sans-serif";
+    sheetCtx.textAlign = "center";
+    sheetCtx.fillText(`${Math.round(progress * 100)}%`, x + TUNING.canvasWidth / 2, y + TUNING.canvasHeight + 28);
+  });
+  return { width, height };
+}
+
+window.renderAt = renderAt;
+window.renderSheet = renderSheet;
+window.__demoDuration = DEMO_DURATION;
+window.__ready = true;
+
+const params = new URLSearchParams(location.search);
+if (params.get("drive") !== "1") {
+  let start = performance.now();
+  const loop = (now) => {
+    const time = ((now - start) / 1000) % DEMO_DURATION;
+    renderAt(time);
+    requestAnimationFrame(loop);
+  };
+  requestAnimationFrame(loop);
+  window.addEventListener("click", () => { start = performance.now(); });
+} else {
+  renderAt(0);
+}
+</script>
+</body>
+</html>
