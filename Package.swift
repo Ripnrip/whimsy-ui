@@ -101,6 +101,8 @@ let package = Package(
         .library(name: "VelocityGlyphCore", targets: ["VelocityGlyphCore"]),
         .library(name: "PinataReward", targets: ["PinataReward"]),
         .library(name: "PinataCore", targets: ["PinataCore"]),
+        .library(name: "CardToPillGlassMorph", targets: ["CardToPillGlassMorph"]),
+        .library(name: "GlassMorphCore", targets: ["GlassMorphCore"]),
         .library(name: "OnAirLampToggle", targets: ["OnAirLampToggle"]),
         .library(name: "OnAirCore", targets: ["OnAirCore"]),
         // A demo gallery listing every component.
@@ -234,12 +236,15 @@ let package = Package(
         .target(name: "PinataCore", dependencies: ["WhimsyCore"]),
         .target(name: "PinataReward", dependencies: ["PinataCore"]),
 
+        .target(name: "GlassMorphCore", dependencies: ["WhimsyCore"]),
+        .target(name: "CardToPillGlassMorph", dependencies: ["GlassMorphCore"]),
+
         .target(name: "OnAirCore", dependencies: ["WhimsyCore"]),
         .target(name: "OnAirLampToggle", dependencies: ["OnAirCore"]),
 
         .target(name: "WhimsyGallery", dependencies: [
             "PopTherapy", "MagneticBeadSlider", "EraserDelete", "ShutterReveal", "AliveEyes", "ScatterRegroup", "SolarFlareLike", "FlyingButton",
-            "GrainyRingGallery", "LiquidMetalCompass", "SweaterRail", "FontCollection", "FollowBlobHero", "MoonPhaseScrubber", "ClothPoster", "TiltPhotoGrid", "ScrollSpinWatch", "BoutiqueBurst", "PeelableSticker", "FrostCard", "HoloFoilCard", "OilPaintRestore", "WiggleMatchSearch", "PourOpenMenu", "OctoDoneChecklist", "AsciiNowPlaying", "DogEarPeelCard", "ColorFigureGumball", "ChannelFlipCard", "ContourInkLoader", "ShelfPull", "StarJar", "HoldToFanDock", "TiltScatterRestore", "NeighborBouncePicker", "RubberBandCardHand", "CrumpleToDelete", "RippleToHide", "VelocityGlyphScatter", "PinataReward", "OnAirLampToggle",
+            "GrainyRingGallery", "LiquidMetalCompass", "SweaterRail", "FontCollection", "FollowBlobHero", "MoonPhaseScrubber", "ClothPoster", "TiltPhotoGrid", "ScrollSpinWatch", "BoutiqueBurst", "PeelableSticker", "FrostCard", "HoloFoilCard", "OilPaintRestore", "WiggleMatchSearch", "PourOpenMenu", "OctoDoneChecklist", "AsciiNowPlaying", "DogEarPeelCard", "ColorFigureGumball", "ChannelFlipCard", "ContourInkLoader", "ShelfPull", "StarJar", "HoldToFanDock", "TiltScatterRestore", "NeighborBouncePicker", "RubberBandCardHand", "CrumpleToDelete", "RippleToHide", "VelocityGlyphScatter", "PinataReward", "CardToPillGlassMorph", "OnAirLampToggle",
         ]),
 
         .testTarget(name: "WhimsyCoreTests", dependencies: ["WhimsyCore"]),
@@ -283,6 +288,7 @@ let package = Package(
         .testTarget(name: "RippleToHideCoreTests", dependencies: ["RippleToHideCore"]),
         .testTarget(name: "VelocityGlyphCoreTests", dependencies: ["VelocityGlyphCore"]),
         .testTarget(name: "PinataCoreTests", dependencies: ["PinataCore"]),
+        .testTarget(name: "GlassMorphCoreTests", dependencies: ["GlassMorphCore"]),
         .testTarget(name: "OnAirCoreTests", dependencies: ["OnAirCore"], exclude: ["Fixtures"]),
     ]
 )

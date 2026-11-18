@@ -43,6 +43,7 @@ import CrumpleToDelete
 import RippleToHide
 import VelocityGlyphScatter
 import PinataReward
+import CardToPillGlassMorph
 import OnAirLampToggle
 
 /// A navigation list of all forty-two components with a small live demo of each.
@@ -77,7 +78,7 @@ public struct WhimsyGallery: View {
 }
 
 enum GalleryItem: String, CaseIterable, Identifiable, Hashable {
-    case popTherapy, magneticBeads, eraserDelete, shutterReveal, aliveEyes, scatterRegroup, solarFlare, flyingButton, ringGallery, liquidCompass, sweaterRail, fontCollection, followBlob, moonPhase, clothPoster, tiltGrid, spinWatch, boutique, peelSticker, frostCard, holoFoilCard, oilPaintRestore, wiggleMatchSearch, pourOpenMenu, octoDoneChecklist, asciiNowPlaying, dogEarPeelCard, colorFigureGumball, channelFlipCard, contourInkLoader, shelfPull, starJar, holdToFanDock, tiltScatterRestore, neighborBouncePicker, rubberBandCardHand, crumpleToDelete, rippleToHide, velocityGlyphScatter, pinataReward, onAirLampToggle
+    case popTherapy, magneticBeads, eraserDelete, shutterReveal, aliveEyes, scatterRegroup, solarFlare, flyingButton, ringGallery, liquidCompass, sweaterRail, fontCollection, followBlob, moonPhase, clothPoster, tiltGrid, spinWatch, boutique, peelSticker, frostCard, holoFoilCard, oilPaintRestore, wiggleMatchSearch, pourOpenMenu, octoDoneChecklist, asciiNowPlaying, dogEarPeelCard, colorFigureGumball, channelFlipCard, contourInkLoader, shelfPull, starJar, holdToFanDock, tiltScatterRestore, neighborBouncePicker, rubberBandCardHand, crumpleToDelete, rippleToHide, velocityGlyphScatter, pinataReward, cardToPillGlassMorph, onAirLampToggle
     var id: String { rawValue }
 
     var title: String {
@@ -122,6 +123,7 @@ enum GalleryItem: String, CaseIterable, Identifiable, Hashable {
         case .rippleToHide: "Ripple to Hide"
         case .velocityGlyphScatter: "Velocity Glyph Scatter"
         case .pinataReward: "Piñata Reward"
+        case .cardToPillGlassMorph: "Card to Pill"
         case .onAirLampToggle: "On Air Lamp"
         }
     }
@@ -168,6 +170,7 @@ enum GalleryItem: String, CaseIterable, Identifiable, Hashable {
         case .rippleToHide: "Tap a balance to hide it behind a ripple"
         case .velocityGlyphScatter: "A price whose glyphs scatter and lean with thumb speed"
         case .pinataReward: "Tap a hanging piñata until it splits and pays out"
+        case .cardToPillGlassMorph: "Pay, and the glass card springs into a pill"
         case .onAirLampToggle: "A brushed-aluminium lamp that takes the room dark"
         }
     }
@@ -214,6 +217,7 @@ enum GalleryItem: String, CaseIterable, Identifiable, Hashable {
         case .rippleToHide: "eye.slash"
         case .velocityGlyphScatter: "dollarsign"
         case .pinataReward: "gift.fill"
+        case .cardToPillGlassMorph: "creditcard"
         case .onAirLampToggle: "record.circle"
         }
     }
@@ -260,6 +264,7 @@ enum GalleryItem: String, CaseIterable, Identifiable, Hashable {
         case .rippleToHide: RippleToHideDemo()
         case .velocityGlyphScatter: VelocityGlyphScatterDemo()
         case .pinataReward: PinataRewardDemo()
+        case .cardToPillGlassMorph: CardToPillGlassMorphDemo()
         case .onAirLampToggle: OnAirLampToggleDemo()
         }
     }
