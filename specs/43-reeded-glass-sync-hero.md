@@ -8,7 +8,7 @@ Component 43. Main has 40, ending at PinataReward. Open pull request #8 claims 4
 
 `roll` and `pitch` are radians. They are used only when `useDeviceMotion` is false, so a preview can inject a tilt. On an iPhone, the default reads CoreMotion and ignores the injected values.
 
-`ReededGlassSyncHeroDemo` plays progress from 0 to 1 and offers Replay.
+`ReededGlassSyncHeroDemo` samples `SlatSyncMath.demoProgress(at:)` from a timeline, so the percent, the label and the haptic see each step. Reduce Motion fades over 0.45 s instead. Replay restarts the clock.
 
 `SlatSyncCore` is the pure-Swift model. `SlatSyncTuning` holds the shared numbers. `SlatSyncMath` turns a progress value into reeds, spread, colour, a percent, a label and a wobble. `SlatSyncScene.make` is one frame. `SlatSyncMonitor` counts crossings into 100%.
 

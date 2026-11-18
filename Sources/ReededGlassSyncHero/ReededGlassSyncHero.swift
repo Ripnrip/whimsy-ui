@@ -43,6 +43,7 @@ public struct ReededGlassSyncHero: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var motionRoll = 0.0
     @State private var motionPitch = 0.0
+    @State private var motionToken: UUID?
     @State private var hapticTick = 0
 
     public init(progress: Binding<Double>,
@@ -174,8 +175,8 @@ public struct ReededGlassSyncHero: View {
 
     private func startMotion() {
         #if os(iOS) && !targetEnvironment(simulator)
-        guard useDeviceMotion else { return }
-        SlatMotion.shared.start { roll, pitch in
+        guard useDeviceMotion, motionToken == nil else { return }
+        motionToken = SlatMotion.shared.start { roll, pitch in
             motionRoll = roll
             motionPitch = pitch
         }
@@ -184,15 +185,19 @@ public struct ReededGlassSyncHero: View {
 
     private func stopMotion() {
         #if os(iOS) && !targetEnvironment(simulator)
-        SlatMotion.shared.stop()
+        guard let motionToken else { return }
+        SlatMotion.shared.stop(motionToken)
+        self.motionToken = nil
         #endif
     }
 }
 
-/// The gallery page: the hero runs 0 → 1, then Replay plays it again.
+/// The gallery page. Progress follows the clock, via `SlatSyncMath.demoProgress(at:)`,
+/// so the percent, the label and the haptic see every step. Replay starts the clock over.
 public struct ReededGlassSyncHeroDemo: View {
     @State private var progress = 0.0
-    @State private var run = 0
+    @State private var started: Date?
+    @State private var finished = false
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     public init() {}
@@ -200,7 +205,7 @@ public struct ReededGlassSyncHeroDemo: View {
     public var body: some View {
         ReededGlassSyncHero(progress: $progress)
             .overlay(alignment: .bottom) {
-                Button("Replay") { run += 1 }
+                Button("Replay") { replay() }
                     .font(.system(size: 15, weight: .semibold))
                     .padding(.horizontal, 18)
                     .padding(.vertical, 8)
@@ -208,18 +213,33 @@ public struct ReededGlassSyncHeroDemo: View {
                     .foregroundStyle(.white)
                     .padding(.bottom, 28)
             }
-            .onAppear { play() }
-            .onChange(of: run) { _, _ in play() }
+            .background {
+                TimelineView(.animation(paused: started == nil || finished)) { timeline in
+                    let sample = Self.sample(at: timeline.date, since: started, reduceMotion: reduceMotion)
+                    Color.clear
+                        .onChange(of: sample) { _, new in
+                            progress = new
+                            if new >= 1 { finished = true }
+                        }
+                }
+            }
+            .onAppear {
+                if started == nil { started = Date() }
+            }
     }
 
-    private func play() {
-        var reset = Transaction()
-        reset.disablesAnimations = true
-        withTransaction(reset) { progress = 0 }
-        let animation: Animation = reduceMotion
-            ? .easeInOut(duration: 0.45)
-            : .easeInOut(duration: SlatSyncTuning.demoRun).delay(SlatSyncTuning.demoDelay)
-        withAnimation(animation) { progress = 1 }
+    private func replay() {
+        progress = 0
+        finished = false
+        started = Date()
+    }
+
+    /// Full motion uses the shared demo curve. Reduce Motion is a short linear fade.
+    private static func sample(at date: Date, since started: Date?, reduceMotion: Bool) -> Double {
+        guard let started else { return 0 }
+        let elapsed = max(0, date.timeIntervalSince(started))
+        if reduceMotion { return min(1, elapsed / 0.45) }
+        return SlatSyncMath.demoProgress(at: elapsed)
     }
 }
 
@@ -236,9 +256,9 @@ private struct SlatWindow: View {
             RoundedRectangle(cornerRadius: SlatSyncTuning.cornerRadius, style: .continuous)
                 .fill(Color.white.opacity(0.045))
             Color.clear
-                .overlay {
+                .overlay(alignment: .top) {
                     aurora
-                        .frame(width: band.width, height: stackHeight)
+                        .frame(width: band.width, height: stackHeight, alignment: .top)
                         .offset(x: band.offsetX, y: -localY)
                         .blur(radius: band.blur)
                         .mask(spreadMask.frame(width: band.width, height: stackHeight))
@@ -345,28 +365,37 @@ private struct CornerBrackets: Shape {
 }
 
 #if os(iOS) && !targetEnvironment(simulator)
-/// CoreMotion attitude, shared so a second hero does not start a second manager.
+/// One CoreMotion stream, fanned out to every hero that is on screen.
 @MainActor
 final class SlatMotion {
     static let shared = SlatMotion()
     private let manager = CMMotionManager()
-    private var consumers = 0
+    private var handlers: [UUID: @MainActor (Double, Double) -> Void] = [:]
 
-    func start(_ handler: @escaping @MainActor (Double, Double) -> Void) {
-        consumers += 1
-        guard manager.isDeviceMotionAvailable, !manager.isDeviceMotionActive else { return }
+    @discardableResult
+    func start(_ handler: @escaping @MainActor (Double, Double) -> Void) -> UUID {
+        let id = UUID()
+        handlers[id] = handler
+        guard manager.isDeviceMotionAvailable, !manager.isDeviceMotionActive else { return id }
         manager.deviceMotionUpdateInterval = 1.0 / 30
-        manager.startDeviceMotionUpdates(to: .main) { data, _ in
+        manager.startDeviceMotionUpdates(to: .main) { [weak self] data, _ in
             guard let attitude = data?.attitude else { return }
             let roll = attitude.roll
             let pitch = attitude.pitch
-            MainActor.assumeIsolated { handler(roll, pitch) }
+            MainActor.assumeIsolated {
+                guard let self else { return }
+                let current = Array(self.handlers.values)
+                for handler in current {
+                    handler(roll, pitch)
+                }
+            }
         }
+        return id
     }
 
-    func stop() {
-        consumers = max(0, consumers - 1)
-        if consumers == 0 { manager.stopDeviceMotionUpdates() }
+    func stop(_ id: UUID) {
+        handlers[id] = nil
+        if handlers.isEmpty { manager.stopDeviceMotionUpdates() }
     }
 }
 #endif
