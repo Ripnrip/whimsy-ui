@@ -56,6 +56,9 @@ public enum KoiPondTuning {
     public static let nibbleGap = 18.0
     public static let bobAmplitude = 6.0
     public static let bobOmega = 8.2
+    /// A nibbling head may slide this far in one step to stay on the fingertip.
+    /// Farther than that, it leaves the peck and steers, so a moved finger is not a teleport.
+    public static let nibbleLeash = 8.0
     /// A nibble fires when the bob sine rises through this value.
     public static let nibbleThreshold = 0.35
     public static let returnCatch = 42.0
@@ -75,7 +78,10 @@ public enum KoiPondTuning {
     /// Reduce Motion multiplies lap, seek, return and the tail clock by this. No scatter burst.
     public static let reduceScale = 0.42
     /// VoiceOver's Feed koi holds the fingertip down for this long, then lets go.
+    /// Reduce Motion divides speeds by `reduceScale` and stretches this hold by the same factor,
+    /// and will not let go until every koi has pecked (or `feedCap`).
     public static let feedDuration = 3.6
+    public static let feedCap = 14.0
 
     public static let gatherLife = 1.25
     public static let nibbleLife = 0.72

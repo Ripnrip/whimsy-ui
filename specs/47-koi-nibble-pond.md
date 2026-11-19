@@ -19,11 +19,11 @@ The values live on `KoiPondTuning` and are copied in `webports/koipond-core.mjs`
 - Fixed step 1/60 s. A frame longer than 0.1 s is clamped, then sliced.
 - Long press 0.24 s. Stagger 0.20 s per fish, from the moment the press commits.
 - Lap speed 46 pt/s. Seek 128. Scatter 168 for 0.72 s, turning at 8.5 rad/s so they whip outward. Lap turn rate 3.4 rad/s.
-- Arrival inside 22 pt, and only once the previous fish is already nibbling, so the school arrives in index order. While waiting, a fish holds inside 48 pt. The head sits 18 pt off the finger and bobs 6 pt. A nibble fires when the bob sine rises through 0.35.
+- Arrival inside 22 pt, and only once the previous fish is already nibbling, so the school arrives in index order. While waiting, a fish holds inside 48 pt. The head sits 18 pt off the finger and bobs 6 pt. A nibble fires when the bob sine rises through 0.35. If the fingertip moves far enough that staying on it would jump the head more than 8 pt, that koi leaves the peck and steers to the new point instead of teleporting.
 - Tail wave ω 8.4, amplitude 0.52 rad at the tip, lag 0.62 rad per joint. The wave is applied to the constrained spine, so segment lengths stay 18 pt.
 - Gather ripple 1.25 s, up to 148 pt. Nibble ripple 0.72 s, up to 34 pt. Reduce Motion holds those at 36 pt and 14 pt and fades them.
 - Reduce Motion multiplies lap, seek, return and the tail clock by 0.42, and never enters the scatter burst.
-- Feed koi holds the centre for 3.6 s, then releases. Default seed `0x4B6F694E69622B31`.
+- Feed koi holds the centre for 3.6 s, then releases. Reduce Motion stretches that hold by 1/0.42 and will not release until every koi has pecked, or until 14 s. Default seed `0x4B6F694E69622B31`.
 
 ## Behaviour
 
@@ -39,4 +39,4 @@ Reduce Motion drifts. Speeds, the tail and the bob use the 0.42 scale. Release g
 
 ## Verification
 
-Linux runs `KoiPondCoreTests` (17 tests) as part of `swift test` (1594 tests, Swift 6.4.2), and `node webports/koipond-parity.mjs` (413 lines, exact match). `swiftc -parse` of the view and the gallery file was run on Linux. That parse does not typecheck SwiftUI (`#if canImport(SwiftUI)` is false here), and the Metal file is excluded from the Linux build. The SwiftUI code and the caustic shader need an Xcode build and a device check. The GIF and the contact sheet are the canvas port (`webports/koipond-capture.mjs`) at 390×844, using the JS core for every sample.
+Linux runs `KoiPondCoreTests` (19 tests) as part of `swift test` (1596 tests, Swift 6.4.2), and `node webports/koipond-parity.mjs` (413 lines, exact match). `swiftc -parse` of the view and the gallery file was run on Linux. That parse does not typecheck SwiftUI (`#if canImport(SwiftUI)` is false here), and the Metal file is excluded from the Linux build. The SwiftUI code and the caustic shader need an Xcode build and a device check. The GIF and the contact sheet are the canvas port (`webports/koipond-capture.mjs`) at 390×844, using the JS core for every sample.

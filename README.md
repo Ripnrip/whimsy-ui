@@ -53,7 +53,7 @@ Forty-seven small, tactile SwiftUI components, each with a pure-Swift, unit-test
 
 iOS 17+ / macOS 14+, Swift tools 6.0 (Swift 6 language mode).
 
-> **Honest status:** every core target builds, and all 1594 tests pass on Linux (Swift 6.4.2).
+> **Honest status:** every core target builds, and all 1596 tests pass on Linux (Swift 6.4.2).
 > The SwiftUI targets have **not yet been compiled or run on an Apple platform**. On Linux
 > they compile to empty modules (`#if canImport(SwiftUI)`). They were checked with
 > sourcekit-lsp (0 diagnostics), `swiftc -parse` and careful API review, but expect
@@ -1427,7 +1427,7 @@ KoiNibblePond(koiCount: 6) { peck() }
 Component 47. GrainBloomPlaceholder is 46, in open pull request #13. This count assumes that one lands first. The gallery registrations are appended, so the two lists union.
 
 - **What it does:** a top-down pond on a phone-sized page. Six koi cruise lazy laps. Each one is a five-point spine: every point sits a fixed distance behind the one ahead, and a sine wave beats the tail. Hold a fingertip and a ripple ring grows from it. The koi steer in one after another, each waiting out `index × 0.20` s and then its turn at the finger. On arrival they face the fingertip and bob. Each peck leaves a small ripple and a light impact. Let go and they whip outward, then drift back to the laps. Inspired by [Koi Nibble Onboarding](https://nativecook.dev/).
-- **Pure-Swift core:** `KoiPondCore` owns the seeded school, the fixed-step integrator, the spine constraint, the tail wave, the stagger, arrival, nibble events, ripple lifetimes, the scatter and the return. It imports only Foundation (through `WhimsyCore`), so it tests on Linux (17 tests, Swift Testing). `webports/koipond-core.mjs` copies the same constants.
+- **Pure-Swift core:** `KoiPondCore` owns the seeded school, the fixed-step integrator, the spine constraint, the tail wave, the stagger, arrival, nibble events, ripple lifetimes, the scatter and the return. It imports only Foundation (through `WhimsyCore`), so it tests on Linux (19 tests, Swift Testing). `webports/koipond-core.mjs` copies the same constants.
 - **Reduce Motion:** the koi drift slowly. There is no scatter burst. Ripples hold a small radius and fade instead of expanding.
 - **VoiceOver:** one element, "Pond, 6 koi". The value is "Koi swimming" or "Koi nibbling". Feed koi gathers them at the middle of the pond without a hold, then lets go.
 - **Web port:** `webports/koipond.html` draws the same scene at 390×844, and `webports/koipond-core.mjs` repeats the core. `webports/koipond-parity.mjs` checks the scripted trace against `Tests/KoiPondCoreTests/Fixtures/golden-trace.txt` (413 lines, exact match). The GIF and the stills contact sheet (`docs/koipond-stills.png`) are frames of that canvas port, not a device recording.

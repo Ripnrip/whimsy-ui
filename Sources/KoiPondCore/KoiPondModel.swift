@@ -125,6 +125,9 @@ public struct KoiPondModel: Equatable, Sendable {
     public let seed: UInt64
 
     private var scriptedRelease: Double?
+    private var scriptedCap: Double?
+    /// Which koi have pecked during the current gather. Feed koi waits for every one when motion is reduced.
+    private var pecked: [Bool] = []
     private var announcedReturn = false
 
     public var koiCount: Int { fish.count }
@@ -212,6 +215,7 @@ public struct KoiPondModel: Equatable, Sendable {
         phase = .arming
         armTime = 0
         scriptedRelease = nil
+        scriptedCap = nil
         spawnRipple(at: finger, kind: .gather)
         return []
     }
@@ -276,7 +280,7 @@ public struct KoiPondModel: Equatable, Sendable {
         var events: [KoiPondEvent] = []
         if phase == .gathering {
             gatherTime += dt
-            if let release = scriptedRelease, time >= release {
+            if scriptedFeedShouldRelease {
                 events.append(contentsOf: releaseHold())
             }
         }
@@ -307,15 +311,35 @@ public struct KoiPondModel: Equatable, Sendable {
         gatherTime = 0
         arrivalOrder = []
         announcedReturn = false
-        scriptedRelease = scripted ? time + KoiPondTuning.feedDuration : nil
+        if scripted {
+            let scale = reduceMotion ? KoiPondTuning.reduceScale : 1
+            scriptedRelease = time + KoiPondTuning.feedDuration / scale
+            scriptedCap = time + KoiPondTuning.feedCap
+        } else {
+            scriptedRelease = nil
+            scriptedCap = nil
+        }
+        pecked = Array(repeating: false, count: fish.count)
         for i in fish.indices where fish[i].mode != .lap {
             fish[i].mode = .lap
             fish[i].modeTime = 0
         }
     }
 
+    /// Full motion lets go on the feed clock. Reduce Motion keeps the hold until every koi has pecked,
+    /// because the same clock would run out while they were still swimming in.
+    private var scriptedFeedShouldRelease: Bool {
+        guard let release = scriptedRelease else { return false }
+        let capped = scriptedCap.map { time >= $0 } ?? false
+        if capped { return true }
+        guard time >= release else { return false }
+        if !reduceMotion { return true }
+        return pecked.count == fish.count && pecked.allSatisfy { $0 }
+    }
+
     private mutating func releaseHold() -> [KoiPondEvent] {
         scriptedRelease = nil
+        scriptedCap = nil
         let burst = !reduceMotion
         for i in fish.indices {
             fish[i].modeTime = 0
@@ -383,7 +407,11 @@ public struct KoiPondModel: Equatable, Sendable {
 
     private mutating func seek(_ index: Int, predecessor: Bool, dt: Double) -> KoiPondEvent? {
         if fish[index].mode == .nibbling {
-            return nibble(index, dt: dt)
+            if nibbleJump(index) <= KoiPondTuning.nibbleLeash {
+                return nibble(index, dt: dt)
+            }
+            fish[index].mode = .seeking
+            fish[index].modeTime = 0
         }
         let dist = fish[index].head.distance(to: finger)
         if predecessor && dist <= KoiPondTuning.arriveRadius {
@@ -420,8 +448,22 @@ public struct KoiPondModel: Equatable, Sendable {
         fish[index].mode = .nibbling
         fish[index].modeTime = 0
         fish[index].bobSample = KoiPondMath.sin(fish[index].tailPhase)
-        arrivalOrder.append(index)
+        if !arrivalOrder.contains(index) { arrivalOrder.append(index) }
         return nibble(index, dt: dt)
+    }
+
+    /// Distance from the head to the spot `nibble` would snap it to. A still fingertip keeps this
+    /// inside a bob step. A finger that has moved away is much larger, and the fish should steer.
+    private func nibbleJump(_ index: Int) -> Double {
+        let scale = reduceMotion ? KoiPondTuning.reduceScale : 1
+        let phase = KoiPondTuning.bobOmega * fish[index].modeTime * scale + fish[index].tailPhase
+        let sample = KoiPondMath.sin(phase)
+        let peck = max(0, sample) * KoiPondTuning.bobAmplitude
+        let ux = KoiPondMath.cos(fish[index].nibbleHeading)
+        let uy = KoiPondMath.sin(fish[index].nibbleHeading)
+        let gap = KoiPondTuning.nibbleGap - peck
+        let slot = KoiPondTuning.clampHead(Vec2(finger.x - ux * gap, finger.y - uy * gap))
+        return fish[index].head.distance(to: slot)
     }
 
     private mutating func nibble(_ index: Int, dt: Double) -> KoiPondEvent? {
@@ -440,6 +482,7 @@ public struct KoiPondModel: Equatable, Sendable {
         var event: KoiPondEvent?
         if fish[index].bobSample < KoiPondTuning.nibbleThreshold && sample >= KoiPondTuning.nibbleThreshold {
             nibbleCount += 1
+            if pecked.count == fish.count { pecked[index] = true }
             spawnRipple(at: fish[index].head, kind: .nibble)
             event = .nibble(index)
         }

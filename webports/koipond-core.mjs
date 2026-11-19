@@ -38,6 +38,7 @@ export const TUNING = {
   nibbleGap: 18,
   bobAmplitude: 6,
   bobOmega: 8.2,
+  nibbleLeash: 8,
   nibbleThreshold: 0.35,
   returnCatch: 42,
   returnTimeout: 3.4,
@@ -52,6 +53,7 @@ export const TUNING = {
   tailLag: 0.62,
   reduceScale: 0.42,
   feedDuration: 3.6,
+  feedCap: 14,
   gatherLife: 1.25,
   nibbleLife: 0.72,
   gatherRadius: 148,
@@ -355,6 +357,8 @@ export class KoiPondModel {
     this.nibbleCount = 0;
     this.seed = seed;
     this.scriptedRelease = null;
+    this.scriptedCap = null;
+    this.pecked = [];
     this.announcedReturn = false;
   }
 
@@ -394,6 +398,7 @@ export class KoiPondModel {
     this.phase = "arming";
     this.armTime = 0;
     this.scriptedRelease = null;
+    this.scriptedCap = null;
     this.spawnRipple(this.finger, "gather");
     return [];
   }
@@ -445,9 +450,7 @@ export class KoiPondModel {
     const events = [];
     if (this.phase === "gathering") {
       this.gatherTime += dt;
-      if (this.scriptedRelease != null && this.time >= this.scriptedRelease) {
-        events.push(...this.releaseHold());
-      }
+      if (this.scriptedFeedShouldRelease()) events.push(...this.releaseHold());
     }
     if (this.phase === "laps" || this.phase === "arming") {
       for (let i = 0; i < this.fish.length; i += 1) this.lap(i, dt);
@@ -474,7 +477,15 @@ export class KoiPondModel {
     this.gatherTime = 0;
     this.arrivalOrder = [];
     this.announcedReturn = false;
-    this.scriptedRelease = scripted ? this.time + TUNING.feedDuration : null;
+    if (scripted) {
+      const scale = this.reduceMotion ? TUNING.reduceScale : 1;
+      this.scriptedRelease = this.time + TUNING.feedDuration / scale;
+      this.scriptedCap = this.time + TUNING.feedCap;
+    } else {
+      this.scriptedRelease = null;
+      this.scriptedCap = null;
+    }
+    this.pecked = this.fish.map(() => false);
     for (const fish of this.fish) {
       if (fish.mode !== "lap") {
         fish.mode = "lap";
@@ -483,8 +494,18 @@ export class KoiPondModel {
     }
   }
 
+  scriptedFeedShouldRelease() {
+    if (this.scriptedRelease == null) return false;
+    const capped = this.scriptedCap != null && this.time >= this.scriptedCap;
+    if (capped) return true;
+    if (this.time < this.scriptedRelease) return false;
+    if (!this.reduceMotion) return true;
+    return this.pecked.length === this.fish.length && this.pecked.every((done) => done);
+  }
+
   releaseHold() {
     this.scriptedRelease = null;
+    this.scriptedCap = null;
     const burst = !this.reduceMotion;
     for (let i = 0; i < this.fish.length; i += 1) {
       this.fish[i].modeTime = 0;
@@ -548,7 +569,11 @@ export class KoiPondModel {
 
   seek(index, predecessor, dt) {
     const fish = this.fish[index];
-    if (fish.mode === "nibbling") return this.nibble(index, dt);
+    if (fish.mode === "nibbling") {
+      if (this.nibbleJump(index) <= TUNING.nibbleLeash) return this.nibble(index, dt);
+      fish.mode = "seeking";
+      fish.modeTime = 0;
+    }
     const head = fish.spine[0];
     const dist = distance(head, this.finger);
     if (predecessor && dist <= TUNING.arriveRadius) return this.arrive(index, dt);
@@ -578,8 +603,21 @@ export class KoiPondModel {
     fish.mode = "nibbling";
     fish.modeTime = 0;
     fish.bobSample = sin(fish.tailPhase);
-    this.arrivalOrder.push(index);
+    if (!this.arrivalOrder.includes(index)) this.arrivalOrder.push(index);
     return this.nibble(index, dt);
+  }
+
+  nibbleJump(index) {
+    const fish = this.fish[index];
+    const scale = this.reduceMotion ? TUNING.reduceScale : 1;
+    const phase = TUNING.bobOmega * fish.modeTime * scale + fish.tailPhase;
+    const sample = sin(phase);
+    const peck = Math.max(0, sample) * TUNING.bobAmplitude;
+    const ux = cos(fish.nibbleHeading);
+    const uy = sin(fish.nibbleHeading);
+    const gap = TUNING.nibbleGap - peck;
+    const slot = clampHead({ x: this.finger.x - ux * gap, y: this.finger.y - uy * gap });
+    return distance(fish.spine[0], slot);
   }
 
   nibble(index, dt) {
@@ -600,6 +638,7 @@ export class KoiPondModel {
     let event = null;
     if (fish.bobSample < TUNING.nibbleThreshold && sample >= TUNING.nibbleThreshold) {
       this.nibbleCount += 1;
+      if (this.pecked.length === this.fish.length) this.pecked[index] = true;
       this.spawnRipple(fish.spine[0], "nibble");
       event = { kind: "nibble", index };
     }

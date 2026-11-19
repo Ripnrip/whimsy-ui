@@ -290,6 +290,69 @@ private func expectSpine(_ model: KoiPondModel, source: SourceLocation = #_sourc
         #expect(model.fish.allSatisfy { $0.head.distance(to: model.finger) <= KoiPondTuning.nibbleGap + 0.5 })
     }
 
+    @Test func aMovedFingerDoesNotTeleportANibblingKoi() {
+        var model = KoiPondModel(seed: KoiPondTuning.defaultSeed)
+        model.beginTouch(at: KoiPondTuning.feedPoint)
+        _ = pump(&model, seconds: 8)
+        #expect(model.fish[0].mode == .nibbling)
+        let before = model.fish[0].head
+        let relocated = Vec2(270, 550)
+        model.updateTouch(at: relocated)
+        let fingerMove = model.finger.distance(to: KoiPondTuning.feedPoint)
+        #expect(fingerMove > 100)
+        _ = model.step(KoiPondTuning.fixedStep)
+        let jump = model.fish[0].head.distance(to: before)
+        #expect(model.fish[0].mode == .seeking)
+        #expect(jump < KoiPondTuning.seekSpeed * KoiPondTuning.fixedStep * 1.5)
+        #expect(jump < fingerMove * 0.25)
+        expectSpine(model)
+
+        var calm = KoiPondModel(seed: KoiPondTuning.defaultSeed, reduceMotion: true)
+        calm.beginTouch(at: KoiPondTuning.feedPoint)
+        _ = pump(&calm, seconds: 12)
+        #expect(calm.fish[0].mode == .nibbling)
+        let calmBefore = calm.fish[0].head
+        calm.updateTouch(at: relocated)
+        _ = calm.step(KoiPondTuning.fixedStep)
+        let calmJump = calm.fish[0].head.distance(to: calmBefore)
+        #expect(calm.fish[0].mode == .seeking)
+        #expect(calmJump < KoiPondTuning.seekSpeed * KoiPondTuning.reduceScale * KoiPondTuning.fixedStep * 1.5)
+        expectSpine(calm)
+    }
+
+    @Test func reduceMotionFeedLastsUntilEveryKoiHasPecked() {
+        var calm = KoiPondModel(reduceMotion: true)
+        calm.feed()
+        let early = pump(&calm, seconds: 4)
+        let earlyNibbles = early.compactMap { event -> Int? in
+            if case .nibble(let index) = event { return index }
+            return nil
+        }
+        #expect(!early.contains(.released))
+        #expect(calm.holding)
+        #expect(earlyNibbles.count < calm.koiCount)
+
+        let rest = pump(&calm, seconds: KoiPondTuning.feedCap)
+        let nibbles = (early + rest).compactMap { event -> Int? in
+            if case .nibble(let index) = event { return index }
+            return nil
+        }
+        #expect(Set(nibbles) == Set(0..<calm.koiCount))
+        #expect(rest.contains(.released))
+        #expect(!calm.holding)
+        expectSpine(calm)
+
+        var wild = KoiPondModel(reduceMotion: false)
+        wild.feed()
+        let events = pump(&wild, seconds: KoiPondTuning.feedDuration + KoiPondTuning.fixedStep)
+        let wildNibbles = events.compactMap { event -> Int? in
+            if case .nibble(let index) = event { return index }
+            return nil
+        }
+        #expect(Set(wildNibbles).count == wild.koiCount)
+        #expect(events.contains(.released))
+    }
+
     @Test func turningReduceMotionOnDropsAScatterBurst() {
         var model = KoiPondModel(seed: 9)
         model.beginTouch(at: KoiPondTuning.feedPoint)
