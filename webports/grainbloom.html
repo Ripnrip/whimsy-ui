@@ -22,6 +22,62 @@
     const ctx = stage.getContext("2d");
     const colors = ["#f58c61", "#5c57c7", "#38a89e", "#edc75c"];
 
+    function drawSunset(g, w, h) {
+      const sky = g.createLinearGradient(0, 0, 0, h);
+      sky.addColorStop(0, "#2c2468");
+      sky.addColorStop(0.38, "#9a4d86");
+      sky.addColorStop(0.58, "#f58c61");
+      sky.addColorStop(1, "#f3c98a");
+      g.fillStyle = sky;
+      g.fillRect(0, 0, w, h);
+
+      const sunX = w * 0.68;
+      const sunY = h * 0.6;
+      const sunR = Math.min(w, h) * 0.11;
+      const glow = g.createRadialGradient(sunX, sunY, sunR * 0.2, sunX, sunY, sunR * 3.1);
+      glow.addColorStop(0, "rgba(255, 228, 170, 0.95)");
+      glow.addColorStop(0.28, "rgba(245, 140, 97, 0.55)");
+      glow.addColorStop(1, "rgba(245, 140, 97, 0)");
+      g.fillStyle = glow;
+      g.fillRect(0, 0, w, h);
+      g.beginPath();
+      g.fillStyle = "#ffe7a8";
+      g.arc(sunX, sunY, sunR, 0, Math.PI * 2);
+      g.fill();
+
+      function cloud(cx, cy, rw, rh) {
+        g.beginPath();
+        g.fillStyle = "rgba(255, 236, 220, 0.78)";
+        g.ellipse(cx, cy, rw, rh, 0, 0, Math.PI * 2);
+        g.ellipse(cx - rw * 0.55, cy + rh * 0.2, rw * 0.62, rh * 0.75, 0, 0, Math.PI * 2);
+        g.ellipse(cx + rw * 0.48, cy + rh * 0.12, rw * 0.5, rh * 0.68, 0, 0, Math.PI * 2);
+        g.fill();
+      }
+      cloud(w * 0.22, h * 0.2, w * 0.16, h * 0.038);
+      cloud(w * 0.5, h * 0.12, w * 0.1, h * 0.026);
+      cloud(w * 0.78, h * 0.28, w * 0.12, h * 0.03);
+
+      function hill(baseline, amplitude, color, phase) {
+        g.beginPath();
+        g.moveTo(0, h);
+        g.lineTo(0, baseline);
+        for (let x = 0; x <= w; x += 3) {
+          const u = x / w;
+          const y = baseline
+            + Math.sin(u * Math.PI * 2 + phase) * amplitude
+            + Math.sin(u * Math.PI * 5 + phase * 1.7) * amplitude * 0.22;
+          g.lineTo(x, y);
+        }
+        g.lineTo(w, h);
+        g.closePath();
+        g.fillStyle = color;
+        g.fill();
+      }
+      hill(h * 0.64, h * 0.028, "#6a58a6", 0.6);
+      hill(h * 0.76, h * 0.04, "#2f7c84", 1.8);
+      hill(h * 0.88, h * 0.022, "#3a2a33", 0.3);
+    }
+
     function paint(model, target, w, h) {
       const g = target.getContext("2d");
       g.clearRect(0, 0, w, h);
@@ -41,10 +97,7 @@
         const alpha = model.reduceMotion ? model.crossfade : model.resolveProgress;
         g.save();
         g.globalAlpha = alpha;
-        for (let band = 0; band < 12; band += 1) {
-          g.fillStyle = band % 2 === 0 ? "#f4edde" : "#2a211c";
-          g.fillRect(0, (band / 12) * h, w, h / 12 + 1);
-        }
+        drawSunset(g, w, h);
         g.restore();
       }
       const cell = Math.max(3, model.currentCellSize * Math.min(sx, sy));

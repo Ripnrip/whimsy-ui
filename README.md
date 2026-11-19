@@ -1419,7 +1419,7 @@ import GrainBloomPlaceholder
 GrainBloomPlaceholder(image: photo, isGenerating: true)
 ```
 
-`GrainBloomPlaceholderDemo()` is the gallery page: Generate starts the wake, Image arrives supplies a stand-in picture, and a tap on the finished card replays the bloom.
+`GrainBloomPlaceholderDemo()` is the gallery page: Generate starts the wake, Image arrives supplies a drawn sunset (sun, clouds, and three hills), and a tap on the finished card replays the bloom.
 
 Component 46 in the gallery sequence.
 

@@ -195,22 +195,139 @@ public struct GrainBloomPlaceholder: View {
     }
 }
 
+/// The gallery's sample picture: a soft sunset, drawn the same way as the web port.
+enum GrainBloomSunset {
+    static let size = CGSize(width: 390, height: 844)
+
+    static func image() -> Image {
+        guard let cg = makeImage() else { return Image(systemName: "sun.horizon.fill") }
+        #if canImport(UIKit)
+        return Image(uiImage: UIImage(cgImage: cg))
+        #elseif canImport(AppKit)
+        return Image(nsImage: NSImage(cgImage: cg, size: size))
+        #else
+        return Image(systemName: "sun.horizon.fill")
+        #endif
+    }
+
+    private static func makeImage() -> CGImage? {
+        let width = Int(size.width)
+        let height = Int(size.height)
+        let space = CGColorSpaceCreateDeviceRGB()
+        guard let context = CGContext(
+            data: nil,
+            width: width,
+            height: height,
+            bitsPerComponent: 8,
+            bytesPerRow: width * 4,
+            space: space,
+            bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue
+        ) else { return nil }
+        context.translateBy(x: 0, y: CGFloat(height))
+        context.scaleBy(x: 1, y: -1)
+        draw(context, size: size)
+        return context.makeImage()
+    }
+
+    private static func draw(_ context: CGContext, size: CGSize) {
+        let width = size.width
+        let height = size.height
+        let colors = [
+            CGColor(red: 0.173, green: 0.141, blue: 0.408, alpha: 1),
+            CGColor(red: 0.604, green: 0.302, blue: 0.525, alpha: 1),
+            CGColor(red: 0.961, green: 0.549, blue: 0.380, alpha: 1),
+            CGColor(red: 0.953, green: 0.788, blue: 0.541, alpha: 1),
+        ] as CFArray
+        let stops: [CGFloat] = [0, 0.38, 0.58, 1]
+        if let gradient = CGGradient(colorsSpace: CGColorSpaceCreateDeviceRGB(), colors: colors, locations: stops) {
+            context.drawLinearGradient(
+                gradient,
+                start: CGPoint(x: 0, y: 0),
+                end: CGPoint(x: 0, y: height),
+                options: []
+            )
+        }
+        let sun = CGPoint(x: width * 0.68, y: height * 0.60)
+        let radius = min(width, height) * 0.11
+        if let glow = CGGradient(
+            colorsSpace: CGColorSpaceCreateDeviceRGB(),
+            colors: [
+                CGColor(red: 1, green: 0.894, blue: 0.667, alpha: 0.95),
+                CGColor(red: 0.961, green: 0.549, blue: 0.380, alpha: 0.55),
+                CGColor(red: 0.961, green: 0.549, blue: 0.380, alpha: 0),
+            ] as CFArray,
+            locations: [0, 0.28, 1]
+        ) {
+            context.drawRadialGradient(
+                glow,
+                startCenter: sun,
+                startRadius: radius * 0.2,
+                endCenter: sun,
+                endRadius: radius * 3.1,
+                options: []
+            )
+        }
+        context.setFillColor(CGColor(red: 1, green: 0.906, blue: 0.659, alpha: 1))
+        context.fillEllipse(in: CGRect(x: sun.x - radius, y: sun.y - radius, width: radius * 2, height: radius * 2))
+        cloud(context, cx: width * 0.22, cy: height * 0.20, rw: width * 0.16, rh: height * 0.038)
+        cloud(context, cx: width * 0.50, cy: height * 0.12, rw: width * 0.10, rh: height * 0.026)
+        cloud(context, cx: width * 0.78, cy: height * 0.28, rw: width * 0.12, rh: height * 0.030)
+        hill(context, width: width, height: height, baseline: height * 0.64, amplitude: height * 0.028, phase: 0.6, color: CGColor(red: 0.416, green: 0.345, blue: 0.651, alpha: 1))
+        hill(context, width: width, height: height, baseline: height * 0.76, amplitude: height * 0.040, phase: 1.8, color: CGColor(red: 0.184, green: 0.486, blue: 0.518, alpha: 1))
+        hill(context, width: width, height: height, baseline: height * 0.88, amplitude: height * 0.022, phase: 0.3, color: CGColor(red: 0.227, green: 0.165, blue: 0.200, alpha: 1))
+    }
+
+    private static func cloud(_ context: CGContext, cx: CGFloat, cy: CGFloat, rw: CGFloat, rh: CGFloat) {
+        context.setFillColor(CGColor(red: 1, green: 0.925, blue: 0.863, alpha: 0.78))
+        context.fillEllipse(in: CGRect(x: cx - rw, y: cy - rh, width: rw * 2, height: rh * 2))
+        context.fillEllipse(in: CGRect(x: cx - rw * 1.17, y: cy - rh * 0.55, width: rw * 1.24, height: rh * 1.5))
+        context.fillEllipse(in: CGRect(x: cx - rw * 0.02, y: cy - rh * 0.56, width: rw, height: rh * 1.36))
+    }
+
+    private static func hill(
+        _ context: CGContext,
+        width: CGFloat,
+        height: CGFloat,
+        baseline: CGFloat,
+        amplitude: CGFloat,
+        phase: CGFloat,
+        color: CGColor
+    ) {
+        let path = CGMutablePath()
+        path.move(to: CGPoint(x: 0, y: height))
+        path.addLine(to: CGPoint(x: 0, y: baseline))
+        var x: CGFloat = 0
+        while x <= width {
+            let u = x / width
+            let y = baseline
+                + sin(u * .pi * 2 + phase) * amplitude
+                + sin(u * .pi * 5 + phase * 1.7) * amplitude * 0.22
+            path.addLine(to: CGPoint(x: x, y: y))
+            x += 3
+        }
+        path.addLine(to: CGPoint(x: width, y: height))
+        path.closeSubpath()
+        context.addPath(path)
+        context.setFillColor(color)
+        context.fillPath()
+    }
+}
+
 public struct GrainBloomPlaceholderDemo: View {
     @State private var generating = false
-    @State private var showImage = false
+    @State private var picture: Image?
 
     public init() {}
 
     public var body: some View {
         VStack(spacing: 20) {
-            GrainBloomPlaceholder(
-                image: showImage ? Image(systemName: "photo.fill") : nil,
-                isGenerating: generating
-            )
-            .frame(width: 260)
+            GrainBloomPlaceholder(image: picture, isGenerating: generating)
+                .frame(width: 260)
             HStack {
                 Button(generating ? "Stop" : "Generate") { generating.toggle() }
-                Button(showImage ? "Clear image" : "Image arrives") { showImage.toggle() }
+                Button(picture == nil ? "Image arrives" : "Clear image") {
+                    picture = picture == nil ? GrainBloomSunset.image() : nil
+                }
             }
             .buttonStyle(.bordered)
         }
