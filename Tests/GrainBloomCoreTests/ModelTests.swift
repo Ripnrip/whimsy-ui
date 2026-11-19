@@ -133,6 +133,35 @@ import Testing
         #expect(model.cellSize == size)
     }
 
+    @Test func settleClockStopsWhenTheGlintEnds() {
+        var model = finished()
+        #expect(model.playsSettle)
+        model.step(GrainBloomTuning.settleDuration * 0.5)
+        #expect(model.playsSettle)
+        #expect(model.glint > 0)
+        model.step(GrainBloomTuning.settleDuration)
+        #expect(!model.playsSettle)
+        #expect(model.glint == 0)
+    }
+
+    @Test func reduceMotionReplayCrossfadesFromTheStart() {
+        var model = GrainBloomModel(generating: true, hasImage: true, reduceMotion: true)
+        model.step(GrainBloomTuning.reduceDuration)
+        #expect(model.phase == .done)
+        #expect(model.revealCoverage == 1)
+        let replayed = model.replay()
+        #expect(replayed)
+        #expect(model.phase == .waking)
+        #expect(model.crossfade == 0)
+        model.setImagePresent(false)
+        model.setImagePresent(true)
+        #expect(model.phase == .resolving)
+        #expect(model.crossfade == 0)
+        model.step(GrainBloomTuning.reduceDuration)
+        #expect(model.revealCoverage == 1)
+        #expect(model.phase == .done)
+    }
+
     @Test func reduceMotionMidResolveDoesNotDropCoverage() {
         var model = GrainBloomModel(generating: true, hasImage: true)
         model.step(GrainBloomTuning.resolveDuration * 0.45)

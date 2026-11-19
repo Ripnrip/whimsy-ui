@@ -93,14 +93,29 @@
         g.fillStyle = grad;
         g.fillRect(0, 0, w, h);
       }
-      if (model.hasImage) {
-        const alpha = model.reduceMotion ? model.crossfade : model.resolveProgress;
-        g.save();
-        g.globalAlpha = alpha;
-        drawSunset(g, w, h);
-        g.restore();
-      }
       const cell = Math.max(3, model.currentCellSize * Math.min(sx, sy));
+      if (model.hasImage) {
+        if (model.reduceMotion) {
+          g.save();
+          g.globalAlpha = model.crossfade;
+          drawSunset(g, w, h);
+          g.restore();
+        } else {
+          const plate = document.createElement("canvas");
+          plate.width = w;
+          plate.height = h;
+          drawSunset(plate.getContext("2d"), w, h);
+          for (let y = 0; y < h; y += cell) {
+            for (let x = 0; x < w; x += cell) {
+              const px = (x + cell / 2) / sx;
+              const py = (y + cell / 2) / sy;
+              if (isRevealed(px, py, model.resolveProgress)) {
+                g.drawImage(plate, x, y, cell, cell, x, y, cell, cell);
+              }
+            }
+          }
+        }
+      }
       const frame = model.reduceMotion ? 0 : Math.floor(model.elapsed * 12);
       for (let y = cell / 2; y < h; y += cell) {
         for (let x = cell / 2; x < w; x += cell) {

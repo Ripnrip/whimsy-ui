@@ -141,7 +141,11 @@ public struct GrainBloomModel: Equatable, Sendable {
                 playsSettle = true
                 crossfade = 1
             }
-        case .idle, .done:
+        case .done:
+            if playsSettle, phaseTime >= GrainBloomTuning.settleDuration {
+                playsSettle = false
+            }
+        case .idle:
             break
         }
     }
@@ -196,17 +200,15 @@ public struct GrainBloomModel: Equatable, Sendable {
         phase = .waking
         phaseTime = 0
         playsSettle = false
-        if !reduceMotion {
-            resolveProgress = 0
-            crossfade = 0
-        }
+        resolveProgress = 0
+        crossfade = 0
     }
 
     private mutating func enterResolving(resetProgress: Bool) {
         phase = .resolving
         phaseTime = 0
         playsSettle = false
-        if resetProgress, !reduceMotion {
+        if resetProgress {
             resolveProgress = 0
             crossfade = 0
         }

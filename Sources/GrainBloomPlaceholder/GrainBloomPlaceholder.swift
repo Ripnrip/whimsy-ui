@@ -77,10 +77,17 @@ public struct GrainBloomPlaceholder: View {
             let scaleY = size.height / GrainBloomTuning.stageHeight
             drawBlobs(in: &context, scaleX: scaleX, scaleY: scaleY, size: size)
             if let image, model.hasImage {
-                let opacity = model.reduceMotion ? model.crossfade : model.resolveProgress
-                context.opacity = opacity
-                context.draw(image, in: CGRect(origin: .zero, size: size))
-                context.opacity = 1
+                if model.reduceMotion {
+                    context.opacity = model.crossfade
+                    context.draw(image, in: CGRect(origin: .zero, size: size))
+                    context.opacity = 1
+                } else {
+                    let mask = revealMask(scaleX: scaleX, scaleY: scaleY, size: size)
+                    context.drawLayer { layer in
+                        layer.clip(to: mask)
+                        layer.draw(image, in: CGRect(origin: .zero, size: size))
+                    }
+                }
             }
             drawDots(in: &context, scaleX: scaleX, scaleY: scaleY, size: size)
             if model.phase == .waking, !model.reduceMotion {
@@ -117,6 +124,25 @@ public struct GrainBloomPlaceholder: View {
             )
             context.fill(Path(ellipseIn: rect), with: .color(color.opacity(0.85)))
         }
+    }
+
+    private func revealMask(scaleX: Double, scaleY: Double, size: CGSize) -> Path {
+        let cell = max(1.0, model.cellSize * min(scaleX, scaleY))
+        var mask = Path()
+        var y = 0.0
+        while y < size.height {
+            var x = 0.0
+            while x < size.width {
+                let sampleX = (x + cell / 2) / scaleX
+                let sampleY = (y + cell / 2) / scaleY
+                if GrainBloomMath.isRevealed(x: sampleX, y: sampleY, progress: model.resolveProgress) {
+                    mask.addRect(CGRect(x: x, y: y, width: cell, height: cell))
+                }
+                x += cell
+            }
+            y += cell
+        }
+        return mask
     }
 
     private func drawDots(in context: inout GraphicsContext, scaleX: Double, scaleY: Double, size: CGSize) {

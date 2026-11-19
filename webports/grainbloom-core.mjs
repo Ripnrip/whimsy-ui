@@ -297,6 +297,8 @@ export class GrainBloomModel {
         this.playsSettle = true;
         this.crossfade = 1;
       }
+    } else if (this.phase === "done" && this.playsSettle && this.phaseTime >= TUNING.settleDuration) {
+      this.playsSettle = false;
     }
   }
 
@@ -340,17 +342,15 @@ export class GrainBloomModel {
     this.phase = "waking";
     this.phaseTime = 0;
     this.playsSettle = false;
-    if (!this.reduceMotion) {
-      this.resolveProgress = 0;
-      this.crossfade = 0;
-    }
+    this.resolveProgress = 0;
+    this.crossfade = 0;
   }
 
   enterResolving(resetProgress) {
     this.phase = "resolving";
     this.phaseTime = 0;
     this.playsSettle = false;
-    if (resetProgress && !this.reduceMotion) {
+    if (resetProgress) {
       this.resolveProgress = 0;
       this.crossfade = 0;
     }
