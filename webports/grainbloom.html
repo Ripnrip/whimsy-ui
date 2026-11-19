@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Grain Bloom</title>
+  <style>
+    html, body { margin: 0; background: #1c1612; color: #f4edde; font-family: "Iowan Old Style", Palatino, serif; }
+    #stage { width: 390px; height: 844px; display: block; }
+    #sheet { display: flex; gap: 12px; padding: 16px; background: #241c16; }
+    figure { margin: 0; }
+    figcaption { font-size: 14px; margin-bottom: 6px; }
+    canvas.still { width: 180px; height: 390px; background: #1c1612; }
+  </style>
+</head>
+<body>
+  <canvas id="stage" width="390" height="844"></canvas>
+  <div id="sheet"></div>
+  <script type="module">
+    import { demoAt, DEMO_DURATION, DEMO_STILLS, grain, TUNING, rippleDelay, dotScale, isRevealed } from "./grainbloom-core.mjs";
+
+    const stage = document.getElementById("stage");
+    const ctx = stage.getContext("2d");
+    const colors = ["#f58c61", "#5c57c7", "#38a89e", "#edc75c"];
+
+    function paint(model, target, w, h) {
+      const g = target.getContext("2d");
+      g.clearRect(0, 0, w, h);
+      const sx = w / TUNING.stageWidth;
+      const sy = h / TUNING.stageHeight;
+      g.fillStyle = colors[0];
+      g.fillRect(0, 0, w, h);
+      for (let i = 0; i < 4; i += 1) {
+        const blob = model.blob(i);
+        const grad = g.createRadialGradient(blob.x * sx, blob.y * sy, 8, blob.x * sx, blob.y * sy, w * 0.42);
+        grad.addColorStop(0, colors[i]);
+        grad.addColorStop(1, "rgba(0,0,0,0)");
+        g.fillStyle = grad;
+        g.fillRect(0, 0, w, h);
+      }
+      if (model.hasImage) {
+        const alpha = model.reduceMotion ? model.crossfade : model.resolveProgress;
+        g.save();
+        g.globalAlpha = alpha;
+        for (let band = 0; band < 12; band += 1) {
+          g.fillStyle = band % 2 === 0 ? "#f4edde" : "#2a211c";
+          g.fillRect(0, (band / 12) * h, w, h / 12 + 1);
+        }
+        g.restore();
+      }
+      const cell = Math.max(3, model.currentCellSize * Math.min(sx, sy));
+      const frame = model.reduceMotion ? 0 : Math.floor(model.elapsed * 12);
+      for (let y = cell / 2; y < h; y += cell) {
+        for (let x = cell / 2; x < w; x += cell) {
+          const px = x / sx;
+          const py = y / sy;
+          const delay = rippleDelay(px, py);
+          const scale = dotScale(model.phase === "waking" ? model.phaseTime : 0, delay, model.reduceMotion);
+          const revealed = model.reduceMotion
+            ? model.crossfade > 0.5
+            : isRevealed(px, py, model.resolveProgress);
+          const n = grain(Math.floor(x), Math.floor(y), frame, model.seed);
+          g.fillStyle = `rgba(20, 12, 8, ${revealed ? 0.12 : 0.45 + n * 0.2})`;
+          const radius = cell * 0.22 * scale;
+          g.beginPath();
+          g.arc(x, y, radius, 0, Math.PI * 2);
+          g.fill();
+        }
+      }
+      if (model.phase === "waking" && !model.reduceMotion) {
+        g.fillStyle = "rgba(255,255,255,0.14)";
+        g.fillRect(w * model.shimmer - 24, 0, 36, h);
+        g.fillStyle = "rgba(255,255,255,0.82)";
+        g.font = "14px Palatino, serif";
+        g.textAlign = "center";
+        g.fillText("Dreaming…", w / 2, h * 0.86);
+      }
+      if (model.glint > 0) {
+        g.globalAlpha = model.glint;
+        g.fillStyle = "#fff";
+        g.font = "16px Palatino, serif";
+        g.fillText("✦", w * 0.82, h * 0.12);
+        g.globalAlpha = 1;
+      }
+    }
+
+    function renderAt(t) {
+      paint(demoAt(t), stage, 390, 844);
+    }
+
+    function renderSheet() {
+      const sheet = document.getElementById("sheet");
+      sheet.replaceChildren();
+      for (const still of DEMO_STILLS) {
+        const figure = document.createElement("figure");
+        const caption = document.createElement("figcaption");
+        caption.textContent = still.label;
+        const canvas = document.createElement("canvas");
+        canvas.className = "still";
+        canvas.width = 180;
+        canvas.height = 390;
+        paint(demoAt(still.t), canvas, 180, 390);
+        figure.append(caption, canvas);
+        sheet.append(figure);
+      }
+    }
+
+    window.renderAt = renderAt;
+    window.renderSheet = renderSheet;
+    window.__demoDuration = DEMO_DURATION;
+    window.__ready = true;
+    renderAt(0.15);
+    renderSheet();
+  </script>
+</body>
+</html>
