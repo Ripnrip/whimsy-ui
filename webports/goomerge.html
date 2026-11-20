@@ -198,7 +198,7 @@ function drawLabels(c, model) {
 
 function drawCard(c, model) {
   if (model.cardOpacity <= 0.001) return;
-  const scale = 0.86 + 0.14 * model.morphProgress;
+  const scale = model.cardScale;
   const w = TUNING.cardWidth;
   const h = TUNING.cardHeight;
   const fold = TUNING.foldSize * model.fold;

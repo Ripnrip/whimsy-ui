@@ -50,6 +50,7 @@ public struct GooMergeDrops: View {
                     combineButton(scale: scale, originX: originX, originY: originY)
                 }
                 .frame(width: geo.size.width, height: geo.size.height, alignment: .topLeading)
+                .coordinateSpace(name: Self.pageSpace)
                 .onChange(of: timeline.date) { _, now in advance(to: now) }
             }
         }
@@ -59,11 +60,13 @@ public struct GooMergeDrops: View {
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(model.accessibilityLabel)
         .accessibilityValue(model.accessibilityValue)
-        .accessibilityHint(GooMergeTuning.accessibilityHint)
-        .accessibilityAction(named: Text(GooMergeTuning.combineAction)) {
-            note(model.combine())
-        }
+        .accessibilityHint(model.phase == .merged ? "Puts the files back on the ring" : GooMergeTuning.accessibilityHint)
+        .modifier(GooMergeAccess(phase: model.phase, perform: { pressButton() }))
     }
+
+    /// Named space of the letterboxed page. Drag locations are in this space, then
+    /// converted into the 390×844 scene.
+    private static let pageSpace = "gooMergePage"
 
     private var scene: some View {
         ZStack(alignment: .topLeading) {
@@ -169,7 +172,7 @@ public struct GooMergeDrops: View {
     }
 
     private func drag(scale: CGFloat, originX: CGFloat, originY: CGFloat) -> some Gesture {
-        DragGesture(minimumDistance: 0, coordinateSpace: .local)
+        DragGesture(minimumDistance: 0, coordinateSpace: .named(Self.pageSpace))
             .onChanged { value in
                 guard scale > 0 else { return }
                 let point = Vec2(
@@ -312,7 +315,7 @@ public struct GooMergeDrops: View {
 
     private func drawCard(_ context: inout GraphicsContext) {
         guard model.cardOpacity > 0.001 else { return }
-        let scale = 0.86 + 0.14 * model.morphProgress
+        let scale = model.cardScale
         var card = context
         card.opacity = model.cardOpacity
         card.translateBy(x: model.well.x, y: model.well.y)
@@ -430,5 +433,22 @@ public struct GooMergeDropsDemo: View {
 
 #Preview("Goo merge") {
     GooMergeDropsDemo()
+}
+
+/// Combine while the ring is ready, Reset once the card is showing. Neither action
+/// is offered while the merge is in flight.
+private struct GooMergeAccess: ViewModifier {
+    var phase: GooMergePhase
+    var perform: () -> Void
+
+    func body(content: Content) -> some View {
+        if phase == .merged {
+            content.accessibilityAction(named: Text("Reset")) { perform() }
+        } else if phase == .ready {
+            content.accessibilityAction(named: Text(GooMergeTuning.combineAction)) { perform() }
+        } else {
+            content
+        }
+    }
 }
 #endif

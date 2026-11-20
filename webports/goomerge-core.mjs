@@ -265,7 +265,13 @@ export class GooMergeModel {
   }
 
   get fold() {
+    if (this.reduceMotion) return this.phase === "morphing" || this.phase === "merged" ? 1 : 0;
     return smoothstep(0.4, 1, this.morphProgress);
+  }
+
+  get cardScale() {
+    if (this.reduceMotion) return 1;
+    return 0.86 + 0.14 * this.morphProgress;
   }
 
   get accessibilityValue() {

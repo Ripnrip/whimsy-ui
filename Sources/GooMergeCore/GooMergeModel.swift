@@ -122,7 +122,17 @@ public struct GooMergeModel: Sendable {
     }
 
     /// The folded corner grows through the second half of the morph.
-    public var fold: Double { WhimsyMath.smoothstep(0.4, 1, morphProgress) }
+    /// Reduce Motion draws the finished corner for the whole crossfade.
+    public var fold: Double {
+        if reduceMotion { return (phase == .morphing || phase == .merged) ? 1 : 0 }
+        return WhimsyMath.smoothstep(0.4, 1, morphProgress)
+    }
+
+    /// Full-motion cards grow from 0.86 to 1. Reduce Motion stays at 1 and only fades.
+    public var cardScale: Double {
+        if reduceMotion { return 1 }
+        return 0.86 + 0.14 * morphProgress
+    }
 
     public var animates: Bool {
         switch phase {
