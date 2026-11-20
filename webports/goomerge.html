@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Goo Merge Drops</title>
+<style>
+  html, body { margin: 0; height: 100%; background: #140e0c; }
+  body { display: flex; align-items: center; justify-content: center; }
+  canvas { display: block; }
+  #sheet { display: none; }
+</style>
+</head>
+<body>
+<canvas id="stage" width="390" height="844"></canvas>
+<canvas id="sheet" width="10" height="10"></canvas>
+<script type="module">
+import { TUNING, demoAt, DEMO_STILLS, DEMO_DURATION } from "./goomerge-core.mjs";
+
+const stage = document.querySelector("#stage");
+const sheet = document.querySelector("#sheet");
+const ctx = stage.getContext("2d");
+const sheetCtx = sheet.getContext("2d");
+const W = TUNING.pageWidth;
+const H = TUNING.pageHeight;
+const FILLS = ["#f2b34a", "#e36b45", "#f0c14e", "#d4537e", "#f08a5d"];
+const RIM = [107, 41, 15];
+const ink = document.createElement("canvas");
+ink.width = W;
+ink.height = H;
+const inkCtx = ink.getContext("2d", { willReadFrequently: true });
+const soft = document.createElement("canvas");
+soft.width = W;
+soft.height = H;
+const softCtx = soft.getContext("2d", { willReadFrequently: true });
+
+function circle(c, x, y, r) {
+  c.beginPath();
+  c.arc(x, y, Math.max(0.5, r), 0, Math.PI * 2);
+  c.closePath();
+}
+
+function roundRect(c, x, y, w, h, r) {
+  c.beginPath();
+  c.moveTo(x + r, y);
+  c.arcTo(x + w, y, x + w, y + h, r);
+  c.arcTo(x + w, y + h, x, y + h, r);
+  c.arcTo(x, y + h, x, y, r);
+  c.arcTo(x, y, x + w, y, r);
+  c.closePath();
+}
+
+function pagePath(c, x, y, w, h, fold) {
+  const r = TUNING.cardRadius;
+  c.beginPath();
+  if (fold <= 1) {
+    roundRect(c, x, y, w, h, r);
+    return;
+  }
+  c.moveTo(x + r, y);
+  c.lineTo(x + w - fold, y);
+  c.lineTo(x + w, y + fold);
+  c.lineTo(x + w, y + h - r);
+  c.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+  c.lineTo(x + r, y + h);
+  c.quadraticCurveTo(x, y + h, x, y + h - r);
+  c.lineTo(x, y + r);
+  c.quadraticCurveTo(x, y, x + r, y);
+  c.closePath();
+}
+
+function bodiesOf(model) {
+  const out = [];
+  for (let i = 0; i < model.count; i += 1) {
+    out.push({
+      index: i,
+      name: model.drops[i].name,
+      radius: model.radii[i],
+      center: model.center(i),
+      render: model.renderCenter(i),
+    });
+  }
+  return out;
+}
+
+function drawDesk(c) {
+  const sky = c.createRadialGradient(TUNING.wellX, TUNING.wellY - 20, 20, TUNING.wellX, TUNING.wellY, 520);
+  sky.addColorStop(0, "#3d261c");
+  sky.addColorStop(1, "#170f0c");
+  c.fillStyle = sky;
+  c.fillRect(0, 0, W, H);
+}
+
+function drawWell(c, model) {
+  const alpha = 1 - model.mergeProgress;
+  if (alpha <= 0.02) return;
+  c.save();
+  c.globalAlpha = alpha;
+  c.setLineDash([5, 6]);
+  c.lineWidth = 1.5;
+  c.strokeStyle = "rgba(255,214,170,0.7)";
+  c.beginPath();
+  c.arc(TUNING.wellX, TUNING.wellY, TUNING.wellDashRadius, 0, Math.PI * 2);
+  c.stroke();
+  c.restore();
+}
+
+function drawTitle(c, model) {
+  c.fillStyle = "#fff8f2";
+  c.font = "700 34px 'DejaVu Sans', sans-serif";
+  c.textAlign = "left";
+  c.textBaseline = "alphabetic";
+  c.fillText("Files", 28, 72);
+  c.fillStyle = "rgba(255,248,242,0.72)";
+  c.font = "500 15px 'DejaVu Sans', sans-serif";
+  c.fillText(model.accessibilityValue, 28, 100);
+}
+
+function drawCrisp(c, model) {
+  if (model.blobOpacity < 0.01) return;
+  c.save();
+  c.globalAlpha = model.blobOpacity;
+  for (const body of bodiesOf(model)) {
+    circle(c, body.render.x, body.render.y, body.radius + 2);
+    c.fillStyle = "#6b290f";
+    c.fill();
+    circle(c, body.render.x, body.render.y, Math.max(1, body.radius - 3));
+    c.fillStyle = FILLS[body.index % FILLS.length];
+    c.fill();
+  }
+  c.restore();
+}
+
+function drawGoo(c, model) {
+  if (model.reduceMotion) {
+    drawCrisp(c, model);
+    return;
+  }
+  if (model.blobOpacity < 0.01) return;
+  const bodies = bodiesOf(model);
+  inkCtx.clearRect(0, 0, W, H);
+  inkCtx.filter = "none";
+  for (const body of bodies) {
+    circle(inkCtx, body.render.x, body.render.y, body.radius);
+    inkCtx.fillStyle = FILLS[body.index % FILLS.length];
+    inkCtx.fill();
+  }
+  softCtx.clearRect(0, 0, W, H);
+  softCtx.filter = `blur(${TUNING.gooBlur}px)`;
+  softCtx.drawImage(ink, 0, 0);
+  softCtx.filter = "none";
+  const image = softCtx.getImageData(0, 0, W, H);
+  const data = image.data;
+  const threshold = TUNING.gooThreshold * 255;
+  const alpha = Math.round(255 * model.blobOpacity);
+  for (let i = 0; i < data.length; i += 4) {
+    const a = data[i + 3];
+    if (a < threshold) {
+      data[i + 3] = 0;
+      continue;
+    }
+    const edge = Math.min(1, (a - threshold) / 56);
+    const rim = 1 - edge;
+    data[i] = data[i] * edge + RIM[0] * rim;
+    data[i + 1] = data[i + 1] * edge + RIM[1] * rim;
+    data[i + 2] = data[i + 2] * edge + RIM[2] * rim;
+    data[i + 3] = alpha;
+  }
+  softCtx.putImageData(image, 0, 0);
+
+  c.save();
+  c.filter = "blur(26px)";
+  c.globalAlpha = model.blobOpacity * (0.28 + 0.55 * model.mergeProgress);
+  c.fillStyle = "#ffb85a";
+  for (const body of bodies) {
+    circle(c, body.render.x, body.render.y, body.radius + 8);
+    c.fill();
+  }
+  c.filter = "none";
+  c.globalAlpha = 1;
+  c.drawImage(soft, 0, 0);
+  c.restore();
+}
+
+function drawLabels(c, model) {
+  const alpha = model.blobOpacity * (1 - model.mergeProgress * 0.85);
+  if (alpha <= 0.05) return;
+  c.save();
+  c.globalAlpha = alpha;
+  c.fillStyle = "#fff";
+  c.font = "600 11px 'DejaVu Sans', sans-serif";
+  c.textAlign = "center";
+  c.textBaseline = "top";
+  for (const body of bodiesOf(model)) {
+    c.fillText(body.name, body.render.x, body.render.y + body.radius + 8);
+  }
+  c.restore();
+}
+
+function drawCard(c, model) {
+  if (model.cardOpacity <= 0.001) return;
+  const scale = model.cardScale;
+  const w = TUNING.cardWidth;
+  const h = TUNING.cardHeight;
+  const fold = TUNING.foldSize * model.fold;
+  const x = TUNING.wellX - w / 2;
+  const y = TUNING.wellY - h / 2;
+  c.save();
+  c.globalAlpha = model.cardOpacity;
+  c.translate(TUNING.wellX, TUNING.wellY);
+  c.scale(scale, scale);
+  c.translate(-TUNING.wellX, -TUNING.wellY);
+  c.save();
+  c.translate(0, 10);
+  pagePath(c, x, y, w, h, fold);
+  c.fillStyle = "rgba(0,0,0,0.28)";
+  c.fill();
+  c.restore();
+  pagePath(c, x, y, w, h, fold);
+  c.fillStyle = "#fbf6ee";
+  c.fill();
+  c.lineWidth = 1;
+  c.strokeStyle = "rgba(0,0,0,0.08)";
+  c.stroke();
+  if (fold > 1) {
+    c.beginPath();
+    c.moveTo(x + w - fold, y);
+    c.lineTo(x + w, y + fold);
+    c.lineTo(x + w - fold, y + fold);
+    c.closePath();
+    c.fillStyle = "#e8d6bc";
+    c.fill();
+    c.beginPath();
+    c.moveTo(x + w - fold, y);
+    c.lineTo(x + w, y + fold);
+    c.strokeStyle = "rgba(0,0,0,0.12)";
+    c.stroke();
+  }
+  c.fillStyle = "#291f1a";
+  c.font = "700 16px 'DejaVu Sans', sans-serif";
+  c.textAlign = "left";
+  c.textBaseline = "middle";
+  c.fillText(model.documentName, x + 18, y + 36);
+  c.fillStyle = "rgba(41,31,26,0.45)";
+  c.font = "600 11px 'DejaVu Sans', sans-serif";
+  c.fillText("PDF", x + 18, y + 58);
+  c.fillStyle = "#dcccb8";
+  for (let row = 0; row < 4; row += 1) {
+    const barW = row === 3 ? w * 0.42 : w * 0.72;
+    roundRect(c, x + 18, y + 92 + row * 22, barW, 8, 4);
+    c.fill();
+  }
+  c.restore();
+}
+
+function drawButton(c, model) {
+  const x = TUNING.buttonCenterX - TUNING.buttonWidth / 2;
+  const y = TUNING.buttonCenterY - TUNING.buttonHeight / 2;
+  roundRect(c, x, y, TUNING.buttonWidth, TUNING.buttonHeight, 24);
+  c.fillStyle = model.phase === "combining" || model.phase === "morphing" ? "#b56a32" : "#f59e47";
+  c.fill();
+  c.fillStyle = "#291e18";
+  c.font = "700 17px 'DejaVu Sans', sans-serif";
+  c.textAlign = "center";
+  c.textBaseline = "middle";
+  const title = model.phase === "ready" ? "Combine" : (model.phase === "merged" ? "Reset" : "Merging");
+  c.fillText(title, TUNING.buttonCenterX, TUNING.buttonCenterY);
+}
+
+function drawScene(c, model) {
+  drawDesk(c);
+  drawWell(c, model);
+  drawTitle(c, model);
+  drawGoo(c, model);
+  drawLabels(c, model);
+  drawCard(c, model);
+  drawButton(c, model);
+}
+
+const params = new URLSearchParams(location.search);
+const driven = params.get("drive") === "1";
+
+if (!driven) {
+  let live = demoAt(0);
+  let last = 0;
+  let clock = 0;
+  const frame = (now) => {
+    const dt = last ? Math.min(0.05, (now - last) / 1000) : 0;
+    last = now;
+    clock += dt;
+    live = demoAt(clock % (DEMO_DURATION + 0.4));
+    drawScene(ctx, live);
+    requestAnimationFrame(frame);
+  };
+  requestAnimationFrame(frame);
+}
+
+window.renderAt = (t) => {
+  const model = demoAt(t);
+  drawScene(ctx, model);
+  return { phase: model.phase, t };
+};
+
+window.renderSheet = () => {
+  const panelW = 156;
+  const panelH = Math.round(H * (panelW / W));
+  const cols = 4;
+  const labelH = 26;
+  const gap = 14;
+  const rows = Math.ceil(DEMO_STILLS.length / cols);
+  const width = gap + cols * (panelW + gap);
+  const height = gap + rows * (labelH + panelH + gap);
+  sheet.width = width;
+  sheet.height = height;
+  sheet.style.width = `${width}px`;
+  sheet.style.height = `${height}px`;
+  sheetCtx.setTransform(1, 0, 0, 1, 0, 0);
+  sheetCtx.fillStyle = "#140e0c";
+  sheetCtx.fillRect(0, 0, width, height);
+  DEMO_STILLS.forEach((still, index) => {
+    const col = index % cols;
+    const row = Math.floor(index / cols);
+    const x = gap + col * (panelW + gap);
+    const y = gap + row * (labelH + panelH + gap);
+    sheetCtx.fillStyle = "#f6e7c8";
+    sheetCtx.font = "600 13px 'DejaVu Sans', sans-serif";
+    sheetCtx.textAlign = "left";
+    sheetCtx.textBaseline = "middle";
+    sheetCtx.fillText(still.name, x, y + 12);
+    const model = demoAt(still.t, { reduceMotion: !!still.reduceMotion });
+    const snapshot = document.createElement("canvas");
+    snapshot.width = W;
+    snapshot.height = H;
+    drawScene(snapshot.getContext("2d"), model);
+    sheetCtx.drawImage(snapshot, x, y + labelH, panelW, panelH);
+  });
+  sheet.style.display = "block";
+  stage.style.display = "none";
+  document.body.style.background = "#140e0c";
+  return { width, height };
+};
+
+window.__ready = true;
+window.__demoDuration = DEMO_DURATION;
+</script>
+</body>
+</html>

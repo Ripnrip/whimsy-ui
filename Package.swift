@@ -1,7 +1,7 @@
 // swift-tools-version: 6.0
 import PackageDescription
 
-// The Metal shaders (PopTherapy, GrainyRingGallery, LiquidMetalCompass, ClothPoster, HoloFoilCard, OilPaintRestore, ChannelFlipCard, RippleToHide, KoiNibblePond) are compiled by Xcode into each module's
+// The Metal shaders (PopTherapy, GrainyRingGallery, LiquidMetalCompass, ClothPoster, HoloFoilCard, OilPaintRestore, ChannelFlipCard, RippleToHide, KoiNibblePond, GooMergeDrops) are compiled by Xcode into each module's
 // default.metallib. SwiftPM on Linux/Windows has no Metal compiler, so the resources are
 // skipped there (the SwiftUI targets compile to empty modules on those platforms anyway).
 #if os(Linux) || os(Windows)
@@ -115,6 +115,8 @@ let package = Package(
         .library(name: "GrainBloomCore", targets: ["GrainBloomCore"]),
         .library(name: "KoiNibblePond", targets: ["KoiNibblePond"]),
         .library(name: "KoiPondCore", targets: ["KoiPondCore"]),
+        .library(name: "GooMergeDrops", targets: ["GooMergeDrops"]),
+        .library(name: "GooMergeCore", targets: ["GooMergeCore"]),
         // A demo gallery listing every component.
         .library(name: "WhimsyGallery", targets: ["WhimsyGallery"]),
     ],
@@ -269,10 +271,15 @@ let package = Package(
         .target(name: "KoiNibblePond", dependencies: ["KoiPondCore"],
                 exclude: metalExclude, resources: metalResources),
 
+        .target(name: "GooMergeCore", dependencies: ["WhimsyCore"]),
+        .target(name: "GooMergeDrops", dependencies: ["GooMergeCore"],
+                exclude: metalExclude, resources: metalResources),
+
         .target(name: "WhimsyGallery", dependencies: [
             "PopTherapy", "MagneticBeadSlider", "EraserDelete", "ShutterReveal", "AliveEyes", "ScatterRegroup", "SolarFlareLike", "FlyingButton",
             "GrainyRingGallery", "LiquidMetalCompass", "SweaterRail", "FontCollection", "FollowBlobHero", "MoonPhaseScrubber", "ClothPoster", "TiltPhotoGrid", "ScrollSpinWatch", "BoutiqueBurst", "PeelableSticker", "FrostCard", "HoloFoilCard", "OilPaintRestore", "WiggleMatchSearch", "PourOpenMenu", "OctoDoneChecklist", "AsciiNowPlaying", "DogEarPeelCard", "ColorFigureGumball", "ChannelFlipCard", "ContourInkLoader", "ShelfPull", "StarJar", "HoldToFanDock", "TiltScatterRestore", "NeighborBouncePicker", "RubberBandCardHand",             "CrumpleToDelete", "RippleToHide", "VelocityGlyphScatter", "PinataReward", "CardToPillGlassMorph", "OnAirLampToggle", "ReededGlassSyncHero", "GlassDropPourMenu", "RotaryDialPasscode", "GrainBloomPlaceholder",
             "KoiNibblePond",
+            "GooMergeDrops",
         ]),
 
         .testTarget(name: "WhimsyCoreTests", dependencies: ["WhimsyCore"]),
@@ -326,6 +333,8 @@ let package = Package(
         .testTarget(name: "GrainBloomCoreTests", dependencies: ["GrainBloomCore"],
                     exclude: ["Fixtures"]),
         .testTarget(name: "KoiPondCoreTests", dependencies: ["KoiPondCore"],
+                    exclude: ["Fixtures"]),
+        .testTarget(name: "GooMergeCoreTests", dependencies: ["GooMergeCore"],
                     exclude: ["Fixtures"]),
     ]
 )
