@@ -49,11 +49,13 @@ Forty-eight small, tactile SwiftUI components, each with a pure-Swift, unit-test
 | 🪟 | **ReededGlassSyncHero** | A Halo Vault sync screen. Cobalt, teal and lime light grows through eleven reeded-glass slats, from a small core to full width, and the label flips to "All synced" with one soft haptic. |
 | 💧 | **GlassDropPourMenu** | Component 44. Long-press a glass drop and Share, Duplicate, Rename and Delete pour out of it, joined by gooey necks, then settle as glass pills. Tap outside and they suck back in. Delete lands red and gives a small wobble. |
 | 📞 | **RotaryDialPasscode** | A four-digit lock drawn as a rotary phone dial. Drag a finger hole clockwise to the stop and the digit drops into the dots; the fourth digit becomes a check badge or, if the code is wrong, shakes and turns into a keypad. |
+| 🌫️ | **GrainBloomPlaceholder** | An AI-image placeholder. A grainy mesh and a dim dither grid wake from the center, then the picture resolves as the cells step from 16 px down to 1 px. Tap a finished card to play it again. |
+| 🐟 | **KoiNibblePond** | A top-down pond. Hold a fingertip and six koi crowd in to nibble it, one after another, leaving ripples. Let go and they scatter, then drift back to their laps. |
 | 🍯 | **GooMergeDrops** | Component 48. Five file drops sit on a ring around a dashed well, one metaball field. Drag one near another and they stretch, then snap together. Combine springs them into the well; the blob grows a darker rim and a warm glow, then morphs into Binder-01.pdf with a folded corner. |
 
 iOS 17+ / macOS 14+, Swift tools 6.0 (Swift 6 language mode).
 
-> **Honest status:** every core target builds, and all 1598 tests pass on Linux (Swift 6.4.2).
+> **Honest status:** every core target builds, and all 1648 tests pass on Linux (Swift 6.4.2).
 > The SwiftUI targets have **not yet been compiled or run on an Apple platform**. On Linux
 > they compile to empty modules (`#if canImport(SwiftUI)`). They were checked with
 > sourcekit-lsp (0 diagnostics), `swiftc -parse` and careful API review, but expect
@@ -81,7 +83,7 @@ targets: [
 ```
 
 Each component is its own product: `PopTherapy`, `MagneticBeadSlider`, `EraserDelete`,
-`ShutterReveal`, `AliveEyes`, `ScatterRegroup`, `SolarFlareLike`, `FlyingButton`, `GrainyRingGallery`, `LiquidMetalCompass`, `SweaterRail`, `FontCollection`, `FollowBlobHero`, `MoonPhaseScrubber`, `ClothPoster`, `TiltPhotoGrid`, `ScrollSpinWatch`, `BoutiqueBurst`, `PeelableSticker`, `FrostCard`, `HoloFoilCard`, `OilPaintRestore`, `WiggleMatchSearch`, `PourOpenMenu`, `OctoDoneChecklist`, `AsciiNowPlaying`, `DogEarPeelCard`, `ColorFigureGumball`, `ChannelFlipCard`, `ContourInkLoader`, `ShelfPull`, `StarJar`, `HoldToFanDock`, `TiltScatterRestore`, `NeighborBouncePicker`, `RubberBandCardHand`, `CrumpleToDelete`, `RippleToHide`, `VelocityGlyphScatter`, `PinataReward`, `CardToPillGlassMorph`, `OnAirLampToggle`, `ReededGlassSyncHero`, `GlassDropPourMenu`, `RotaryDialPasscode` and `GooMergeDrops`. There's also a SwiftUI-free `…Core` product for each
+`ShutterReveal`, `AliveEyes`, `ScatterRegroup`, `SolarFlareLike`, `FlyingButton`, `GrainyRingGallery`, `LiquidMetalCompass`, `SweaterRail`, `FontCollection`, `FollowBlobHero`, `MoonPhaseScrubber`, `ClothPoster`, `TiltPhotoGrid`, `ScrollSpinWatch`, `BoutiqueBurst`, `PeelableSticker`, `FrostCard`, `HoloFoilCard`, `OilPaintRestore`, `WiggleMatchSearch`, `PourOpenMenu`, `OctoDoneChecklist`, `AsciiNowPlaying`, `DogEarPeelCard`, `ColorFigureGumball`, `ChannelFlipCard`, `ContourInkLoader`, `ShelfPull`, `StarJar`, `HoldToFanDock`, `TiltScatterRestore`, `NeighborBouncePicker`, `RubberBandCardHand`, `CrumpleToDelete`, `RippleToHide`, `VelocityGlyphScatter`, `PinataReward`, `CardToPillGlassMorph`, `OnAirLampToggle`, `ReededGlassSyncHero`, `GlassDropPourMenu`, `RotaryDialPasscode`, `GrainBloomPlaceholder`, `KoiNibblePond` and `GooMergeDrops`. There's also a SwiftUI-free `…Core` product for each
 (e.g. `ShutterRevealCore`), plus `WhimsyGallery`, a demo list of all forty-eight.
 
 ```swift
@@ -1409,6 +1411,51 @@ Component 45 in the gallery sequence.
 - **Web port:** `webports/rotarydial.html` draws the same scene, and `webports/rotarydial-core.mjs` repeats the core with the same constants. `webports/rotarydial-parity.mjs` checks the scripted trace against `Tests/RotaryDialCoreTests/Fixtures/golden-trace.txt` (349 lines, exact match). The GIF and the stills contact sheet (`docs/rotarydial-stills.png`) are frames of that canvas port at 390×844, not a device recording.
 - **Not compiled on Apple platforms here:** the SwiftUI code was only parsed on Linux (`swiftc -parse`, and a second parse with the SwiftUI branch forced on). That is not an Xcode build. It needs an Xcode build and a device check. The drag, the haptics, `matchedGeometryEffect` and VoiceOver have not been tried on a device.
 
+### 🌫️ GrainBloomPlaceholder
+
+![GrainBloomPlaceholder](docs/grainbloom.gif)
+
+```swift
+import GrainBloomPlaceholder
+
+GrainBloomPlaceholder(image: photo, isGenerating: true)
+```
+
+`GrainBloomPlaceholderDemo()` is the gallery page: Generate starts the wake, Image arrives supplies a drawn sunset (sun, clouds, and three hills), and a tap on the finished card replays the bloom.
+
+Component 46 in the gallery sequence.
+
+- **What it does:** the card waits for a generated picture. Idle is a grainy mesh of four soft blobs over a dim ordered-dither grid. While generating, dots light in a ripple from the center, pulse, and a shimmer crosses with a "Dreaming…" label. When the picture arrives, the dither cells step from 16 px to 8, 4, 2 and 1 px, the blur drops, and each cell appears by its Bayer threshold. Done rests on the picture after a short grain settle and a small glint. Tap the finished card to play the bloom again.
+- **Pure-Swift core:** `GrainBloomCore` owns the phase timeline, the Bayer 4×4 and 8×8 matrices, the ripple schedule, the cell-size steps, the seeded grain and the blob drift. It stores whether a picture is present, not the pixels, so it tests on Linux (Swift Testing).
+- **Reduce Motion:** no ripple, no drift and no pulse. A static grain gradient crossfades to the picture over 0.28 s.
+- **VoiceOver:** one element, "Image placeholder". The value is "Generating image" until the picture is ready, then "Image ready". Replay bloom is an action, and it runs only when the card is done.
+- **Web port:** `webports/grainbloom.html` draws the same scene at 390×844, and `webports/grainbloom-core.mjs` repeats the core. `webports/grainbloom-parity.mjs` checks the scripted trace against `Tests/GrainBloomCoreTests/Fixtures/golden-trace.txt`. The GIF and the stills contact sheet (`docs/grainbloom-stills.png`) are frames of that canvas port, not a device recording.
+- **Not compiled on Apple platforms here:** the SwiftUI view and the optional Metal grain shader were only parsed on Linux. The shader is excluded from the Linux build. The SwiftUI and Metal code needs an Xcode build and a device check. The core tests run on Linux.
+
+### 🐟 KoiNibblePond
+
+![KoiNibblePond](docs/koipond.gif)
+
+![Koi nibble stills](docs/koipond-stills.png)
+
+```swift
+import KoiNibblePond
+
+KoiNibblePond()
+KoiNibblePond(koiCount: 6) { peck() }
+```
+
+`KoiNibblePondDemo()` is the gallery page: the same pond, and a count of nibbles.
+
+Component 47. GrainBloomPlaceholder is 46, in open pull request #13. This count assumes that one lands first. The gallery registrations are appended, so the two lists union.
+
+- **What it does:** a top-down pond on a phone-sized page. Six koi cruise lazy laps. Each one is a five-point spine: every point sits a fixed distance behind the one ahead, and a sine wave beats the tail. Hold a fingertip and a ripple ring grows from it. The koi steer in one after another, each waiting out `index × 0.20` s and then its turn at the finger. On arrival they face the fingertip and bob. Each peck leaves a small ripple and a light impact. Let go and they whip outward, then drift back to the laps. Inspired by [Koi Nibble Onboarding](https://nativecook.dev/).
+- **Pure-Swift core:** `KoiPondCore` owns the seeded school, the fixed-step integrator, the spine constraint, the tail wave, the stagger, arrival, nibble events, ripple lifetimes, the scatter and the return. It imports only Foundation (through `WhimsyCore`), so it tests on Linux (19 tests, Swift Testing). `webports/koipond-core.mjs` copies the same constants.
+- **Reduce Motion:** the koi drift slowly. There is no scatter burst. Ripples hold a small radius and fade instead of expanding.
+- **VoiceOver:** one element, "Pond, 6 koi". The value is "Koi swimming" or "Koi nibbling". Feed koi gathers them at the middle of the pond without a hold, then lets go.
+- **Web port:** `webports/koipond.html` draws the same scene at 390×844, and `webports/koipond-core.mjs` repeats the core. `webports/koipond-parity.mjs` checks the scripted trace against `Tests/KoiPondCoreTests/Fixtures/golden-trace.txt` (413 lines, exact match). The GIF and the stills contact sheet (`docs/koipond-stills.png`) are frames of that canvas port, not a device recording.
+- **Not compiled on Apple platforms here:** the SwiftUI view and `Resources/KoiCaustics.metal` were only parsed on Linux (`swiftc -parse`). Linux builds the view target as an empty module and skips the metal file. The caustic is a `.colorEffect`, availability-gated, with the Canvas wash as the fallback. This needs an Xcode build and a device check for the gesture, the haptic, VoiceOver and Reduce Motion.
+
 ---
 
 ### 🍯 GooMergeDrops
@@ -1491,6 +1538,8 @@ Every component handles **Reduce Motion**, each in its own way:
 | ReededGlassSyncHero | No wobble and no 3D tilt. The finished aurora fades in, and the percentage fades instead of rolling. The haptic still fires once at 100%. |
 | GlassDropPourMenu | No pour and no wobble: the rows crossfade in place on their seats, and the drop does not swell. The long-press, the choice and the announcements work as usual. |
 | RotaryDialPasscode | No spin-back and no shake. The wheel snaps home, a wrong code tints red, and the morph to the keypad or the check badge is a short fade. |
+| GrainBloomPlaceholder | No ripple and no drift. A static grain gradient crossfades to the picture. |
+| KoiNibblePond | Koi drift slowly and do not burst away. Ripples are gentle fades instead of expanding rings. |
 | GooMergeDrops | No bob, no stretch and no snap. Combine places the drops on the well and crossfades to the document card. |
 
 All forty-eight have VoiceOver labels and actions (e.g. pop next bubble, adjustable slider,
