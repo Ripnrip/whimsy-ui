@@ -111,6 +111,8 @@ let package = Package(
         .library(name: "RotaryDialCore", targets: ["RotaryDialCore"]),
         .library(name: "GlassDropPourMenu", targets: ["GlassDropPourMenu"]),
         .library(name: "GlassPourCore", targets: ["GlassPourCore"]),
+        .library(name: "GrainBloomPlaceholder", targets: ["GrainBloomPlaceholder"]),
+        .library(name: "GrainBloomCore", targets: ["GrainBloomCore"]),
         // A demo gallery listing every component.
         .library(name: "WhimsyGallery", targets: ["WhimsyGallery"]),
     ],
@@ -257,9 +259,13 @@ let package = Package(
         .target(name: "GlassPourCore", dependencies: ["WhimsyCore"]),
         .target(name: "GlassDropPourMenu", dependencies: ["GlassPourCore"]),
 
+        .target(name: "GrainBloomCore", dependencies: ["WhimsyCore"]),
+        .target(name: "GrainBloomPlaceholder", dependencies: ["GrainBloomCore"],
+                exclude: metalExclude, resources: metalResources),
+
         .target(name: "WhimsyGallery", dependencies: [
             "PopTherapy", "MagneticBeadSlider", "EraserDelete", "ShutterReveal", "AliveEyes", "ScatterRegroup", "SolarFlareLike", "FlyingButton",
-            "GrainyRingGallery", "LiquidMetalCompass", "SweaterRail", "FontCollection", "FollowBlobHero", "MoonPhaseScrubber", "ClothPoster", "TiltPhotoGrid", "ScrollSpinWatch", "BoutiqueBurst", "PeelableSticker", "FrostCard", "HoloFoilCard", "OilPaintRestore", "WiggleMatchSearch", "PourOpenMenu", "OctoDoneChecklist", "AsciiNowPlaying", "DogEarPeelCard", "ColorFigureGumball", "ChannelFlipCard", "ContourInkLoader", "ShelfPull", "StarJar", "HoldToFanDock", "TiltScatterRestore", "NeighborBouncePicker", "RubberBandCardHand",             "CrumpleToDelete", "RippleToHide", "VelocityGlyphScatter", "PinataReward", "CardToPillGlassMorph", "OnAirLampToggle", "ReededGlassSyncHero", "GlassDropPourMenu", "RotaryDialPasscode",
+            "GrainyRingGallery", "LiquidMetalCompass", "SweaterRail", "FontCollection", "FollowBlobHero", "MoonPhaseScrubber", "ClothPoster", "TiltPhotoGrid", "ScrollSpinWatch", "BoutiqueBurst", "PeelableSticker", "FrostCard", "HoloFoilCard", "OilPaintRestore", "WiggleMatchSearch", "PourOpenMenu", "OctoDoneChecklist", "AsciiNowPlaying", "DogEarPeelCard", "ColorFigureGumball", "ChannelFlipCard", "ContourInkLoader", "ShelfPull", "StarJar", "HoldToFanDock", "TiltScatterRestore", "NeighborBouncePicker", "RubberBandCardHand",             "CrumpleToDelete", "RippleToHide", "VelocityGlyphScatter", "PinataReward", "CardToPillGlassMorph", "OnAirLampToggle", "ReededGlassSyncHero", "GlassDropPourMenu", "RotaryDialPasscode", "GrainBloomPlaceholder",
         ]),
 
         .testTarget(name: "WhimsyCoreTests", dependencies: ["WhimsyCore"]),
@@ -309,6 +315,8 @@ let package = Package(
                     exclude: ["Fixtures"]),
         .testTarget(name: "RotaryDialCoreTests", dependencies: ["RotaryDialCore"]),
         .testTarget(name: "GlassPourCoreTests", dependencies: ["GlassPourCore"],
+                    exclude: ["Fixtures"]),
+        .testTarget(name: "GrainBloomCoreTests", dependencies: ["GrainBloomCore"],
                     exclude: ["Fixtures"]),
     ]
 )
