@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Koi Nibble Pond</title>
+<style>
+  html, body { margin: 0; height: 100%; background: #e8f1ec; }
+  body { display: flex; align-items: center; justify-content: center; }
+  canvas { display: block; }
+  #sheet { display: none; }
+</style>
+</head>
+<body>
+<canvas id="stage" width="780" height="1688" style="width:390px;height:844px"></canvas>
+<canvas id="sheet" width="10" height="10"></canvas>
+<script type="module">
+import {
+  TUNING, DEMO_DURATION, DEMO_STILLS, demoAt, KoiPondModel,
+  rippleRadius, rippleOpacity, posedSpine, pondCenter,
+} from "./koipond-core.mjs";
+
+const W = TUNING.sceneWidth;
+const H = TUNING.sceneHeight;
+const stage = document.querySelector("#stage");
+const sheet = document.querySelector("#sheet");
+const ctx = stage.getContext("2d");
+const sheetCtx = sheet.getContext("2d");
+const center = pondCenter();
+
+function rgb(color, alpha = 1) {
+  const r = Math.round(color[0] * 255);
+  const g = Math.round(color[1] * 255);
+  const b = Math.round(color[2] * 255);
+  if (alpha >= 1) return `rgb(${r}, ${g}, ${b})`;
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+}
+
+function pondPath(c) {
+  c.beginPath();
+  c.ellipse(center.x, center.y, TUNING.pondWidth / 2, TUNING.pondHeight / 2, 0, 0, Math.PI * 2);
+}
+
+function normalAt(spine, index) {
+  const prev = spine[Math.max(0, index - 1)];
+  const next = spine[Math.min(spine.length - 1, index + 1)];
+  const dx = next.x - prev.x;
+  const dy = next.y - prev.y;
+  const len = Math.hypot(dx, dy) || 1;
+  return { x: -dy / len, y: dx / len };
+}
+
+function ribbon(c, spine, widths) {
+  const left = [];
+  const right = [];
+  for (let i = 0; i < spine.length; i += 1) {
+    const n = normalAt(spine, i);
+    const w = widths[i] ?? widths[widths.length - 1];
+    left.push({ x: spine[i].x + n.x * w, y: spine[i].y + n.y * w });
+    right.push({ x: spine[i].x - n.x * w, y: spine[i].y - n.y * w });
+  }
+  c.beginPath();
+  c.moveTo(left[0].x, left[0].y);
+  for (let i = 1; i < left.length; i += 1) c.lineTo(left[i].x, left[i].y);
+  for (let i = right.length - 1; i >= 0; i -= 1) c.lineTo(right[i].x, right[i].y);
+  c.closePath();
+}
+
+function drawCaustics(c, time, reduceMotion) {
+  const t = reduceMotion ? 0.4 : time;
+  c.save();
+  pondPath(c);
+  c.clip();
+  c.globalCompositeOperation = "screen";
+  for (let i = 0; i < 8; i += 1) {
+    const u = i / 8;
+    const x = center.x + Math.sin(t * 0.65 + u * 6.2) * (70 + (i % 3) * 18);
+    const y = center.y + Math.cos(t * 0.42 + u * 4.4) * (120 + (i % 4) * 16);
+    const radius = 38 + (i % 3) * 10;
+    const wash = c.createRadialGradient(x, y, 1, x, y, radius);
+    const alpha = reduceMotion ? 0.09 : 0.16;
+    wash.addColorStop(0, `rgba(214, 246, 236, ${alpha})`);
+    wash.addColorStop(1, "rgba(214, 246, 236, 0)");
+    c.fillStyle = wash;
+    c.beginPath();
+    c.arc(x, y, radius, 0, Math.PI * 2);
+    c.fill();
+  }
+  c.restore();
+}
+
+function drawLily(c, x, y, r, flower) {
+  c.save();
+  c.translate(x, y);
+  c.rotate(-0.4);
+  c.beginPath();
+  c.arc(0, 0, r, 0.45, Math.PI * 2 + 0.15);
+  c.lineTo(0, 0);
+  c.closePath();
+  c.fillStyle = rgb(TUNING.lily);
+  c.fill();
+  c.beginPath();
+  c.moveTo(0, 0);
+  c.lineTo(r * 0.92, 0);
+  c.strokeStyle = rgb(TUNING.lilyDark);
+  c.lineWidth = 1.2;
+  c.stroke();
+  if (flower) {
+    c.fillStyle = rgb(TUNING.flower);
+    for (let petal = 0; petal < 5; petal += 1) {
+      const a = petal * Math.PI * 2 / 5 - 0.4;
+      c.beginPath();
+      c.ellipse(Math.cos(a) * 6, Math.sin(a) * 6, 4.5, 2.6, a, 0, Math.PI * 2);
+      c.fill();
+    }
+    c.fillStyle = rgb(TUNING.sand);
+    c.beginPath();
+    c.arc(0, 0, 2.4, 0, Math.PI * 2);
+    c.fill();
+  }
+  c.restore();
+}
+
+function drawFloor(c, model) {
+  c.fillStyle = rgb(TUNING.paper);
+  c.fillRect(0, 0, W, H);
+
+  c.save();
+  pondPath(c);
+  c.fillStyle = "rgba(40, 48, 44, 0.18)";
+  c.translate(0, 8);
+  c.fill();
+  c.restore();
+
+  const water = c.createRadialGradient(center.x, center.y - 40, 20, center.x, center.y, TUNING.pondHeight / 2);
+  water.addColorStop(0, rgb(TUNING.waterShallow));
+  water.addColorStop(0.45, rgb(TUNING.waterMid));
+  water.addColorStop(1, rgb(TUNING.waterDeep));
+  pondPath(c);
+  c.fillStyle = water;
+  c.fill();
+
+  c.save();
+  pondPath(c);
+  c.clip();
+  const sand = c.createRadialGradient(center.x - 30, center.y + 80, 10, center.x, center.y + 40, 180);
+  sand.addColorStop(0, "rgba(196, 164, 120, 0.28)");
+  sand.addColorStop(1, "rgba(196, 164, 120, 0)");
+  c.fillStyle = sand;
+  c.fillRect(TUNING.pondX, TUNING.pondY, TUNING.pondWidth, TUNING.pondHeight);
+  c.restore();
+
+  drawCaustics(c, model.swimTime, model.reduceMotion);
+
+  pondPath(c);
+  c.strokeStyle = rgb(TUNING.stone);
+  c.lineWidth = 10;
+  c.stroke();
+  pondPath(c);
+  c.strokeStyle = "rgba(255,255,255,0.28)";
+  c.lineWidth = 2;
+  c.stroke();
+
+  for (const [x, y, r] of TUNING.lilies) {
+    drawLily(c, x, y, r, r > 28);
+  }
+}
+
+function drawRipples(c, model) {
+  c.save();
+  pondPath(c);
+  c.clip();
+  for (const ripple of model.ripples) {
+    const radius = rippleRadius(ripple);
+    const alpha = rippleOpacity(ripple);
+    if (alpha <= 0.01 || radius <= 0.5) continue;
+    c.beginPath();
+    c.arc(ripple.origin.x, ripple.origin.y, radius, 0, Math.PI * 2);
+    c.strokeStyle = `rgba(236, 248, 246, ${alpha})`;
+    c.lineWidth = ripple.kind === "gather" ? 2.2 : 1.3;
+    c.stroke();
+  }
+  c.restore();
+}
+
+function drawFish(c, model) {
+  c.save();
+  pondPath(c);
+  c.clip();
+  for (const fish of model.fish) {
+    const spine = posedSpine(fish, model.swimTime);
+    const palette = TUNING.palettes[fish.paletteIndex % TUNING.palettes.length];
+    const mid = spine[1];
+    c.fillStyle = "rgba(0, 20, 24, 0.16)";
+    c.beginPath();
+    c.ellipse(mid.x + 1.5, mid.y + 3, 16, 7, fish.heading, 0, Math.PI * 2);
+    c.fill();
+
+    ribbon(c, spine, TUNING.bodyWidths);
+    c.fillStyle = rgb(palette.body);
+    c.fill();
+    c.strokeStyle = "rgba(20, 24, 28, 0.28)";
+    c.lineWidth = 1;
+    c.stroke();
+
+    ribbon(c, spine, TUNING.bodyWidths.map((w) => w * 0.38));
+    c.fillStyle = rgb(palette.belly);
+    c.fill();
+
+    const tail = spine[spine.length - 1];
+    const prev = spine[spine.length - 2];
+    const dx = tail.x - prev.x;
+    const dy = tail.y - prev.y;
+    const len = Math.hypot(dx, dy) || 1;
+    const ux = dx / len;
+    const uy = dy / len;
+    const px = -uy;
+    const py = ux;
+    c.beginPath();
+    c.moveTo(prev.x, prev.y);
+    c.quadraticCurveTo(
+      tail.x + px * 4,
+      tail.y + py * 4,
+      tail.x + ux * 18 + px * 12,
+      tail.y + uy * 18 + py * 12,
+    );
+    c.quadraticCurveTo(tail.x + ux * 8, tail.y + uy * 8, tail.x + ux * 18 - px * 12, tail.y + uy * 18 - py * 12);
+    c.quadraticCurveTo(tail.x - px * 4, tail.y - py * 4, prev.x, prev.y);
+    c.fillStyle = rgb(palette.fin);
+    c.fill();
+
+    const head = spine[0];
+    const hx = Math.cos(fish.heading);
+    const hy = Math.sin(fish.heading);
+    c.fillStyle = "#1c1a18";
+    for (const side of [-1, 1]) {
+      c.beginPath();
+      c.arc(head.x + hx * 3.5 + -hy * 3.1 * side, head.y + hy * 3.5 + hx * 3.1 * side, 1.7, 0, Math.PI * 2);
+      c.fill();
+    }
+  }
+  c.restore();
+}
+
+function drawFinger(c, model) {
+  if (model.phase !== "arming" && model.phase !== "gathering") return;
+  const x = model.finger.x;
+  const y = model.finger.y;
+  c.save();
+  pondPath(c);
+  c.clip();
+  c.fillStyle = "rgba(0,0,0,0.12)";
+  c.beginPath();
+  c.ellipse(x + 1, y + 4, 14, 6, 0, 0, Math.PI * 2);
+  c.fill();
+  const skin = c.createRadialGradient(x - 4, y - 5, 2, x, y, 16);
+  skin.addColorStop(0, "#ffe0cc");
+  skin.addColorStop(1, rgb(TUNING.finger));
+  c.beginPath();
+  c.arc(x, y, 15, 0, Math.PI * 2);
+  c.fillStyle = skin;
+  c.fill();
+  c.strokeStyle = "rgba(120, 72, 58, 0.35)";
+  c.lineWidth = 1;
+  c.stroke();
+  c.restore();
+}
+
+function drawCopy(c, model) {
+  c.fillStyle = rgb(TUNING.ink);
+  c.font = "500 36px Georgia, 'Times New Roman', serif";
+  c.textAlign = "center";
+  c.textBaseline = "middle";
+  c.fillText(TUNING.title, W / 2, 72);
+  c.font = "600 13px Inter, 'DejaVu Sans', sans-serif";
+  c.fillStyle = "rgba(26, 36, 38, 0.62)";
+  const caption = model.phase === "gathering" ? "Nibbling" : TUNING.hint;
+  c.fillText(caption, W / 2, 102);
+}
+
+function drawScene(c, model) {
+  drawFloor(c, model);
+  drawRipples(c, model);
+  drawFish(c, model);
+  drawFinger(c, model);
+  drawCopy(c, model);
+}
+
+function paintStage(model) {
+  ctx.setTransform(2, 0, 0, 2, 0, 0);
+  ctx.clearRect(0, 0, W, H);
+  drawScene(ctx, model);
+}
+
+const params = new URLSearchParams(location.search);
+const driven = params.get("drive") === "1";
+
+if (!driven) {
+  const live = new KoiPondModel();
+  let last = 0;
+  let touching = false;
+  const point = (event) => {
+    const rect = stage.getBoundingClientRect();
+    return {
+      x: ((event.clientX - rect.left) / rect.width) * W,
+      y: ((event.clientY - rect.top) / rect.height) * H,
+    };
+  };
+  stage.addEventListener("pointerdown", (event) => {
+    const p = point(event);
+    live.beginTouch(p.x, p.y);
+    touching = true;
+    stage.setPointerCapture(event.pointerId);
+  });
+  stage.addEventListener("pointermove", (event) => {
+    if (!touching) return;
+    const p = point(event);
+    live.updateTouch(p.x, p.y);
+  });
+  stage.addEventListener("pointerup", () => {
+    if (touching) live.endTouch();
+    touching = false;
+  });
+  const frame = (now) => {
+    const dt = last ? Math.min(0.05, (now - last) / 1000) : 0;
+    last = now;
+    if (dt > 0) live.step(dt);
+    paintStage(live);
+    requestAnimationFrame(frame);
+  };
+  requestAnimationFrame(frame);
+}
+
+window.renderAt = (t) => {
+  const model = demoAt(t);
+  paintStage(model);
+  return { phase: model.phase, nibbles: model.nibbleCount, value: model.accessibilityValue };
+};
+
+window.renderSheet = () => {
+  const panelW = 180;
+  const panelH = Math.round(H * (panelW / W));
+  const cols = 4;
+  const labelH = 28;
+  const gap = 16;
+  const rows = 2;
+  const width = gap + cols * (panelW + gap);
+  const height = gap + rows * (labelH + panelH + gap);
+  sheet.width = width * 2;
+  sheet.height = height * 2;
+  sheet.style.width = `${width}px`;
+  sheet.style.height = `${height}px`;
+  sheetCtx.setTransform(2, 0, 0, 2, 0, 0);
+  sheetCtx.fillStyle = "#102226";
+  sheetCtx.fillRect(0, 0, width, height);
+  DEMO_STILLS.forEach((still, index) => {
+    const col = index % cols;
+    const row = Math.floor(index / cols);
+    const x = gap + col * (panelW + gap);
+    const y = gap + row * (labelH + panelH + gap);
+    sheetCtx.fillStyle = "#f4e7c8";
+    sheetCtx.font = "600 13px Inter, 'DejaVu Sans', sans-serif";
+    sheetCtx.textAlign = "left";
+    sheetCtx.textBaseline = "middle";
+    sheetCtx.fillText(still.name, x, y + 12);
+    const model = demoAt(still.t, { reduceMotion: !!still.reduceMotion });
+    const snapshot = document.createElement("canvas");
+    snapshot.width = W * 2;
+    snapshot.height = H * 2;
+    const snap = snapshot.getContext("2d");
+    snap.setTransform(2, 0, 0, 2, 0, 0);
+    drawScene(snap, model);
+    sheetCtx.drawImage(snapshot, x, y + labelH, panelW, panelH);
+  });
+  sheet.style.display = "block";
+  stage.style.display = "none";
+  document.body.style.background = "#102226";
+  return { width, height };
+};
+
+window.__ready = true;
+window.__demoDuration = DEMO_DURATION;
+</script>
+</body>
+</html>
