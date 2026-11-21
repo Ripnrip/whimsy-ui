@@ -24,6 +24,8 @@ The values live on `LouvreVentTuning` and are copied in `webports/louvrevent-cor
 
 Drag up (a smaller scene Y) raises the temperature. The opening's height maps onto the range, and the value rounds to an integer degree. Above the opening is the hot stop. Below it is the cool stop. A jump from 60 to 63 emits ticks for 61, 62, and 63. Setting the current degree again, or a value that clamps to the current stop, emits nothing.
 
+Replacing the range clamps the set point into the new limits and retargets the blades, because the same degree can sit at a new place in the span. Reduce Motion snaps that angle. The view applies a new `range` to the live model, including while a drag is in progress, and writes the clamped degree back to the binding.
+
 The blades and the glow chase the set point on the spring, so a fast change does not pop. The highlight sweeps while they move. The readout is the integer degree.
 
 ## Accessibility
@@ -32,4 +34,4 @@ Reduce Motion snaps the angle and the glow on the set-point change and does not 
 
 ## Verification
 
-Linux runs `LouvreVentCoreTests` (22 tests) as part of `swift test` (1670 tests, Swift 6.4.2), and `node webports/louvrevent-parity.mjs` (142 lines, exact match). `swiftc -parse` of the view and the gallery file was run on Linux. That parse does not typecheck SwiftUI (`#if canImport(SwiftUI)` is false here). A second parse with the condition forced on checks the view syntax only. The Metal file is excluded from the Linux build. No Apple build or device run was done for this component. The SwiftUI code and `Resources/LouvreSpecular.metal` need an Xcode build and a device check. The GIF and the contact sheet are the canvas port (`webports/louvrevent-capture.mjs`) at 390×844, using the JS core for every sample.
+Linux runs `LouvreVentCoreTests` (24 tests) as part of `swift test` (1672 tests, Swift 6.4.2), and `node webports/louvrevent-parity.mjs` (142 lines, exact match). `swiftc -parse` of the view and the gallery file was run on Linux. That parse does not typecheck SwiftUI (`#if canImport(SwiftUI)` is false here). A second parse with the condition forced on checks the view syntax only. The Metal file is excluded from the Linux build. No Apple build or device run was done for this component. The SwiftUI code and `Resources/LouvreSpecular.metal` need an Xcode build and a device check. The GIF and the contact sheet are the canvas port (`webports/louvrevent-capture.mjs`) at 390×844, using the JS core for every sample.

@@ -232,6 +232,36 @@ private let span = LouvreVentTuning.defaultLower...LouvreVentTuning.defaultUpper
         #expect(model.displayAngle == model.targetAngle)
     }
 
+    @Test func aNewRangeClampsTheSetPointAndRetargetsTheBlades() {
+        var model = LouvreVentModel(temperature: 80)
+        let stayed = LouvreVentMath.angle(temperature: 80, range: span)
+        #expect(model.setRange(70...90).isEmpty)
+        #expect(model.temperature == 80)
+        #expect(model.range == 70...90)
+        #expect(model.targetUnit == 0.5)
+        #expect(model.targetAngle == 35)
+        #expect(model.displayAngle == stayed)
+        let events = model.setRange(60...70)
+        #expect(events == (70...79).reversed().map { LouvreVentEvent.tick($0) })
+        #expect(model.temperature == 70)
+        #expect(model.targetAngle == 70)
+        #expect(model.setRange(60...70).isEmpty)
+        #expect(model.temperature == 70)
+        let hot = LouvreVentMath.sceneY(forTemperature: 80, range: model.range)
+        #expect(model.beginDrag(sceneY: hot).isEmpty)
+        #expect(model.temperature == 70)
+        #expect(model.updateDrag(sceneY: 0).isEmpty)
+        #expect(model.temperature == 70)
+    }
+
+    @Test func reduceMotionSnapsWhenTheRangeMoves() {
+        var model = LouvreVentModel(temperature: 80, reduceMotion: true)
+        #expect(model.setRange(70...90).isEmpty)
+        #expect(model.displayAngle == 35)
+        #expect(model.glow == model.targetGlow)
+        #expect(model.sweepEnvelope == 0)
+    }
+
     @Test func theReadoutNamesTheThermostatAndTheDegree() {
         let model = LouvreVentModel(temperature: 72)
         #expect(model.readout == "72")

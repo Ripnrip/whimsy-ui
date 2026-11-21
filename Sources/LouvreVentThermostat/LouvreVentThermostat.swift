@@ -53,7 +53,10 @@ public struct LouvreVentThermostat: View {
                     .frame(width: LouvreVentTuning.sceneWidth, height: LouvreVentTuning.sceneHeight, alignment: .topLeading)
                     .scaleEffect(scale, anchor: .topLeading)
                     .offset(x: originX, y: originY)
-                    .frame(width: geo.size.width, height: geo.size.height)
+                    // Top-leading, so a container that is not 390×844 does not
+                    // center the unscaled layout on top of the scale origin.
+                    // The drag subtracts that origin and nothing else.
+                    .frame(width: geo.size.width, height: geo.size.height, alignment: .topLeading)
                     .contentShape(Rectangle())
                     .gesture(drag(scale: scale, originY: originY))
                     .onChange(of: timeline.date) { _, now in advance(to: now) }
@@ -65,6 +68,9 @@ public struct LouvreVentThermostat: View {
             note(model.setTemperature(temperature))
         }
         .onChange(of: reduceMotion) { _, on in model.setReduceMotion(on) }
+        .onChange(of: range) { _, newRange in
+            note(model.setRange(newRange))
+        }
         .onChange(of: temperature) { _, newValue in
             guard !model.isDragging else { return }
             guard newValue != model.temperature else { return }

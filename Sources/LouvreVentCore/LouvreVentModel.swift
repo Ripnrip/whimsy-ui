@@ -11,7 +11,7 @@ import Foundation
 /// crossed emits one ``LouvreVentEvent/tick(_:)``. Setting the temperature to the
 /// value it already holds, including a value that clamps to the current stop, emits nothing.
 public struct LouvreVentModel: Sendable {
-    public let range: ClosedRange<Int>
+    public private(set) var range: ClosedRange<Int>
     public private(set) var temperature: Int
     public private(set) var reduceMotion: Bool
     public private(set) var isDragging = false
@@ -124,6 +124,18 @@ public struct LouvreVentModel: Sendable {
 
     public mutating func endDrag() {
         isDragging = false
+    }
+
+    /// Replace the limits. The set point is clamped into the new range, one tick
+    /// per degree it moves. A range that leaves the degree where it is still
+    /// retargets the blades, because that degree sits at a new place in the span.
+    /// Reduce Motion snaps the angle and the glow.
+    public mutating func setRange(_ newRange: ClosedRange<Int>) -> [LouvreVentEvent] {
+        guard newRange != range else { return [] }
+        range = newRange
+        let events = apply(temperature)
+        if reduceMotion { snapDisplay() }
+        return events
     }
 
     public mutating func setReduceMotion(_ on: Bool) {
