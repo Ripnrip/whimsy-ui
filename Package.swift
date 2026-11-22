@@ -117,6 +117,8 @@ let package = Package(
         .library(name: "KoiPondCore", targets: ["KoiPondCore"]),
         .library(name: "GooMergeDrops", targets: ["GooMergeDrops"]),
         .library(name: "GooMergeCore", targets: ["GooMergeCore"]),
+        .library(name: "BoltStreak", targets: ["BoltStreak"]),
+        .library(name: "BoltStreakCore", targets: ["BoltStreakCore"]),
         // A demo gallery listing every component.
         .library(name: "WhimsyGallery", targets: ["WhimsyGallery"]),
     ],
@@ -275,11 +277,15 @@ let package = Package(
         .target(name: "GooMergeDrops", dependencies: ["GooMergeCore"],
                 exclude: metalExclude, resources: metalResources),
 
+        .target(name: "BoltStreakCore", dependencies: ["WhimsyCore"]),
+        .target(name: "BoltStreak", dependencies: ["BoltStreakCore"]),
+
         .target(name: "WhimsyGallery", dependencies: [
             "PopTherapy", "MagneticBeadSlider", "EraserDelete", "ShutterReveal", "AliveEyes", "ScatterRegroup", "SolarFlareLike", "FlyingButton",
             "GrainyRingGallery", "LiquidMetalCompass", "SweaterRail", "FontCollection", "FollowBlobHero", "MoonPhaseScrubber", "ClothPoster", "TiltPhotoGrid", "ScrollSpinWatch", "BoutiqueBurst", "PeelableSticker", "FrostCard", "HoloFoilCard", "OilPaintRestore", "WiggleMatchSearch", "PourOpenMenu", "OctoDoneChecklist", "AsciiNowPlaying", "DogEarPeelCard", "ColorFigureGumball", "ChannelFlipCard", "ContourInkLoader", "ShelfPull", "StarJar", "HoldToFanDock", "TiltScatterRestore", "NeighborBouncePicker", "RubberBandCardHand",             "CrumpleToDelete", "RippleToHide", "VelocityGlyphScatter", "PinataReward", "CardToPillGlassMorph", "OnAirLampToggle", "ReededGlassSyncHero", "GlassDropPourMenu", "RotaryDialPasscode", "GrainBloomPlaceholder",
             "KoiNibblePond",
             "GooMergeDrops",
+            "BoltStreak",
         ]),
 
         .testTarget(name: "WhimsyCoreTests", dependencies: ["WhimsyCore"]),
@@ -335,6 +341,8 @@ let package = Package(
         .testTarget(name: "KoiPondCoreTests", dependencies: ["KoiPondCore"],
                     exclude: ["Fixtures"]),
         .testTarget(name: "GooMergeCoreTests", dependencies: ["GooMergeCore"],
+                    exclude: ["Fixtures"]),
+        .testTarget(name: "BoltStreakCoreTests", dependencies: ["BoltStreakCore"],
                     exclude: ["Fixtures"]),
     ]
 )

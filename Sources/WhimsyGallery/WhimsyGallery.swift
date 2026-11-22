@@ -51,8 +51,9 @@ import RotaryDialPasscode
 import GrainBloomPlaceholder
 import KoiNibblePond
 import GooMergeDrops
+import BoltStreak
 
-/// A navigation list of all forty-eight components with a small live demo of each.
+/// A navigation list of all fifty components with a small live demo of each.
 /// Drop `WhimsyGallery()` into a scene to browse them.
 public struct WhimsyGallery: View {
     public init() {}
@@ -84,7 +85,7 @@ public struct WhimsyGallery: View {
 }
 
 enum GalleryItem: String, CaseIterable, Identifiable, Hashable {
-    case popTherapy, magneticBeads, eraserDelete, shutterReveal, aliveEyes, scatterRegroup, solarFlare, flyingButton, ringGallery, liquidCompass, sweaterRail, fontCollection, followBlob, moonPhase, clothPoster, tiltGrid, spinWatch, boutique, peelSticker, frostCard, holoFoilCard, oilPaintRestore, wiggleMatchSearch, pourOpenMenu, octoDoneChecklist, asciiNowPlaying, dogEarPeelCard, colorFigureGumball, channelFlipCard, contourInkLoader, shelfPull, starJar, holdToFanDock, tiltScatterRestore, neighborBouncePicker, rubberBandCardHand, crumpleToDelete, rippleToHide, velocityGlyphScatter, pinataReward, cardToPillGlassMorph, onAirLampToggle, reededGlassSyncHero, glassDropPourMenu, rotaryDialPasscode, grainBloomPlaceholder, koiNibblePond, gooMergeDrops
+    case popTherapy, magneticBeads, eraserDelete, shutterReveal, aliveEyes, scatterRegroup, solarFlare, flyingButton, ringGallery, liquidCompass, sweaterRail, fontCollection, followBlob, moonPhase, clothPoster, tiltGrid, spinWatch, boutique, peelSticker, frostCard, holoFoilCard, oilPaintRestore, wiggleMatchSearch, pourOpenMenu, octoDoneChecklist, asciiNowPlaying, dogEarPeelCard, colorFigureGumball, channelFlipCard, contourInkLoader, shelfPull, starJar, holdToFanDock, tiltScatterRestore, neighborBouncePicker, rubberBandCardHand, crumpleToDelete, rippleToHide, velocityGlyphScatter, pinataReward, cardToPillGlassMorph, onAirLampToggle, reededGlassSyncHero, glassDropPourMenu, rotaryDialPasscode, grainBloomPlaceholder, koiNibblePond, gooMergeDrops, boltStreak
     var id: String { rawValue }
 
     var title: String {
@@ -137,6 +138,7 @@ enum GalleryItem: String, CaseIterable, Identifiable, Hashable {
         case .grainBloomPlaceholder: "Grain Bloom"
         case .koiNibblePond: "Koi Nibble Pond"
         case .gooMergeDrops: "Goo Merge Drops"
+        case .boltStreak: "Bolt Streak"
         }
     }
 
@@ -190,6 +192,7 @@ enum GalleryItem: String, CaseIterable, Identifiable, Hashable {
         case .grainBloomPlaceholder: "A grainy dither that wakes, then resolves into the picture"
         case .koiNibblePond: "Hold the pond and the koi crowd in to nibble"
         case .gooMergeDrops: "Five file drops that melt into one document"
+        case .boltStreak: "Zinc bolts that burn along the week"
         }
     }
 
@@ -243,6 +246,7 @@ enum GalleryItem: String, CaseIterable, Identifiable, Hashable {
         case .grainBloomPlaceholder: "sparkles"
         case .koiNibblePond: "fish"
         case .gooMergeDrops: "doc.on.doc.fill"
+        case .boltStreak: "bolt.fill"
         }
     }
 
@@ -296,6 +300,7 @@ enum GalleryItem: String, CaseIterable, Identifiable, Hashable {
         case .grainBloomPlaceholder: GrainBloomPlaceholderDemo()
         case .koiNibblePond: KoiNibblePondDemo()
         case .gooMergeDrops: GooMergeDropsDemo()
+        case .boltStreak: BoltStreakDemo()
         }
     }
 }
