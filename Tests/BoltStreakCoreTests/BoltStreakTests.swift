@@ -302,6 +302,20 @@ private func arcMidpoint(_ points: [Vec2]) -> Vec2 {
         #expect(Weekday.on(previousMonday, calendar: calendar) == .monday)
     }
 
+    @Test func movingTodayRetargetsTheTapAndTheVoice() {
+        var model = BoltStreakModel(completed: [.monday], today: .monday)
+        #expect(!model.canMarkToday)
+        #expect(model.igniteToday().isEmpty)
+        model.setToday(.tuesday)
+        #expect(model.today == .tuesday)
+        #expect(model.canMarkToday)
+        #expect(model.accessibilityValue == "1 of 7 days. Monday lit. Tuesday is today.")
+        #expect(model.igniteToday() == [.ignited(.tuesday), .tick])
+        #expect(model.active == .tuesday)
+        #expect(model.dayProgress(.monday) == 1)
+        #expect(model.completed == [.monday, .tuesday])
+    }
+
     @Test func voiceOverNamesTheLitDaysAndToday() {
         let empty = BoltStreakModel(today: .sunday)
         #expect(empty.accessibilityLabel == "Weekly bolt streak")

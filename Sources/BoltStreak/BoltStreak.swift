@@ -55,11 +55,13 @@ public struct BoltStreak: View {
         }
         .sensoryFeedback(.impact(flexibility: .soft, intensity: 0.72), trigger: hapticTick)
         .onAppear {
+            if model.today != today { model.setToday(today) }
             model.setReduceMotion(reduceMotion)
             if completedDays != model.completed {
                 note(model.setCompleted(completedDays))
             }
         }
+        .onChange(of: today) { _, newDay in model.setToday(newDay) }
         .onChange(of: reduceMotion) { _, on in model.setReduceMotion(on) }
         .onChange(of: completedDays) { _, newValue in
             guard newValue != model.completed else { return }
@@ -69,7 +71,7 @@ public struct BoltStreak: View {
         .accessibilityLabel(model.accessibilityLabel)
         .accessibilityValue(model.accessibilityValue)
         .accessibilityHint(model.canMarkToday ? BoltStreakTuning.accessibilityHint : "Today is already lit.")
-        .modifier(BoltStreakAccess(canMark: model.canMarkToday, perform: { note(model.igniteToday()) }))
+        .modifier(BoltStreakAccess(canMark: model.canMarkToday, perform: { markToday() }))
     }
 
     private var scene: some View {
@@ -182,8 +184,15 @@ public struct BoltStreak: View {
                 let y = (value.location.y - originY) / scale
                 let rect = BoltStreakTuning.dayRect(for: today)
                 guard rect.contains(Vec2(Double(x), Double(y)), slop: BoltStreakTuning.hitSlop) else { return }
-                note(model.igniteToday())
+                markToday()
             }
+    }
+
+    /// Uses the view's `today`, then the model's, so a parent that moves the day
+    /// marks the new one even if the change handler has not run yet.
+    private func markToday() {
+        if model.today != today { model.setToday(today) }
+        note(model.ignite(today))
     }
 
     private func advance(to now: Date) {
@@ -248,17 +257,19 @@ private struct BoltMark: View {
             let head = BoltPath.sample(progress: clamped, in: rect)
             ZStack {
                 mark(progress: clamped, glow: glow, showsHead: showsHead, head: head)
+                // The fade is masked in the bolt's own box, opaque at the tip,
+                // then the flip carries that opaque edge to the near side of the reflection.
                 mark(progress: clamped, glow: glow * 0.65, showsHead: false, head: head)
-                    .scaleEffect(x: 1, y: -0.42, anchor: .bottom)
-                    .offset(y: BoltStreakTuning.reflectionGap)
-                    .opacity(BoltStreakTuning.reflectionOpacity * (0.35 + 0.65 * clamped))
                     .mask(
                         LinearGradient(
-                            colors: [Color.white.opacity(0.85), Color.white.opacity(0)],
+                            colors: [Color.white.opacity(0), Color.white.opacity(0.9)],
                             startPoint: .top,
                             endPoint: .bottom
                         )
                     )
+                    .scaleEffect(x: 1, y: -0.42, anchor: .bottom)
+                    .offset(y: BoltStreakTuning.reflectionGap)
+                    .opacity(BoltStreakTuning.reflectionOpacity * (0.35 + 0.65 * clamped))
                     .allowsHitTesting(false)
             }
         }

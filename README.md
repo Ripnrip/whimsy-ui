@@ -56,7 +56,7 @@ Fifty small, tactile SwiftUI components, each with a pure-Swift, unit-tested cor
 
 iOS 17+ / macOS 14+, Swift tools 6.0 (Swift 6 language mode).
 
-> **Honest status:** every core target builds, and all 1666 tests pass on Linux (Swift 6.4.2).
+> **Honest status:** every core target builds, and all 1667 tests pass on Linux (Swift 6.4.2).
 > The SwiftUI targets have **not yet been compiled or run on an Apple platform**. On Linux
 > they compile to empty modules (`#if canImport(SwiftUI)`). They were checked with
 > sourcekit-lsp (0 diagnostics), `swiftc -parse` and careful API review, but expect

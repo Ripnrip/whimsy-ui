@@ -11,7 +11,9 @@ public enum BoltStreakEvent: Equatable, Sendable {
 /// those seven, so it fills as the days burn and matches `weeklyTarget` once they settle.
 /// Reduce Motion snaps a day to full, parks the head on the tip, and does not pulse.
 public struct BoltStreakModel: Equatable, Sendable {
-    public let today: Weekday
+    /// The day a tap and the VoiceOver action mark. A parent can move it
+    /// with `setToday` without recreating the model.
+    public private(set) var today: Weekday
     public private(set) var completed: Set<Weekday>
     public private(set) var reduceMotion: Bool
     public private(set) var active: Weekday?
@@ -131,6 +133,12 @@ public struct BoltStreakModel: Equatable, Sendable {
             queue.append(day)
         }
         return [.ignited(day), .tick]
+    }
+
+    /// Points the tap and the VoiceOver action at `day`. A burn already
+    /// running keeps its own day.
+    public mutating func setToday(_ day: Weekday) {
+        today = day
     }
 
     @discardableResult
