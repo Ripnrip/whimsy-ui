@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Louvre Vent Thermostat</title>
+<style>
+  html, body { margin: 0; height: 100%; background: #17120f; }
+  body { display: flex; align-items: center; justify-content: center; }
+  canvas { display: block; touch-action: none; }
+  #sheet { display: none; }
+</style>
+</head>
+<body>
+<canvas id="stage" width="390" height="844"></canvas>
+<canvas id="sheet" width="10" height="10"></canvas>
+<script type="module">
+import { TUNING, LouvreVentModel, demoAt, DEMO_STILLS, DEMO_DURATION } from "./louvrevent-core.mjs";
+
+const stage = document.querySelector("#stage");
+const sheet = document.querySelector("#sheet");
+const ctx = stage.getContext("2d");
+const sheetCtx = sheet.getContext("2d");
+const W = TUNING.sceneWidth;
+const H = TUNING.sceneHeight;
+const params = new URLSearchParams(location.search);
+const drive = params.get("drive") === "1";
+
+function rgba(red, green, blue, alpha) {
+  const r = Math.round(clampByte(red) * 255);
+  const g = Math.round(clampByte(green) * 255);
+  const b = Math.round(clampByte(blue) * 255);
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+}
+
+function clampByte(channel) {
+  return Math.min(1, Math.max(0, channel));
+}
+
+function mixWhite(glow, amount) {
+  const mix = Math.min(1, Math.max(0, amount));
+  return {
+    red: glow.red + (1 - glow.red) * mix,
+    green: glow.green + (1 - glow.green) * mix,
+    blue: glow.blue + (1 - glow.blue) * mix,
+  };
+}
+
+function roundRect(c, x, y, w, h, r) {
+  const radius = Math.max(0, Math.min(r, w / 2, h / 2));
+  c.beginPath();
+  c.moveTo(x + radius, y);
+  c.arcTo(x + w, y, x + w, y + h, radius);
+  c.arcTo(x + w, y + h, x, y + h, radius);
+  c.arcTo(x, y + h, x, y, radius);
+  c.arcTo(x, y, x + w, y, radius);
+  c.closePath();
+}
+
+function drawScene(c, model) {
+  const glow = model.glow;
+  const room = c.createLinearGradient(0, 0, 0, H);
+  room.addColorStop(0, "#17191c");
+  room.addColorStop(1, "#24160f");
+  c.fillStyle = room;
+  c.fillRect(0, 0, W, H);
+
+  const spill = c.createRadialGradient(W / 2, TUNING.frameY + TUNING.frameHeight - 10, 20, W / 2, TUNING.frameY + TUNING.frameHeight + 40, 210);
+  const spillColor = mixWhite(glow, 0.12);
+  spill.addColorStop(0, rgba(spillColor.red, spillColor.green, spillColor.blue, 0.28 * glow.intensity));
+  spill.addColorStop(1, "rgba(0, 0, 0, 0)");
+  c.fillStyle = spill;
+  c.fillRect(0, 0, W, H);
+
+  const frameX = TUNING.frameX;
+  const frameY = TUNING.frameY;
+  const frameW = TUNING.frameWidth;
+  const frameH = TUNING.frameHeight;
+  const shell = c.createLinearGradient(0, frameY, 0, frameY + frameH);
+  shell.addColorStop(0, "#9ea4aa");
+  shell.addColorStop(0.16, "#d5d9dd");
+  shell.addColorStop(0.48, "#6d7379");
+  shell.addColorStop(1, "#3a3e42");
+  c.fillStyle = shell;
+  roundRect(c, frameX, frameY, frameW, frameH, TUNING.frameRadius);
+  c.fill();
+  c.strokeStyle = "rgba(255, 255, 255, 0.34)";
+  c.lineWidth = 1;
+  c.stroke();
+
+  const ox = TUNING.openingX;
+  const oy = TUNING.openingY;
+  const ow = TUNING.openingWidth;
+  const oh = TUNING.openingHeight;
+  c.save();
+  roundRect(c, ox, oy, ow, oh, TUNING.openingRadius);
+  c.clip();
+  c.fillStyle = "#0c0705";
+  c.fillRect(ox, oy, ow, oh);
+
+  const edge = mixWhite(glow, glow.intensity * 0.2);
+  const core = mixWhite(glow, Math.max(0, glow.intensity - 0.35) * 1.35);
+  const heat = c.createLinearGradient(0, oy, 0, oy + oh);
+  heat.addColorStop(0, rgba(edge.red, edge.green, edge.blue, 0.82));
+  heat.addColorStop(0.5, rgba(core.red, core.green, core.blue, 0.96));
+  heat.addColorStop(1, rgba(edge.red, edge.green, edge.blue, 0.88));
+  c.fillStyle = heat;
+  c.fillRect(ox, oy, ow, oh);
+  c.globalCompositeOperation = "destination-out";
+  c.fillStyle = "#000";
+  for (const slot of model.slots) {
+    const height = Math.max(0, slot.projectedHeight);
+    c.fillRect(slot.x, slot.centerY - height / 2, slot.width, height);
+  }
+  c.restore();
+
+  const intensity = model.intensity();
+  for (const slot of model.slots) {
+    const height = Math.max(1.2, slot.projectedHeight);
+    const top = slot.centerY - height / 2;
+    const steel = c.createLinearGradient(slot.x, top, slot.x + slot.width, top);
+    steel.addColorStop(0, "#2a2e32");
+    steel.addColorStop(0.2, "#7d868d");
+    steel.addColorStop(0.5, "#b7c0c6");
+    steel.addColorStop(0.8, "#6e767c");
+    steel.addColorStop(1, "#23272b");
+    c.fillStyle = steel;
+    roundRect(c, slot.x, top, slot.width, height, Math.min(3, height / 2));
+    c.fill();
+
+    const band = Math.max(2, height * 0.16);
+    const bandY = top + slot.specular * height - band / 2;
+    c.save();
+    roundRect(c, slot.x, top, slot.width, height, Math.min(3, height / 2));
+    c.clip();
+    const glint = c.createLinearGradient(slot.x, bandY, slot.x, bandY + band);
+    const alpha = 0.55 + 0.4 * intensity;
+    glint.addColorStop(0, "rgba(255, 255, 255, 0)");
+    glint.addColorStop(0.5, `rgba(255, 252, 244, ${alpha})`);
+    glint.addColorStop(1, "rgba(255, 255, 255, 0)");
+    c.fillStyle = glint;
+    c.shadowColor = `rgba(255, 250, 240, ${0.45 + 0.4 * intensity})`;
+    c.shadowBlur = 8;
+    c.fillRect(slot.x + 10, bandY, slot.width - 20, band);
+    c.restore();
+
+    c.fillStyle = rgba(glow.red, glow.green, glow.blue, 0.45 * glow.intensity);
+    c.fillRect(slot.x + 6, top + height - 1.6, slot.width - 12, 1.6);
+  }
+
+  c.strokeStyle = "rgba(255, 255, 255, 0.22)";
+  c.lineWidth = 1.5;
+  roundRect(c, ox + 0.5, oy + 0.5, ow - 1, oh - 1, TUNING.openingRadius);
+  c.stroke();
+
+  const screws = [
+    [frameX + 16, frameY + 16],
+    [frameX + frameW - 16, frameY + 16],
+    [frameX + 16, frameY + frameH - 16],
+    [frameX + frameW - 16, frameY + frameH - 16],
+  ];
+  for (const [sx, sy] of screws) {
+    const head = c.createRadialGradient(sx - 1.4, sy - 1.4, 0.4, sx, sy, 5.5);
+    head.addColorStop(0, "#e7ebef");
+    head.addColorStop(1, "#4a4f54");
+    c.fillStyle = head;
+    c.beginPath();
+    c.arc(sx, sy, 4.6, 0, Math.PI * 2);
+    c.fill();
+    c.strokeStyle = "#1c1e20";
+    c.lineWidth = 1;
+    c.beginPath();
+    c.moveTo(sx - 2.4, sy);
+    c.lineTo(sx + 2.4, sy);
+    c.stroke();
+  }
+
+  c.strokeStyle = "rgba(255, 255, 255, 0.32)";
+  c.lineWidth = 2;
+  c.beginPath();
+  c.moveTo(TUNING.railX, oy);
+  c.lineTo(TUNING.railX, oy + oh);
+  c.stroke();
+  c.lineWidth = 1;
+  c.fillStyle = "rgba(255, 255, 255, 0.55)";
+  c.font = "11px 'DejaVu Sans Mono', monospace";
+  c.textAlign = "left";
+  c.textBaseline = "middle";
+  for (let temperature = TUNING.defaultLower; temperature <= TUNING.defaultUpper; temperature += 5) {
+    const hot = (temperature - TUNING.defaultLower) / (TUNING.defaultUpper - TUNING.defaultLower);
+    const y = oy + oh - hot * oh;
+    c.beginPath();
+    c.moveTo(TUNING.railX - 5, y);
+    c.lineTo(TUNING.railX + 5, y);
+    c.stroke();
+    if (temperature === 60 || temperature === 85) {
+      c.fillText(String(temperature), TUNING.railX + 10, y);
+    }
+  }
+  const markY = oy + oh - model.displayedUnit * oh;
+  const readout = mixWhite(glow, 0.35 + 0.65 * glow.intensity);
+  c.fillStyle = rgba(readout.red, readout.green, readout.blue, 1);
+  roundRect(c, TUNING.railX - 7, markY - 5, 14, 10, 3);
+  c.fill();
+
+  c.fillStyle = "rgba(255, 255, 255, 0.72)";
+  c.font = "600 13px 'DejaVu Sans', sans-serif";
+  c.textAlign = "center";
+  c.textBaseline = "middle";
+  c.fillText(TUNING.wordmark, W / 2, TUNING.wordmarkY);
+  c.fillStyle = "rgba(255, 255, 255, 0.42)";
+  c.font = "500 11px 'DejaVu Sans', sans-serif";
+  c.fillText(TUNING.caption, W / 2, TUNING.captionY);
+
+  c.fillStyle = rgba(readout.red, readout.green, readout.blue, 1);
+  c.font = "500 92px 'DejaVu Sans Mono', monospace";
+  c.textBaseline = "middle";
+  c.fillText(model.readout, W / 2 - 8, TUNING.readoutY);
+  c.font = "500 22px 'DejaVu Sans Mono', monospace";
+  c.textAlign = "left";
+  c.fillText("°F", W / 2 + 62, TUNING.readoutY - 28);
+
+  c.fillStyle = "rgba(255, 255, 255, 0.38)";
+  c.font = "12px 'DejaVu Sans', sans-serif";
+  c.textAlign = "center";
+  c.fillText("Drag up to open the vent", W / 2, 760);
+}
+
+const live = new LouvreVentModel(68);
+let last = 0;
+
+function frame(now) {
+  if (!drive) {
+    const dt = last ? Math.min(0.05, (now - last) / 1000) : 0;
+    last = now;
+    if (dt > 0) live.step(dt);
+    drawScene(ctx, live);
+  }
+  requestAnimationFrame(frame);
+}
+
+if (!drive) {
+  stage.addEventListener("pointerdown", (event) => {
+    const y = event.offsetY;
+    live.beginDrag(y);
+    stage.setPointerCapture(event.pointerId);
+    drawScene(ctx, live);
+  });
+  stage.addEventListener("pointermove", (event) => {
+    if (!live.isDragging) return;
+    live.updateDrag(event.offsetY);
+    drawScene(ctx, live);
+  });
+  stage.addEventListener("pointerup", () => {
+    live.endDrag();
+    drawScene(ctx, live);
+  });
+  stage.addEventListener("pointercancel", () => live.endDrag());
+  requestAnimationFrame(frame);
+  drawScene(ctx, live);
+}
+
+window.renderAt = (t) => {
+  const model = demoAt(t);
+  drawScene(ctx, model);
+  return { temperature: model.temperature, angle: model.displayAngle, t };
+};
+
+window.renderSheet = () => {
+  const panelW = 156;
+  const panelH = Math.round(H * (panelW / W));
+  const cols = 3;
+  const labelH = 26;
+  const gap = 14;
+  const rows = Math.ceil(DEMO_STILLS.length / cols);
+  const width = gap + cols * (panelW + gap);
+  const height = gap + rows * (labelH + panelH + gap);
+  sheet.width = width;
+  sheet.height = height;
+  sheet.style.width = `${width}px`;
+  sheet.style.height = `${height}px`;
+  sheetCtx.setTransform(1, 0, 0, 1, 0, 0);
+  sheetCtx.fillStyle = "#140e0c";
+  sheetCtx.fillRect(0, 0, width, height);
+  DEMO_STILLS.forEach((still, index) => {
+    const col = index % cols;
+    const row = Math.floor(index / cols);
+    const x = gap + col * (panelW + gap);
+    const y = gap + row * (labelH + panelH + gap);
+    sheetCtx.fillStyle = "#f3e6d4";
+    sheetCtx.font = "600 13px 'DejaVu Sans', sans-serif";
+    sheetCtx.textAlign = "left";
+    sheetCtx.textBaseline = "middle";
+    sheetCtx.fillText(still.name, x, y + 12);
+    const model = demoAt(still.t, { reduceMotion: !!still.reduceMotion });
+    const snapshot = document.createElement("canvas");
+    snapshot.width = W;
+    snapshot.height = H;
+    drawScene(snapshot.getContext("2d"), model);
+    sheetCtx.drawImage(snapshot, x, y + labelH, panelW, panelH);
+  });
+  sheet.style.display = "block";
+  stage.style.display = "none";
+  document.body.style.background = "#140e0c";
+  return { width, height };
+};
+
+window.__ready = true;
+window.__demoDuration = DEMO_DURATION;
+</script>
+</body>
+</html>
