@@ -119,6 +119,8 @@ let package = Package(
         .library(name: "GooMergeCore", targets: ["GooMergeCore"]),
         .library(name: "LouvreVentThermostat", targets: ["LouvreVentThermostat"]),
         .library(name: "LouvreVentCore", targets: ["LouvreVentCore"]),
+        .library(name: "BoltStreak", targets: ["BoltStreak"]),
+        .library(name: "BoltStreakCore", targets: ["BoltStreakCore"]),
         // A demo gallery listing every component.
         .library(name: "WhimsyGallery", targets: ["WhimsyGallery"]),
     ],
@@ -281,12 +283,16 @@ let package = Package(
         .target(name: "LouvreVentThermostat", dependencies: ["LouvreVentCore"],
                 exclude: metalExclude, resources: metalResources),
 
+        .target(name: "BoltStreakCore", dependencies: ["WhimsyCore"]),
+        .target(name: "BoltStreak", dependencies: ["BoltStreakCore"]),
+
         .target(name: "WhimsyGallery", dependencies: [
             "PopTherapy", "MagneticBeadSlider", "EraserDelete", "ShutterReveal", "AliveEyes", "ScatterRegroup", "SolarFlareLike", "FlyingButton",
             "GrainyRingGallery", "LiquidMetalCompass", "SweaterRail", "FontCollection", "FollowBlobHero", "MoonPhaseScrubber", "ClothPoster", "TiltPhotoGrid", "ScrollSpinWatch", "BoutiqueBurst", "PeelableSticker", "FrostCard", "HoloFoilCard", "OilPaintRestore", "WiggleMatchSearch", "PourOpenMenu", "OctoDoneChecklist", "AsciiNowPlaying", "DogEarPeelCard", "ColorFigureGumball", "ChannelFlipCard", "ContourInkLoader", "ShelfPull", "StarJar", "HoldToFanDock", "TiltScatterRestore", "NeighborBouncePicker", "RubberBandCardHand",             "CrumpleToDelete", "RippleToHide", "VelocityGlyphScatter", "PinataReward", "CardToPillGlassMorph", "OnAirLampToggle", "ReededGlassSyncHero", "GlassDropPourMenu", "RotaryDialPasscode", "GrainBloomPlaceholder",
             "KoiNibblePond",
             "GooMergeDrops",
             "LouvreVentThermostat",
+            "BoltStreak",
         ]),
 
         .testTarget(name: "WhimsyCoreTests", dependencies: ["WhimsyCore"]),
@@ -344,6 +350,8 @@ let package = Package(
         .testTarget(name: "GooMergeCoreTests", dependencies: ["GooMergeCore"],
                     exclude: ["Fixtures"]),
         .testTarget(name: "LouvreVentCoreTests", dependencies: ["LouvreVentCore"],
+                    exclude: ["Fixtures"]),
+        .testTarget(name: "BoltStreakCoreTests", dependencies: ["BoltStreakCore"],
                     exclude: ["Fixtures"]),
     ]
 )

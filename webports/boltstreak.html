@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Bolt Streak</title>
+<style>
+  html, body { margin: 0; height: 100%; background: #0d0e10; }
+  body { display: flex; align-items: center; justify-content: center; }
+  canvas { display: block; }
+  #sheet { display: none; }
+</style>
+</head>
+<body>
+<canvas id="stage" width="780" height="1688" style="width:390px;height:844px"></canvas>
+<canvas id="sheet" width="10" height="10"></canvas>
+<script type="module">
+import {
+  TUNING, WEEKDAYS, WEEKDAY_LABELS, demoAt, DEMO_STILLS, DEMO_DURATION,
+  BoltStreakModel, scenePoints, sample, dayRect, contains, pathLength,
+} from "./boltstreak-core.mjs";
+
+const W = TUNING.sceneWidth;
+const H = TUNING.sceneHeight;
+const stage = document.querySelector("#stage");
+const sheet = document.querySelector("#sheet");
+const ctx = stage.getContext("2d");
+const sheetCtx = sheet.getContext("2d");
+const driven = new URLSearchParams(location.search).get("drive") === "1";
+
+function rgb(channels, alpha = 1) {
+  const r = Math.round(channels[0] * 255);
+  const g = Math.round(channels[1] * 255);
+  const b = Math.round(channels[2] * 255);
+  return alpha === 1 ? `rgb(${r}, ${g}, ${b})` : `rgba(${r}, ${g}, ${b}, ${alpha})`;
+}
+
+function rounded(c, x, y, w, h, r) {
+  c.beginPath();
+  c.moveTo(x + r, y);
+  c.arcTo(x + w, y, x + w, y + h, r);
+  c.arcTo(x + w, y + h, x, y + h, r);
+  c.arcTo(x, y + h, x, y, r);
+  c.arcTo(x, y, x + w, y, r);
+  c.closePath();
+}
+
+function traceFull(c, rect) {
+  const points = scenePoints(rect);
+  c.beginPath();
+  c.moveTo(points[0].x, points[0].y);
+  for (let index = 1; index < points.length; index += 1) c.lineTo(points[index].x, points[index].y);
+}
+
+function traceTrim(c, rect, amount) {
+  const points = scenePoints(rect);
+  const total = pathLength(rect);
+  const target = Math.min(Math.max(amount, 0), 1) * total;
+  c.beginPath();
+  c.moveTo(points[0].x, points[0].y);
+  let walked = 0;
+  for (let index = 1; index < points.length; index += 1) {
+    const start = points[index - 1];
+    const end = points[index];
+    const dx = end.x - start.x;
+    const dy = end.y - start.y;
+    const segment = Math.sqrt(dx * dx + dy * dy);
+    if (walked + segment >= target || index === points.length - 1) {
+      const u = segment > 0 ? Math.min(Math.max((target - walked) / segment, 0), 1) : 0;
+      c.lineTo(start.x + dx * u, start.y + dy * u);
+      break;
+    }
+    c.lineTo(end.x, end.y);
+    walked += segment;
+  }
+}
+
+function drawBolt(c, rect, amount, glow, showsHead, stroke, headSize, bevel) {
+  c.save();
+  c.lineCap = "round";
+  c.lineJoin = "round";
+  c.strokeStyle = rgb(TUNING.zincShadow);
+  c.lineWidth = stroke;
+  c.translate(bevel, bevel);
+  traceFull(c, rect);
+  c.stroke();
+  c.translate(-bevel, -bevel);
+
+  c.strokeStyle = rgb(TUNING.zincHighlight);
+  c.lineWidth = stroke * 0.55;
+  c.translate(-bevel * 0.65, -bevel * 0.65);
+  traceFull(c, rect);
+  c.stroke();
+  c.translate(bevel * 0.65, bevel * 0.65);
+
+  c.strokeStyle = rgb(TUNING.zinc);
+  c.lineWidth = stroke;
+  traceFull(c, rect);
+  c.stroke();
+
+  if (amount > 0) {
+    c.save();
+    c.globalCompositeOperation = "lighter";
+    c.filter = `blur(${Math.max(TUNING.glowBlur * glow, 0.01)}px)`;
+    c.strokeStyle = rgb(TUNING.gold);
+    c.lineWidth = stroke * 1.7;
+    c.globalAlpha = glow > 0 ? 0.95 : 0;
+    traceTrim(c, rect, amount);
+    c.stroke();
+    c.restore();
+
+    c.strokeStyle = rgb(TUNING.gold);
+    c.lineWidth = stroke;
+    traceTrim(c, rect, amount);
+    c.stroke();
+    c.strokeStyle = rgb(TUNING.goldCore);
+    c.lineWidth = stroke * 0.42;
+    traceTrim(c, rect, amount);
+    c.stroke();
+  }
+
+  if (showsHead) {
+    const head = sample(Math.min(Math.max(amount, 0), 1), rect);
+    c.save();
+    c.globalCompositeOperation = "lighter";
+    c.fillStyle = rgb(TUNING.gold);
+    c.filter = `blur(${headSize * 0.45}px)`;
+    c.beginPath();
+    c.arc(head.x, head.y, headSize * 1.2, 0, Math.PI * 2);
+    c.fill();
+    c.restore();
+    c.fillStyle = "#fff";
+    c.beginPath();
+    c.arc(head.x, head.y, headSize * 0.5, 0, Math.PI * 2);
+    c.fill();
+  }
+  c.restore();
+}
+
+function drawBoltWithReflection(c, rect, amount, glow, showsHead, stroke, headSize, bevel) {
+  drawBolt(c, rect, amount, glow, showsHead, stroke, headSize, bevel);
+  const pivot = rect.y + rect.height;
+  c.save();
+  c.translate(0, pivot + TUNING.reflectionGap);
+  c.scale(1, -0.42);
+  c.translate(0, -pivot);
+  c.globalAlpha = TUNING.reflectionOpacity * (0.35 + 0.65 * Math.min(Math.max(amount, 0), 1));
+  drawBolt(c, rect, amount, glow * 0.65, false, stroke, headSize, bevel);
+  c.restore();
+}
+
+function drawScene(c, model) {
+  const sky = c.createLinearGradient(0, 0, 0, H);
+  sky.addColorStop(0, rgb(TUNING.backgroundTop));
+  sky.addColorStop(1, rgb(TUNING.backgroundBottom));
+  c.fillStyle = sky;
+  c.fillRect(0, 0, W, H);
+
+  if (model.weeklyProgress > 0) {
+    const rect = TUNING.weeklyRect;
+    c.save();
+    c.filter = "blur(18px)";
+    c.fillStyle = rgb(TUNING.spill, 0.18 + 0.55 * model.weeklyProgress);
+    c.beginPath();
+    c.ellipse(rect.x + rect.width / 2, rect.y + rect.height - 8, 90, 28, 0, 0, Math.PI * 2);
+    c.fill();
+    c.restore();
+  }
+
+  c.fillStyle = rgb(TUNING.wordmarkColor);
+  c.font = "500 34px 'Iowan Old Style', Palatino, 'DejaVu Serif', serif";
+  c.textAlign = "center";
+  c.textBaseline = "middle";
+  c.letterSpacing = "8px";
+  c.fillText(TUNING.wordmark, W / 2, TUNING.wordmarkY);
+  c.letterSpacing = "3.4px";
+  c.fillStyle = rgb(TUNING.captionColor);
+  c.font = "600 12px Inter, 'DejaVu Sans', sans-serif";
+  c.fillText(TUNING.caption, W / 2, TUNING.captionY);
+  c.letterSpacing = "0px";
+
+  const weekly = TUNING.weeklyRect;
+  drawBoltWithReflection(
+    c, weekly, model.weeklyProgress, model.weeklyGlow, model.weeklyHead !== null,
+    TUNING.weeklyStroke, TUNING.weeklyHead, TUNING.weeklyBevel,
+  );
+
+  c.fillStyle = rgb(model.completed.size === 0 ? TUNING.zinc : TUNING.gold);
+  c.font = "500 72px 'Iowan Old Style', Palatino, 'DejaVu Serif', serif";
+  c.fillText(String(model.completed.size), W / 2, TUNING.readoutY);
+  c.fillStyle = rgb(TUNING.captionColor);
+  c.font = "600 13px Inter, 'DejaVu Sans', sans-serif";
+  c.letterSpacing = "3px";
+  c.fillText(TUNING.ofSeven, W / 2, TUNING.ofSevenY);
+  c.letterSpacing = "0px";
+
+  const plateWidth = TUNING.dayRowWidth + 36;
+  const plateHeight = TUNING.dayHeight + 64;
+  const rowCenterY = TUNING.dayOriginY + TUNING.dayHeight / 2 + 10;
+  c.save();
+  const tilt = TUNING.tiltDegrees * Math.PI / 180;
+  c.translate(W / 2, rowCenterY);
+  c.transform(1, 0, -Math.sin(tilt) * 0.15, Math.cos(tilt), 0, 0);
+  c.translate(-W / 2, -rowCenterY);
+  rounded(c, (W - plateWidth) / 2, rowCenterY - plateHeight / 2, plateWidth, plateHeight, 22);
+  c.fillStyle = rgb(TUNING.plate, 0.045);
+  c.fill();
+  c.strokeStyle = rgb(TUNING.plate, 0.08);
+  c.lineWidth = 1;
+  c.stroke();
+
+  WEEKDAYS.forEach((_, index) => {
+    const rect = dayRect(index);
+    const lit = model.completed.has(index);
+    drawBolt(
+      c, rect, model.dayProgress(index), model.glow(index), model.head(index) !== null,
+      TUNING.dayStroke, TUNING.dayHead, TUNING.dayBevel,
+    );
+    c.fillStyle = rgb(lit ? TUNING.labelLit : TUNING.labelDim);
+    c.font = "600 13px Inter, 'DejaVu Sans', sans-serif";
+    c.textAlign = "center";
+    c.textBaseline = "middle";
+    c.fillText(WEEKDAY_LABELS[index], rect.x + rect.width / 2, TUNING.dayOriginY + TUNING.dayHeight + TUNING.labelGap);
+  });
+  c.restore();
+}
+
+function paintStage(model) {
+  ctx.setTransform(2, 0, 0, 2, 0, 0);
+  drawScene(ctx, model);
+}
+
+if (!driven) {
+  const live = new BoltStreakModel({ completed: [0, 1, 2], today: 3 });
+  let last = 0;
+  stage.addEventListener("pointerdown", (event) => {
+    const bounds = stage.getBoundingClientRect();
+    const x = ((event.clientX - bounds.left) / bounds.width) * W;
+    const y = ((event.clientY - bounds.top) / bounds.height) * H;
+    if (contains(dayRect(live.today), { x, y }, TUNING.hitSlop)) live.igniteToday();
+  });
+  const frame = (now) => {
+    const dt = last ? Math.min(0.05, (now - last) / 1000) : 0;
+    last = now;
+    if (dt > 0) live.step(dt);
+    paintStage(live);
+    requestAnimationFrame(frame);
+  };
+  requestAnimationFrame(frame);
+}
+
+window.renderAt = (time) => {
+  const model = demoAt(time);
+  paintStage(model);
+  return {
+    weekly: model.weeklyProgress,
+    count: model.completed.size,
+    reduce: model.reduceMotion,
+  };
+};
+
+window.renderSheet = () => {
+  const panelW = 180;
+  const panelH = Math.round(H * (panelW / W));
+  const cols = 4;
+  const labelH = 28;
+  const gap = 16;
+  const rows = 2;
+  const width = gap + cols * (panelW + gap);
+  const height = gap + rows * (labelH + panelH + gap);
+  sheet.width = width * 2;
+  sheet.height = height * 2;
+  sheet.style.width = `${width}px`;
+  sheet.style.height = `${height}px`;
+  sheetCtx.setTransform(2, 0, 0, 2, 0, 0);
+  sheetCtx.fillStyle = "#141210";
+  sheetCtx.fillRect(0, 0, width, height);
+  DEMO_STILLS.forEach((still, index) => {
+    const col = index % cols;
+    const row = Math.floor(index / cols);
+    const x = gap + col * (panelW + gap);
+    const y = gap + row * (labelH + panelH + gap);
+    sheetCtx.fillStyle = "#f0d7a4";
+    sheetCtx.font = "600 13px Inter, 'DejaVu Sans', sans-serif";
+    sheetCtx.textAlign = "left";
+    sheetCtx.textBaseline = "middle";
+    sheetCtx.fillText(still.name, x, y + 12);
+    const snapshot = document.createElement("canvas");
+    snapshot.width = W * 2;
+    snapshot.height = H * 2;
+    const snap = snapshot.getContext("2d");
+    snap.setTransform(2, 0, 0, 2, 0, 0);
+    drawScene(snap, demoAt(still.t));
+    sheetCtx.drawImage(snapshot, x, y + labelH, panelW, panelH);
+  });
+  sheet.style.display = "block";
+  stage.style.display = "none";
+  document.body.style.background = "#141210";
+  return { width, height };
+};
+
+window.__ready = true;
+window.__demoDuration = DEMO_DURATION;
+</script>
+</body>
+</html>
