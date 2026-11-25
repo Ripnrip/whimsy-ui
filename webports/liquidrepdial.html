@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Liquid Rep Dial</title>
+<style>
+  html, body { margin: 0; height: 100%; background: #080d18; }
+  body { display: flex; align-items: center; justify-content: center; }
+  canvas { display: block; }
+  #sheet { display: none; }
+</style>
+</head>
+<body>
+<canvas id="stage" width="780" height="1688" style="width:390px;height:844px"></canvas>
+<canvas id="sheet" width="10" height="10"></canvas>
+<script type="module">
+import {
+  TUNING, demoAt, DEMO_STILLS, DEMO_DURATION, LiquidRepModel,
+} from "./liquidrepdial-core.mjs";
+
+const W = TUNING.sceneWidth;
+const H = TUNING.sceneHeight;
+const stage = document.querySelector("#stage");
+const sheet = document.querySelector("#sheet");
+const ctx = stage.getContext("2d");
+const sheetCtx = sheet.getContext("2d");
+const driven = new URLSearchParams(location.search).get("drive") === "1";
+
+function rgb(channels, alpha = 1) {
+  const r = Math.round(channels[0] * 255);
+  const g = Math.round(channels[1] * 255);
+  const b = Math.round(channels[2] * 255);
+  return alpha === 1 ? `rgb(${r}, ${g}, ${b})` : `rgba(${r}, ${g}, ${b}, ${alpha})`;
+}
+
+function drawScene(c, model) {
+  const ground = c.createLinearGradient(W / 2, 0, W / 2, H);
+  ground.addColorStop(0, rgb(TUNING.backgroundTop));
+  ground.addColorStop(1, rgb(TUNING.backgroundBottom));
+  c.fillStyle = ground;
+  c.fillRect(0, 0, W, H);
+
+  const center = TUNING.dialCenter;
+  const rim = model.rim;
+  if (model.displayedFill > 0) {
+    c.save();
+    c.filter = "blur(18px)";
+    c.fillStyle = rgb(TUNING.lime, 0.05 + 0.16 * model.glow);
+    c.beginPath();
+    c.ellipse(center.x, center.y + 115, 120, 45, 0, 0, Math.PI * 2);
+    c.fill();
+    c.restore();
+  }
+
+  const glass = c.createRadialGradient(center.x, center.y - 18, 8, center.x, center.y, 110);
+  glass.addColorStop(0, rgb(TUNING.glassInner));
+  glass.addColorStop(1, rgb(TUNING.glassOuter));
+  c.beginPath();
+  c.arc(center.x, center.y, TUNING.dialDiameter / 2, 0, Math.PI * 2);
+  c.fillStyle = glass;
+  c.fill();
+  c.lineWidth = 1.25;
+  c.strokeStyle = rgb(TUNING.glassEdge, 0.28);
+  c.stroke();
+
+  c.save();
+  c.beginPath();
+  c.arc(center.x, center.y, TUNING.dialDiameter / 2, 0, Math.PI * 2);
+  c.clip();
+  const sheen = c.createRadialGradient(center.x, center.y - 48, 4, center.x, center.y - 20, 90);
+  sheen.addColorStop(0, "rgba(255,255,255,0.16)");
+  sheen.addColorStop(1, "rgba(255,255,255,0)");
+  c.fillStyle = sheen;
+  c.beginPath();
+  c.ellipse(center.x, center.y - 36, 70, 42, 0, 0, Math.PI * 2);
+  c.fill();
+  c.restore();
+
+  c.beginPath();
+  c.arc(center.x, center.y, TUNING.ringRadius, 0, Math.PI * 2);
+  c.lineWidth = TUNING.stroke;
+  c.strokeStyle = rgb(TUNING.track, 0.1);
+  c.lineCap = "round";
+  c.stroke();
+
+  if (rim.trim > 0.001) {
+    const start = -Math.PI / 2 + rim.slosh;
+    const end = start + rim.trim * Math.PI * 2;
+    c.save();
+    c.lineCap = "round";
+    c.shadowColor = rgb(TUNING.lime, 0.9);
+    c.shadowBlur = 16;
+    c.strokeStyle = rgb(TUNING.lime, 0.55 + 0.45 * rim.glow);
+    c.lineWidth = TUNING.stroke * 1.45;
+    c.beginPath();
+    c.arc(center.x, center.y, TUNING.ringRadius, start, end);
+    c.stroke();
+    c.restore();
+
+    const gradient = c.createConicGradient(start, center.x, center.y);
+    gradient.addColorStop(0, rgb(TUNING.limeDeep));
+    gradient.addColorStop(Math.min(Math.max(rim.trim * 0.72, 0.02), 0.98), rgb(TUNING.lime));
+    gradient.addColorStop(Math.min(Math.max(rim.trim, 0.04), 0.999), rgb(TUNING.limeBright));
+    gradient.addColorStop(1, rgb(TUNING.limeDeep));
+    c.save();
+    c.lineCap = "round";
+    c.strokeStyle = gradient;
+    c.lineWidth = TUNING.stroke;
+    c.beginPath();
+    c.arc(center.x, center.y, TUNING.ringRadius, start, end);
+    c.stroke();
+    c.restore();
+
+    const blob = 18 + rim.bulge;
+    const glowBlob = c.createRadialGradient(rim.leading.x, rim.leading.y, 1, rim.leading.x, rim.leading.y, blob);
+    glowBlob.addColorStop(0, rgb(TUNING.limeBright, 0.95));
+    glowBlob.addColorStop(1, rgb(TUNING.lime, 0));
+    c.fillStyle = glowBlob;
+    c.beginPath();
+    c.arc(rim.leading.x, rim.leading.y, blob, 0, Math.PI * 2);
+    c.fill();
+  }
+
+  c.fillStyle = rgb(TUNING.wordmarkColor);
+  c.font = "500 28px 'Iowan Old Style', Palatino, 'DejaVu Serif', serif";
+  c.textAlign = "center";
+  c.textBaseline = "middle";
+  c.letterSpacing = "8px";
+  c.fillText(TUNING.wordmark, W / 2, TUNING.wordmarkY);
+  c.letterSpacing = "3.6px";
+  c.fillStyle = rgb(TUNING.captionColor);
+  c.font = "600 12px Inter, 'DejaVu Sans', sans-serif";
+  c.fillText(TUNING.caption, W / 2, TUNING.captionY);
+  c.letterSpacing = "3.2px";
+  c.fillText(`GOAL ${model.goal}`, W / 2, TUNING.goalY);
+  c.letterSpacing = "0px";
+
+  c.fillStyle = rgb(model.atGoal ? TUNING.limeBright : TUNING.number);
+  c.font = "500 84px Inter, 'DejaVu Sans', sans-serif";
+  c.fillText(model.readout, center.x, TUNING.numberY);
+  c.fillStyle = rgb(TUNING.label);
+  c.font = "600 13px Inter, 'DejaVu Sans', sans-serif";
+  c.letterSpacing = "4px";
+  c.fillText(TUNING.repsLabel, center.x, TUNING.repsLabelY);
+  c.letterSpacing = "0px";
+}
+
+function paintStage(model) {
+  ctx.setTransform(2, 0, 0, 2, 0, 0);
+  drawScene(ctx, model);
+}
+
+if (!driven) {
+  const live = new LiquidRepModel(0, 20);
+  let last = 0;
+  stage.addEventListener("pointerdown", (event) => {
+    const bounds = stage.getBoundingClientRect();
+    const x = ((event.clientX - bounds.left) / bounds.width) * W;
+    const y = ((event.clientY - bounds.top) / bounds.height) * H;
+    const dx = x - TUNING.dialCenter.x;
+    const dy = y - TUNING.dialCenter.y;
+    const reach = TUNING.dialDiameter / 2 + TUNING.hitSlop;
+    if (dx * dx + dy * dy <= reach * reach) live.addRep();
+  });
+  const frame = (now) => {
+    const dt = last ? Math.min(0.05, (now - last) / 1000) : 0;
+    last = now;
+    if (dt > 0) live.step(dt);
+    paintStage(live);
+    requestAnimationFrame(frame);
+  };
+  requestAnimationFrame(frame);
+}
+
+window.renderAt = (time) => {
+  const model = demoAt(time);
+  paintStage(model);
+  return {
+    reps: model.reps,
+    fill: model.displayedFill,
+    slosh: model.sloshAngle,
+    reduce: model.reduceMotion,
+  };
+};
+
+window.renderSheet = () => {
+  const panelW = 180;
+  const panelH = Math.round(H * (panelW / W));
+  const cols = 4;
+  const labelH = 28;
+  const gap = 16;
+  const rows = 2;
+  const width = gap + cols * (panelW + gap);
+  const height = gap + rows * (labelH + panelH + gap);
+  sheet.width = width * 2;
+  sheet.height = height * 2;
+  sheet.style.width = `${width}px`;
+  sheet.style.height = `${height}px`;
+  sheetCtx.setTransform(2, 0, 0, 2, 0, 0);
+  sheetCtx.fillStyle = "#10151f";
+  sheetCtx.fillRect(0, 0, width, height);
+  DEMO_STILLS.forEach((still, index) => {
+    const col = index % cols;
+    const row = Math.floor(index / cols);
+    const x = gap + col * (panelW + gap);
+    const y = gap + row * (labelH + panelH + gap);
+    sheetCtx.fillStyle = "#d7ecc0";
+    sheetCtx.font = "600 12px Inter, 'DejaVu Sans', sans-serif";
+    sheetCtx.textAlign = "left";
+    sheetCtx.textBaseline = "middle";
+    sheetCtx.fillText(still.name, x, y + 12);
+    const snapshot = document.createElement("canvas");
+    snapshot.width = W * 2;
+    snapshot.height = H * 2;
+    const snap = snapshot.getContext("2d");
+    snap.setTransform(2, 0, 0, 2, 0, 0);
+    drawScene(snap, demoAt(still.frame / 60));
+    sheetCtx.drawImage(snapshot, x, y + labelH, panelW, panelH);
+  });
+  sheet.style.display = "block";
+  stage.style.display = "none";
+  document.body.style.background = "#10151f";
+  return { width, height };
+};
+
+window.__ready = true;
+window.__demoDuration = DEMO_DURATION;
+</script>
+</body>
+</html>

@@ -53,8 +53,9 @@ import KoiNibblePond
 import GooMergeDrops
 import LouvreVentThermostat
 import BoltStreak
+import LiquidRepDial
 
-/// A navigation list of all fifty components with a small live demo of each.
+/// A navigation list of all fifty-one components with a small live demo of each.
 /// Drop `WhimsyGallery()` into a scene to browse them.
 public struct WhimsyGallery: View {
     public init() {}
@@ -86,7 +87,7 @@ public struct WhimsyGallery: View {
 }
 
 enum GalleryItem: String, CaseIterable, Identifiable, Hashable {
-    case popTherapy, magneticBeads, eraserDelete, shutterReveal, aliveEyes, scatterRegroup, solarFlare, flyingButton, ringGallery, liquidCompass, sweaterRail, fontCollection, followBlob, moonPhase, clothPoster, tiltGrid, spinWatch, boutique, peelSticker, frostCard, holoFoilCard, oilPaintRestore, wiggleMatchSearch, pourOpenMenu, octoDoneChecklist, asciiNowPlaying, dogEarPeelCard, colorFigureGumball, channelFlipCard, contourInkLoader, shelfPull, starJar, holdToFanDock, tiltScatterRestore, neighborBouncePicker, rubberBandCardHand, crumpleToDelete, rippleToHide, velocityGlyphScatter, pinataReward, cardToPillGlassMorph, onAirLampToggle, reededGlassSyncHero, glassDropPourMenu, rotaryDialPasscode, grainBloomPlaceholder, koiNibblePond, gooMergeDrops, louvreVentThermostat, boltStreak
+    case popTherapy, magneticBeads, eraserDelete, shutterReveal, aliveEyes, scatterRegroup, solarFlare, flyingButton, ringGallery, liquidCompass, sweaterRail, fontCollection, followBlob, moonPhase, clothPoster, tiltGrid, spinWatch, boutique, peelSticker, frostCard, holoFoilCard, oilPaintRestore, wiggleMatchSearch, pourOpenMenu, octoDoneChecklist, asciiNowPlaying, dogEarPeelCard, colorFigureGumball, channelFlipCard, contourInkLoader, shelfPull, starJar, holdToFanDock, tiltScatterRestore, neighborBouncePicker, rubberBandCardHand, crumpleToDelete, rippleToHide, velocityGlyphScatter, pinataReward, cardToPillGlassMorph, onAirLampToggle, reededGlassSyncHero, glassDropPourMenu, rotaryDialPasscode, grainBloomPlaceholder, koiNibblePond, gooMergeDrops, louvreVentThermostat, boltStreak, liquidRepDial
     var id: String { rawValue }
 
     var title: String {
@@ -141,6 +142,7 @@ enum GalleryItem: String, CaseIterable, Identifiable, Hashable {
         case .gooMergeDrops: "Goo Merge Drops"
         case .louvreVentThermostat: "Louvre Vent"
         case .boltStreak: "Bolt Streak"
+        case .liquidRepDial: "Liquid Rep Dial"
         }
     }
 
@@ -196,6 +198,7 @@ enum GalleryItem: String, CaseIterable, Identifiable, Hashable {
         case .gooMergeDrops: "Five file drops that melt into one document"
         case .louvreVentThermostat: "A steel vent that opens as the room gets hotter"
         case .boltStreak: "Zinc bolts that burn along the week"
+        case .liquidRepDial: "A navy glass dial that fills with lime as you count reps"
         }
     }
 
@@ -251,6 +254,7 @@ enum GalleryItem: String, CaseIterable, Identifiable, Hashable {
         case .gooMergeDrops: "doc.on.doc.fill"
         case .louvreVentThermostat: "thermometer.medium"
         case .boltStreak: "bolt.fill"
+        case .liquidRepDial: "circle.circle"
         }
     }
 
@@ -306,6 +310,7 @@ enum GalleryItem: String, CaseIterable, Identifiable, Hashable {
         case .gooMergeDrops: GooMergeDropsDemo()
         case .louvreVentThermostat: LouvreVentThermostatDemo()
         case .boltStreak: BoltStreakDemo()
+        case .liquidRepDial: LiquidRepDialDemo()
         }
     }
 }
